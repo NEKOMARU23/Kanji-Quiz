@@ -14,8 +14,11 @@ namespace TechC.KanjiQuiz.Data
         // 漢字からSVGファイルの絶対パスを生成する
         public string MakeSingleKanjiStrokePath(string kanji)
         {
+            // 漢字を4桁の16進数コードに変換
             var code = $"{char.ConvertToUtf32(kanji, 0):X4}";
-            return $"{Application.dataPath}/StreamingAssets/SVG/0{code.ToLower()}.svg";
+
+            // 現在の新しいフォルダ階層（Assets/TechC/KanjiQuiz/SVG/）を指定する
+            return $"{Application.dataPath}/TechC/KanjiQuiz/SVG/0{code.ToLower()}.svg";
         }
 
         // 漢字データ（SVG）を読み込み、ストロークごとのテキストデータを抽出する
