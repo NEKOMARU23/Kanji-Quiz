@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using TechC.KanjiQuiz.Data; 
+using TechC.KanjiQuiz.Data;
 
 namespace TechC.KanjiQuiz.StrokeOrderQuestion
 {
@@ -15,7 +15,7 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
         [SerializeField] private Color strokeColor = Color.black;
 
         private Material sharedMaterial;
-        private KanjiDataParser kanjiParser; 
+        private KanjiDataParser kanjiParser;
 
         void Awake()
         {
@@ -61,7 +61,7 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
                     strokeObj.transform.SetParent(parent.transform, false);
 
                     var lr = Instantiate(lineRendererPrefab, strokeObj.transform);
-                    
+
                     // ★ 2次元リストの記述から、構造体のプロパティ参照（.points）に変更！
                     var points = strokes[j].points;
 
@@ -89,6 +89,15 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
             {
                 Destroy(child.gameObject);
             }
+        }
+
+        /// <summary>
+        /// 解析・シャッフル済みのストロークデータを直接受け取って描画を開始する
+        /// </summary>
+        public void DrawStrokeData(List<StrokeData> strokeDataList)
+        {
+            ClearExistingStrokes();
+            StartCoroutine(DrawCumulativeStrokesCoroutine(strokeDataList));
         }
     }
 }
