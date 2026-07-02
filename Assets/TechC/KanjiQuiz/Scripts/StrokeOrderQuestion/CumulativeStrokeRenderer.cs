@@ -1,7 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TechC.KanjiQuiz.Data;
+using Cysharp.Threading.Tasks;
 
 namespace TechC.KanjiQuiz.StrokeOrderQuestion
 {
@@ -13,6 +13,7 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
         [SerializeField] private LineRenderer lineRendererPrefab;
         [SerializeField] private float strokeWidth = 0.15f;
         [SerializeField] private Color strokeColor = Color.black;
+        [SerializeField] private float horizontalSpacing = 2.5f; 
 
         private Material sharedMaterial;
         private KanjiDataParser kanjiParser;
@@ -30,6 +31,11 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
             sharedMaterial = new Material(shader);
         }
 
+        /// <summary>
+        /// 指定された漢字の書き順を段階的に描画する
+        /// </summary>
+        /// <param name="kanji"></param>
+        /// <param name="correctOrder"></param>
         public void StartKanjiDrawing(string kanji, bool correctOrder = true)
         {
             ClearExistingStrokes();
@@ -43,10 +49,10 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
 
             List<StrokeData> strokeDataList = kanjiParser.GenerateStrokePoints(strokeXmls, correctOrder);
 
-            StartCoroutine(DrawCumulativeStrokesCoroutine(strokeDataList));
+            DrawCumulativeStrokesAsync(strokeDataList, this.GetCancellationTokenOnDestroy()).Forget();
         }
 
-        private IEnumerator DrawCumulativeStrokesCoroutine(List<StrokeData> strokes)
+        private async UniTaskVoid DrawCumulativeStrokesAsync(List<StrokeData> strokes, System.Threading.CancellationToken token)
         {
             Vector3 baseOffset = Vector3.zero;
 
@@ -62,7 +68,6 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
 
                     var lr = Instantiate(lineRendererPrefab, strokeObj.transform);
 
-                    // ★ 2次元リストの記述から、構造体のプロパティ参照（.points）に変更！
                     var points = strokes[j].points;
 
                     lr.positionCount = points.Count;
@@ -76,13 +81,17 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
                     lr.material = sharedMaterial;
                 }
 
-                parent.transform.localPosition = new Vector3(i * 2.5f, baseOffset.y, baseOffset.z);
-                yield return null;
+                parent.transform.localPosition = new Vector3(i * horizontalSpacing, baseOffset.y, baseOffset.z);
+                
+                await UniTask.Yield(PlayerLoopTiming.Update, token);
             }
 
             Debug.Log($"[CumulativeStrokeRenderer] 漢字の累積描画が完了しました。総画数: {strokes.Count}");
         }
 
+        /// <summary>
+        /// 既存の描画済みストロークをすべて削除する
+        /// </summary>
         public void ClearExistingStrokes()
         {
             foreach (Transform child in transform)
@@ -97,7 +106,7 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
         public void DrawStrokeData(List<StrokeData> strokeDataList)
         {
             ClearExistingStrokes();
-            StartCoroutine(DrawCumulativeStrokesCoroutine(strokeDataList));
+            DrawCumulativeStrokesAsync(strokeDataList, this.GetCancellationTokenOnDestroy()).Forget();
         }
     }
 }
