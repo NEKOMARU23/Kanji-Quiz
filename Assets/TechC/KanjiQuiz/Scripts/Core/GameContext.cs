@@ -54,6 +54,8 @@ namespace TechC.KanjiQuiz.Data
             return questionKanjiList[CurrentQuestionIndex];
         }
 
+        
+
         /// <summary>
         /// ゲームが終了しているかどうかを判定するメソッド
         /// ゲーム終了の条件は、現在の問題番号が出題リストの数を超えた場合とする
@@ -71,6 +73,7 @@ namespace TechC.KanjiQuiz.Data
         /// <param name="isCorrect"></param>
         public void RecordAnswer(bool isCorrect)
         {
+            Debug.Log($"[GameContext] 回答記録: 問題番号 {CurrentQuestionIndex} は {(isCorrect ? "正解" : "不正解")} として保存されました。");
             if (CurrentQuestionIndex < AnswerHistory.Count)
             {
                 AnswerHistory[CurrentQuestionIndex] = isCorrect;

@@ -18,7 +18,8 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
         [SerializeField] private GameContext gameContext;
         [SerializeField] private Button nextButton;
         [SerializeField] private Button prevButton;
-        
+        [SerializeField] private GameObject ConfirmationScreen;
+
         [Header("--- プレハブと生成設定 ---")]
         [SerializeField] private QuizChoiceItem choicePrefab;
         [SerializeField] private Transform container;
@@ -40,7 +41,7 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
         private void Start()
         {
             nextButton.onClick.AddListener(OnNextButtonClicked);
-            prevButton.onClick.AddListener(OnPrevButtonClicked);
+            prevButton.onClick.AddListener(OnPrevButtonClicked);            
 
             for (int i = 0; i < numberOfChoices; i++)
             {
@@ -58,7 +59,7 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
         private void SetupQuestion()
         {
             prevButton.interactable = (gameContext.CurrentQuestionIndex > 0);
-            
+
             string currentKanji = string.Empty;
             List<string> strokeXmls = null;
 
@@ -72,25 +73,25 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
                 {
                     break;
                 }
-                
+
                 gameContext.CurrentQuestionIndex++;
             }
 
             if (gameContext.IsGameFinished() || strokeXmls == null) return;
-            
+
             correctAnswerIndex = Random.Range(0, choiceItems.Count);
-            
+
             for (int i = 0; i < choiceItems.Count; i++)
             {
                 choiceItems[i].Toggle.group = null;
                 choiceItems[i].Toggle.isOn = false;
                 choiceItems[i].Toggle.group = toggleGroup;
-                
+
                 if (!choiceItems[i].StrokeRenderer.gameObject.activeSelf)
                 {
                     choiceItems[i].StrokeRenderer.gameObject.SetActive(true);
                 }
-                
+
                 if (i == correctAnswerIndex)
                 {
                     List<StrokeData> correctPoints = kanjiParser.GenerateStrokePoints(strokeXmls, true);
@@ -116,6 +117,12 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
             }
         }
 
+
+        /// <summary>
+        /// 難易度に応じて、正解のストローク順をシャッフルするメソッド
+        /// </summary>
+        /// <param name="original"></param>
+        /// <returns></returns>
         private List<string> ApplyDifficultyShuffle(List<string> original)
         {
             List<string> shuffled = new List<string>(original);
@@ -142,7 +149,7 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
                             int idx = Random.Range(0, shuffled.Count);
                             if (!indices.Contains(idx)) indices.Add(idx);
                         }
-                        
+
                         List<string> subList = new List<string>();
                         foreach (int idx in indices) subList.Add(shuffled[idx]);
 
@@ -167,7 +174,7 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
                         int idx1 = Random.Range(0, shuffled.Count);
                         int idx2 = Random.Range(0, shuffled.Count);
                         while (idx1 == idx2) idx2 = Random.Range(0, shuffled.Count);
-                        
+
                         string temp = shuffled[idx1];
                         shuffled[idx1] = shuffled[idx2];
                         shuffled[idx2] = temp;
@@ -179,6 +186,8 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
 
         private void OnNextButtonClicked()
         {
+            nextButton.interactable = false;
+
             int selectedIndex = -1;
             for (int i = 0; i < choiceItems.Count; i++)
             {
@@ -189,12 +198,28 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
                 }
             }
 
-            if (selectedIndex == -1) return;
+            if (selectedIndex == -1) 
+            {
+                nextButton.interactable = true;
+                return;
+            }
 
-            gameContext.RecordAnswer(selectedIndex == correctAnswerIndex);
+            bool isCorrect = selectedIndex == correctAnswerIndex;
+            Debug.Log ("[StrokeOrderQuizMode] 問題番号 " + gameContext.CurrentQuestionIndex + " の回答は " + (isCorrect ? "正解" : "不正解") + " です。");
+
+            gameContext.RecordAnswer(isCorrect);
             gameContext.CurrentQuestionIndex++;
-            
-            if (!gameContext.IsGameFinished()) SetupQuestion();
+
+            if (gameContext.IsGameFinished()) 
+            {
+                nextButton.interactable = false;
+                ConfirmationScreen.SetActive(true);
+            }
+            else
+            {
+                SetupQuestion();
+                nextButton.interactable = true;
+            }
         }
 
         private void OnPrevButtonClicked()
@@ -205,5 +230,6 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
                 SetupQuestion();
             }
         }
+
     }
 }

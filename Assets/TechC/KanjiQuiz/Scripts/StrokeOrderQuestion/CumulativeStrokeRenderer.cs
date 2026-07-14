@@ -86,7 +86,6 @@ namespace TechC.KanjiQuiz.StrokeOrderQuestion
                 await UniTask.Yield(PlayerLoopTiming.Update, token);
             }
 
-            Debug.Log($"[CumulativeStrokeRenderer] 漢字の累積描画が完了しました。総画数: {strokes.Count}");
         }
 
         /// <summary>
