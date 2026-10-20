@@ -14,12 +14,13 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
     /// </summary>
     public class StrokeOrderEntryPoint : MonoBehaviour
     {
+        /// <summary>結果画面に表示するモードの名前</summary>
+        public const string ModeName = "書き順クイズ";
+
         [Header("--- View ---")]
         [SerializeField] private QuizFrameView frameView;
         [SerializeField] private ChoiceListView choiceListView;
         [SerializeField] private StrokeOrderView strokeOrderView;
-        [Tooltip("全問回答後に表示する画面（結果画面ができるまでの仮）")]
-        [SerializeField] private GameObject finishedPanel;
 
         [Header("--- 出題設定 ---")]
         [Tooltip("出題する漢字のリスト。書き順データがない漢字や、難易度の条件を満たさない漢字は除外される")]
@@ -28,6 +29,7 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
         [Range(2, 4)]
         [SerializeField] private int choiceCount = 3;
 
+        private readonly ISceneLoader sceneLoader = new SceneLoader();
         private QuizSession<StrokeOrderQuestion> session;
         private StrokeOrderPresenter presenter;
 
@@ -44,8 +46,6 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
 
         private async UniTaskVoid InitializeAsync(CancellationToken ct)
         {
-            if (finishedPanel != null) finishedPanel.SetActive(false);
-
             var factory = new StrokeOrderQuestionFactory(new StreamingAssetsKanjiStrokeSource());
             List<StrokeOrderQuestion> questions;
             try
@@ -66,15 +66,15 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             session = new QuizSession<StrokeOrderQuestion>(questions);
             presenter = new StrokeOrderPresenter(session, frameView, choiceListView, strokeOrderView);
             presenter.OnFinished
-                .Subscribe(this, static (_, self) => self.ShowFinished())
+                .Subscribe(this, static (_, self) => self.GoToResult())
                 .AddTo(this);
             presenter.Initialize();
         }
 
-        private void ShowFinished()
+        private void GoToResult()
         {
-            Debug.Log($"[StrokeOrderEntryPoint] 全問終了：{session.Score.CurrentValue} / {session.Count} 問正解");
-            if (finishedPanel != null) finishedPanel.SetActive(true);
+            QuizResultStore.Set(QuizResult.FromSession(ModeName, SceneNames.StrokeOrder, session, q => q.Kanji));
+            sceneLoader.Load(SceneNames.Result);
         }
     }
 }
