@@ -40,14 +40,12 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/` にある（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `QuizFrameView`, `ChoiceListView` など）。
   - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`）。
-- 書き順クイズは**まだ MVP ではない旧構成**。共通部分への載せ替えは未実施。
-  - `Assets/TechC/KanjiQuiz/Scripts/` の `GameContext`, `StrokeOrderQuizMode`, `CumulativeStrokeRenderer`, `KanjiDataParser`, `QuizChoiceItem`
-  - 移行先は `Docs/Architecture.md` の「今のコードからの移行」を参照。
-- シーンは `Assets/TechC/KanjiQuiz/Scenes/TestScene.unity` のみ。
-- 既知の不具合は `Docs/GameSpec.md` の「既知の不具合」を参照。特に重要なもの：
-  - SVG を `Application.dataPath` から読んでおり、ビルド版では読めない（StreamingAssets へ移す予定）。
-  - 不正解の書き順が正解と同じになることがある。
-  - 問題を切り替えても前の書き順描画が止まらない。
+- 書き順クイズは MVP 構成に載せ替え済み（`Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`）。
+  - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。出題する漢字・難易度・選択肢の数もここで設定する。
+  - 書き順データは `Assets/StreamingAssets/KanjiVG/` の SVG（基本の字形のみ 6,701 ファイル）を UnityWebRequest で読む。
+- シーンは `Assets/TechC/KanjiQuiz/Scenes/TestScene.unity` のみ。全問回答後は仮の終了画面（ConfirmationPanel）を出すだけで、結果画面は未実装。
+- 出題する漢字はまだ画面に表示していない（日本語フォントの TMP アセットが未作成のため）。
+- 未実装の機能と既知の不具合は `Docs/GameSpec.md` の8章を参照。
 
 ## コーディング規約（要点）
 
@@ -75,7 +73,6 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - パッケージ追加やコンパイルの直後はエディタが応答しないことがある。`unity status --until-ready` で待ってから次の操作をする。
 - コンパイルエラーの確認：`unity command console_status` の `compilationFailed` と、`unity command console --level error`。
 - **エディタのダイアログで CLI が止まる**：ブランチを切り替えてシーンファイルが書き換わると、「The open scene(s) have been modified externally」ダイアログが出てメインスレッドが止まる。`unity status` は ready のままなのに `unity command` がすべてタイムアウトする場合はこれを疑い、ユーザーに Unity の画面を確認してもらう。
-- **SVG の取り込みで数分止まる**：`AssetDatabase.Refresh()` のたびに約1万2千個の SVG の取り込みが再試行され、全件失敗する。不要な Refresh は避ける。
 - `eval` では `using` が効かない。型は完全修飾名で書き、拡張メソッドは静的メソッドとして呼ぶ（例：`R3.ObservableSubscribeExtensions.Subscribe(p, x => ...)`）。
 
 ## ハマりどころ
@@ -83,4 +80,4 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - **R3 と Microsoft.Bcl.AsyncInterfaces**：NuGetForUnity は Unity 6 で AsyncInterfaces を入れずにスキップする。`Assets/Packages/` の DLL を消さないこと。入れ直すときは `NugetForUnity.PackageRestorer.Restore(true)` を実行する。
 - **TextMeshPro の日本語**：標準フォントに日本語がない。日本語フォントの TMP アセットが必要（未作成）。
 - **Canvas Scaler**：今のシーンは固定ピクセル（800×600）。設計では Scale With Screen Size・1920×1080・Match 0.5 にする。
-- **KanjiVG の SVG**：約1万2千ファイル。ファイル名はコードポイントを5桁の小文字16進数にしたもの（「漢」→ `06f22.svg`）。`-Kaisho` などの付いた異体字ファイルもある。
+- **KanjiVG の SVG**：`Assets/StreamingAssets/KanjiVG/` に基本の字形だけを置いている。ファイル名はコードポイントを5桁の小文字16進数にしたもの（「漢」→ `06f22.svg`）。楷書体などの異体字ファイルは使わないので含めていない。

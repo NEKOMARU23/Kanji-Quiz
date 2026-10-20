@@ -123,32 +123,34 @@
 
 ```
 ゲーム開始
-  └─ 進行データをリセット
+  └─ 出題リストから問題を作る（作れない漢字は除外）
       └─ 出題（1問目）
           ├─ 選択肢を1つ選ぶ（トグル）
           ├─ [次へ] 押下 → 正誤を記録 → 次の問題へ
-          ├─ [前へ] 押下 → 1つ前の問題へ
-          └─ 最終問題で [次へ] → 確認画面を表示
+          ├─ [前へ] 押下 → 1つ前の問題へ（以前の選択を復元）
+          └─ 最終問題で [次へ] → 終了画面を表示
 ```
 
-1. ゲーム開始時に進行データ（問題番号・回答履歴）をリセットする。
-2. 出題リストの先頭から順に問題を出す。
+1. ゲーム開始時に、出題リストのすべての漢字について問題を作る。
+2. 作った問題を、出題リストの順に出す。
 3. プレイヤーは選択肢を1つ選び、[次へ] を押す。
-4. 何も選んでいない状態で [次へ] を押しても進まない。
-5. 全問に回答すると確認画面（ConfirmationPanel）を表示する。
+4. 何も選んでいない間は [次へ] を押せない。
+5. 全問に回答すると終了画面（ConfirmationPanel）を表示する。結果画面ができるまでの仮の表示。
 
 ### 3.1 問題の表示
 
-- 1問につき**選択肢3つ**（`numberOfChoices`、Inspector で変更可）。
+- 1問につき**選択肢3つ**（`StrokeOrderEntryPoint` の `choiceCount`、2〜4 で変更可）。
 - 各選択肢は、書き順を1画ずつ積み上げた図を**横一列**に並べて表示する。
   - 例：5画の漢字なら「1画目まで」「2画目まで」…「5画目まで」の5つの図が並ぶ。
 - 図は1フレームに1段階ずつ描画され、アニメーションのように表示される。
-- 選択肢のうち**1つだけ正解**で、正解の位置は毎回ランダムに決まる。
+- 選択肢のうち**1つだけ正解**で、正解の位置は問題を作るときにランダムに決まる。
 - 残りの選択肢は、正解の書き順を難易度に応じて入れ替えた**不正解**になる。
+- 不正解は、**正解とも、ほかの不正解とも重複しない**。
+- 描画中に別の問題へ移ると、描画を途中で止める。
 
 ### 3.2 難易度
 
-難易度は Inspector の `currentDifficulty` で設定する（現状はゲーム内で選択できない）。
+難易度は Inspector の `StrokeOrderEntryPoint` の `difficulty` で設定する（現状はゲーム内で選択できない）。
 
 | 難易度 | 出題対象 | 不正解の作り方 | 見分けやすさ |
 |---|---|---|---|
@@ -156,7 +158,11 @@
 | Normal | 3画以上の漢字 | ランダムに選んだ2〜3画だけを並べ替える | 普通 |
 | Hard | 5画以上の漢字 | ランダムに選んだ2画だけを入れ替える | 難しい |
 
-- 出題リストのうち、難易度の画数条件を満たさない漢字は**スキップ**する。
+次の漢字は問題を作らずに除外する。
+
+- 難易度の画数条件を満たさない漢字
+- 重複しない不正解を必要な数だけ作れない漢字（選択肢3つの場合、1〜2画の漢字）
+- 書き順データ（SVG）がない漢字
 
 ### 3.3 回答と採点
 
@@ -169,7 +175,8 @@
 
 - [前へ] は1問目では押せない。
 - [前へ] を押すと1つ前の問題を表示する。
-- 戻った問題では、選択肢が新しくランダム生成され、前の選択は復元されない。
+- 戻った問題では、選択肢の並びは変わらず、以前の選択が復元される。
+- 戻った問題で回答を変えて [次へ] を押すと、記録とスコアが上書きされる。
 
 ---
 
@@ -178,21 +185,23 @@
 今後の画面設計は [ScreenDesign.md](ScreenDesign.md) を参照。
 現状のシーンは `Assets/TechC/KanjiQuiz/Scenes/TestScene.unity` の1つのみ。
 
-| UI 要素 | 役割 |
-|---|---|
-| Container | 選択肢（ProblemDisplay プレハブ）を並べる親 |
-| ToggleGroup | 選択肢を1つだけ選べるようにする |
-| NextButton | 回答を確定して次の問題へ進む |
-| PrevButton | 1つ前の問題へ戻る |
-| ConfirmationPanel | 全問回答後に表示する確認画面（初期状態は非表示） |
-| GameBackButton | 配置済み、処理は未実装 |
+| オブジェクト | コンポーネント | 役割 |
+|---|---|---|
+| GameManager | StrokeOrderEntryPoint | 問題を作り、Model・View・Presenter をつなぐ。出題設定もここ |
+| Canvas | QuizFrameView | [次へ]・[前へ] ボタンと進行表示 |
+| Canvas | ChoiceListView | 選択肢（ProblemDisplay プレハブ）を Container の下に並べる |
+| Canvas | StrokeOrderView | 選択肢に書き順の図を描かせる |
+| Container | VerticalLayoutGroup | 選択肢を並べる親 |
+| ToggleGroup | ToggleGroup | 選択肢を1つだけ選べるようにする |
+| ConfirmationPanel | - | 全問回答後に表示する終了画面（仮）。中のボタンは処理未実装 |
 
 ### 4.1 選択肢プレハブ（ProblemDisplay）
 
-| 子要素 | 役割 |
-|---|---|
-| Toggle | 選択用のチェックボックス |
-| CumulativeStrokeRenderer | 書き順の図を描画する |
+| オブジェクト | コンポーネント | 役割 |
+|---|---|---|
+| ProblemDisplay | ChoiceItemView | トグルの選択を通知する |
+| CumulativeStrokeRenderer | CumulativeStrokeRenderer | 書き順の図を描画する |
+| Toggle | Toggle | 選択用のチェックボックス |
 
 ---
 
@@ -201,7 +210,8 @@
 ### 5.1 データソース
 
 - [KanjiVG](https://kanjivg.tagaini.net/) の SVG ファイルを使用する。
-- 配置場所：`Assets/TechC/KanjiQuiz/SVG/`
+- 配置場所：`Assets/StreamingAssets/KanjiVG/`（ビルド版でも読める）
+- 基本の字形のファイル（6,701 ファイル）だけを置く。楷書体などの異体字のファイルは使わないので含めない。
 - ファイル名：Unicode のコードポイントを5桁の小文字16進数にしたもの。
   - 例：「漢」(U+6F22) → `06f22.svg`
 - ライセンス：Creative Commons 表示-継承 3.0（CC BY-SA 3.0）。
@@ -209,14 +219,14 @@
 
 ### 5.2 出題リスト
 
-- `GameContext` の `questionKanjiList` に漢字を1文字ずつ登録する。
+- `StrokeOrderEntryPoint` の `questionKanjiList` に漢字を1文字ずつ登録する。
 - 現在の設定：「令」「漢」「字」
 
 ### 5.3 書き順データの読み込み
 
-1. 漢字からファイルパスを作り、SVG を読み込む。
-2. `id` に `-s` を含む `path` 要素を1画として、出現順に取り出す。この順番が正しい書き順になる。
-3. 各画の `d` 属性（パスデータ）を解析し、座標の列に変換する。
+1. 漢字からファイル名を作り、UnityWebRequest で SVG を読み込む。ファイルがなければその漢字を除外する。
+2. `id` が `-s数字` で終わる `path` 要素を1画として、出現順に取り出す。この順番が正しい書き順になる。
+3. 各画の `d` 属性（パスデータ）を解析し、座標の列に変換する。解析は問題を作るときに1回だけ行う。
    - 対応コマンド：M, L, H, V, C, S, Z（大文字・小文字とも）
    - 曲線（C, S）は1区間あたり30分割で近似する。
 4. 座標は 109×109 の SVG 座標系を中心原点に変換し、3倍に拡大する。
@@ -230,7 +240,7 @@
 | 線の太さ | 0.15 | CumulativeStrokeRenderer |
 | 線の色 | 黒 | CumulativeStrokeRenderer |
 | 図と図の横の間隔 | 2.5 | CumulativeStrokeRenderer |
-| 角・端の丸め頂点数 | 10 | コード固定 |
+| 角・端の丸め頂点数 | 10 | CumulativeStrokeRenderer |
 | シェーダー | Sprites/Default | コード固定 |
 
 - 1画は LineRenderer（KanjiLineRenderer プレハブ）1本で描く。
@@ -244,7 +254,8 @@
 
 | パッケージ | 用途 |
 |---|---|
-| UniTask | 書き順の段階描画（非同期処理） |
+| UniTask | 書き順の段階描画、SVG の読み込み（非同期処理） |
+| R3 | View から Presenter への入力の通知、Model の値の変化の通知 |
 | uGUI / TextMeshPro | UI |
 | Input System | 入力 |
 | URP | 描画パイプライン |
@@ -252,19 +263,32 @@
 
 ### 7.2 クラス構成
 
-| クラス | 場所 | 役割 |
+MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
+
+**全モード共通**（`Scripts/Common`、名前空間 `TechC.KanjiQuiz.Common`）
+
+| クラス | 種類 | 役割 |
 |---|---|---|
-| GameContext | Scripts/Core | 出題リスト、現在の問題番号、回答履歴、スコアを管理する |
-| StrokeOrderQuizMode | Scripts/StrokeOrderQuestion | 書き順クイズの進行。出題、不正解の生成、回答判定、ボタン処理 |
-| CumulativeStrokeRenderer | Scripts/StrokeOrderQuestion | 書き順を1画ずつ積み上げて描画する |
-| KanjiDataParser | Scripts/Data | SVG を読み込み、書き順の座標データに変換する |
-| QuizChoiceItem | Scripts/Data | 選択肢プレハブのトグルと描画部品をまとめて持つ |
-| StrokeData | Scripts/Data | 1画分の座標リスト |
+| QuizSession | Model | 問題リスト、現在位置、回答履歴、スコア |
+| AnswerRecord / AnswerState | Model | 1問分の回答の記録 |
+| Difficulty | Model | 難易度 |
+| ShuffleUtility | Model | シャッフル処理 |
+| QuizPresenterBase / ChoiceQuizPresenter | Presenter | 全モード共通の進行と、選択式モード共通の判定 |
+| QuizFrameView / ChoiceListView / ChoiceItemView | View | 次へ・前へボタン、選択肢の並び |
 
-### 7.3 名前空間
+**書き順クイズ**（`Scripts/Modes/StrokeOrder`、名前空間 `TechC.KanjiQuiz.Modes.StrokeOrder`）
 
-- `TechC.KanjiQuiz.Data`
-- `TechC.KanjiQuiz.StrokeOrderQuestion`
+| クラス | 種類 | 役割 |
+|---|---|---|
+| StrokeOrderQuestion | Model | 1問分のデータ（漢字、画のデータ、選択肢ごとの書き順、正解の番号） |
+| StrokeOrderQuestionFactory | Model | 漢字のリストから問題を作る。作れない漢字は除外する |
+| WrongOrderGenerator | Model | 重複しない不正解の書き順を作る |
+| StreamingAssetsKanjiStrokeSource | Model | StreamingAssets から SVG を読み込む |
+| KanjiSvgParser / StrokePathParser | Model | SVG から画のパスデータを取り出し、座標の列に変換する |
+| StrokeData | Model | 1画分の座標の列 |
+| StrokeOrderPresenter | Presenter | 選択肢ごとの書き順の図を描かせる |
+| StrokeOrderView / CumulativeStrokeRenderer | View | 書き順を1画ずつ積み上げて描画する |
+| StrokeOrderEntryPoint | 組み立て役 | 問題を作り、Model・View・Presenter をつなぐ |
 
 ---
 
@@ -272,28 +296,33 @@
 
 ### 8.1 未実装の機能
 
-- [ ] 確認画面に結果（スコア・正誤一覧）を表示する
-- [ ] GameBackButton の処理
+- [ ] 結果画面（スコア・正誤一覧）。今は仮の終了画面を表示するだけ
+- [ ] ConfirmationPanel の中のボタン（NextButton、GameBackButton）の処理
+- [ ] 出題する漢字の表示（日本語フォントの TMP アセットが必要）
 - [ ] ゲーム内での難易度選択
-- [ ] タイトル画面・リザルト画面などのシーン遷移
+- [ ] タイトル画面・モード選択画面などのシーン遷移
 - [ ] 出題リストの作り方（固定リスト以外に、学年別・ランダム出題など）
 - [ ] 書き順クイズ以外のゲームモード
 - [ ] 問題作成モード
 - [ ] 問題のオンライン公開・一覧・プレイ
 - [ ] アカウント（ログイン）の仕組み
 
-### 8.2 既知の不具合（コードレビューより）
+### 8.2 既知の不具合
 
-| 優先度 | 内容 |
+PR #1 のコードレビューで見つかった不具合は、書き順クイズの MVP 化ですべて解消した。
+
+| 内容 | 対応 |
 |---|---|
-| 高 | SVG の読み込み先がエディタ専用のフォルダで、ビルド版では問題を読み込めない |
-| 高 | 不正解の選択肢が、偶然正解と同じ書き順になることがある（1〜2画の漢字で起きやすい） |
-| 高 | 描画中に問題を切り替えると、前の漢字の図が混ざる |
-| 高 | SVG がない漢字を出題すると例外で止まる |
-| 中 | [前へ] で戻る先がスキップ対象だと、元の問題に戻ってしまう |
-| 中 | 残りの問題がすべてスキップ対象だと、前の問題が残ったままになる |
-| 低 | 前の問題に戻ったとき、以前の回答が表示されない |
-| 中 | `Assets/TechC/KanjiQuiz/SVG` の SVG を Unity の SVG インポーターが読み込もうとして全件失敗する。アセットの再読み込みのたびに数分かかる（StreamingAssets へ移すと解消する） |
+| SVG の読み込み先がエディタ専用のフォルダで、ビルド版では読めない | StreamingAssets へ移し、UnityWebRequest で読む |
+| 不正解の選択肢が正解と同じ書き順になることがある | 重複しない不正解だけを作り、作れない漢字は除外する |
+| 描画中に問題を切り替えると、前の漢字の図が混ざる | 問題を切り替えると描画をキャンセルする |
+| SVG がない漢字を出題すると例外で止まる | その漢字を除外する |
+| [前へ] で戻る先がスキップ対象だと元の問題に戻る | 問題は最初にまとめて作るので、スキップが起きない |
+| 残りの問題がすべてスキップ対象だと前の問題が残る | 同上 |
+| 前の問題に戻ったとき、以前の回答が表示されない | 以前の選択を復元する |
+| SVG を Unity の SVG インポーターが読み込もうとして全件失敗する | StreamingAssets はインポートされないので解消 |
+
+現在わかっている不具合はない。
 
 ### 8.3 決めること
 
@@ -315,4 +344,3 @@
 - 1回のプレイの問題数
 - 制限時間の有無
 - 正解・不正解時の演出（効果音、表示）
-- 前の問題に戻ったときに回答を変更できるか

@@ -249,8 +249,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 75941919}
-  - component: {fileID: 75941918}
-  - component: {fileID: 75941917}
+  - component: {fileID: 75941920}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -258,43 +257,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &75941917
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 75941916}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1858b785f888cf247bd7c7a138721ff2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TechC.KanjiQuiz.StrokeOrderQuestion.StrokeOrderQuizMode
-  gameContext: {fileID: 75941918}
-  nextButton: {fileID: 2092190591}
-  prevButton: {fileID: 1610840180}
-  ConfirmationScreen: {fileID: 1871010464}
-  choicePrefab: {fileID: 316741590220069387, guid: bf4858526304d6b4fbaba3afbe59edda, type: 3}
-  container: {fileID: 1035142317}
-  toggleGroup: {fileID: 2143154035}
-  numberOfChoices: 3
-  currentDifficulty: 0
---- !u!114 &75941918
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 75941916}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 38adb0fa5cf64384dab9a5d00405353e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TechC.KanjiQuiz.Data.GameContext
-  questionKanjiList:
-  - "\u4EE4"
-  - "\u6F22"
-  - "\u5B57"
 --- !u!4 &75941919
 Transform:
   m_ObjectHideFlags: 0
@@ -310,6 +272,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &75941920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 75941916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8639dd86cacc8f246909a969beed306a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TechC.KanjiQuiz::TechC.KanjiQuiz.Modes.StrokeOrder.StrokeOrderEntryPoint
+  frameView: {fileID: 1034929059}
+  choiceListView: {fileID: 1034929058}
+  strokeOrderView: {fileID: 1034929057}
+  finishedPanel: {fileID: 1871010464}
+  questionKanjiList:
+  - "\u4EE4"
+  - "\u6F22"
+  - "\u5B57"
+  difficulty: 0
+  choiceCount: 3
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -1030,6 +1014,9 @@ GameObject:
   - component: {fileID: 1034929055}
   - component: {fileID: 1034929054}
   - component: {fileID: 1034929053}
+  - component: {fileID: 1034929059}
+  - component: {fileID: 1034929058}
+  - component: {fileID: 1034929057}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -1125,6 +1112,51 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1034929057
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1034929052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f62f0f3d8935e814eb4eb6a4372c0dc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TechC.KanjiQuiz::TechC.KanjiQuiz.Modes.StrokeOrder.StrokeOrderView
+  choiceListView: {fileID: 1034929058}
+  kanjiText: {fileID: 0}
+--- !u!114 &1034929058
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1034929052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 442b695db8e901d4aaaeff954d7be615, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TechC.KanjiQuiz::TechC.KanjiQuiz.Common.ChoiceListView
+  itemPrefab: {fileID: 121594416127366267, guid: bf4858526304d6b4fbaba3afbe59edda, type: 3}
+  container: {fileID: 1035142317}
+  toggleGroup: {fileID: 2143154035}
+--- !u!114 &1034929059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1034929052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa1f5ff1124295a4394186c10a49055c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TechC.KanjiQuiz::TechC.KanjiQuiz.Common.QuizFrameView
+  nextButton: {fileID: 2092190591}
+  prevButton: {fileID: 1610840180}
+  progressText: {fileID: 0}
+  progressFill: {fileID: 0}
 --- !u!1 &1035142316
 GameObject:
   m_ObjectHideFlags: 0

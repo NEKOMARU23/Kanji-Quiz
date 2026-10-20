@@ -9,8 +9,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6825734935914402277}
-  - component: {fileID: 316741590220069387}
   - component: {fileID: 1030593750150056651}
+  - component: {fileID: 121594416127366267}
   m_Layer: 0
   m_Name: ProblemDisplay
   m_TagString: Untagged
@@ -39,20 +39,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 50, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &316741590220069387
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 270668205881675738}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 427905aecc1dee04a9a19b73b0204aa3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TechC.KanjiQuiz.StrokeOrderQuestion.QuizChoiceItem
-  toggle: {fileID: 2689195188389993457}
-  strokeRenderer: {fileID: 8417743737610621432}
 --- !u!114 &1030593750150056651
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -79,6 +65,20 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &121594416127366267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 270668205881675738}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 085824341311c2c48adeb8e16318021b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: TechC.KanjiQuiz::TechC.KanjiQuiz.Common.ChoiceItemView
+  toggle: {fileID: 2689195188389993457}
+  contentRoot: {fileID: 6825734935914402277}
 --- !u!1 &410425795379777637
 GameObject:
   m_ObjectHideFlags: 0
@@ -368,6 +368,7 @@ MonoBehaviour:
   strokeWidth: 1
   strokeColor: {r: 0, g: 0, b: 0, a: 1}
   horizontalSpacing: 5
+  roundVertices: 10
 --- !u!1 &6047945220830717573
 GameObject:
   m_ObjectHideFlags: 0
