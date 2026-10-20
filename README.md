@@ -15,7 +15,7 @@
 
 | モード | 内容 | 状況 |
 |---|---|---|
-| 書き順クイズ | 正しい書き順の図を選ぶ | 開発中 |
+| 書き順クイズ | 正しい書き順の図を選ぶ | 遊べる |
 | 本物の漢字さがし | 偽物の漢字の中から実在する漢字を選ぶ | 予定 |
 | 返信文クイズ | 状況に合った正しい返信の文を選ぶ | 予定 |
 | 四字熟語づくり | 漢字を組み合わせて四字熟語を作る | 予定 |
@@ -65,3 +65,6 @@ flowchart LR
 
 書き順データには [KanjiVG](https://kanjivg.tagaini.net/) を使用しています。
 KanjiVG © Ulrich Apel, licensed under [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
+
+フォントには [Klee One](https://github.com/fontworks-fonts/Klee) を使用しています。
+Copyright 2020 The Klee Project Authors, licensed under the [SIL Open Font License 1.1](https://scripts.sil.org/OFL).

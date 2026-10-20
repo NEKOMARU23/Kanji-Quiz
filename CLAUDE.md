@@ -43,8 +43,8 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - 書き順クイズは MVP 構成に載せ替え済み（`Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`）。
   - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。出題する漢字・難易度・選択肢の数もここで設定する。
   - 書き順データは `Assets/StreamingAssets/KanjiVG/` の SVG（基本の字形のみ 6,701 ファイル）を UnityWebRequest で読む。
-- シーンは `Assets/TechC/KanjiQuiz/Scenes/TestScene.unity` のみ。全問回答後は仮の終了画面（ConfirmationPanel）を出すだけで、結果画面は未実装。
-- 出題する漢字はまだ画面に表示していない（日本語フォントの TMP アセットが未作成のため）。
+- シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `StrokeOrder.unity` と `Result.unity`（全モード共通の結果画面）。全問回答すると `QuizResultStore` に結果を置いて Result へ移る。
+- 文字は Klee One の TMP フォントアセット（Dynamic、TMP Settings の既定）で表示する。
 - 未実装の機能と既知の不具合は `Docs/GameSpec.md` の8章を参照。
 
 ## コーディング規約（要点）
@@ -78,6 +78,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 ## ハマりどころ
 
 - **R3 と Microsoft.Bcl.AsyncInterfaces**：NuGetForUnity は Unity 6 で AsyncInterfaces を入れずにスキップする。`Assets/Packages/` の DLL を消さないこと。入れ直すときは `NugetForUnity.PackageRestorer.Restore(true)` を実行する。
-- **TextMeshPro の日本語**：標準フォントに日本語がない。日本語フォントの TMP アセットが必要（未作成）。
-- **Canvas Scaler**：今のシーンは固定ピクセル（800×600）。設計では Scale With Screen Size・1920×1080・Match 0.5 にする。
+- **TMP の Dynamic フォント**：Play するとエディタ上でフォントアセットに文字が追加され、差分が出る。コミット前に `ClearFontAssetData(true)` で消す。
+- **Canvas は Screen Space - Camera**：書き順の線（LineRenderer）を UI より手前に出すため、`CumulativeStrokeRenderer` の `sortingOrder` を 1 以上にしている。UI 要素の z 座標が 0 以外だと遠近法で小さく見えるので注意。
+- **Play モードの確認**：エディタが非アクティブだとフレームが進まない。`unity command set_autotick` と、Play 中に `Application.runInBackground = true` を設定する。
 - **KanjiVG の SVG**：`Assets/StreamingAssets/KanjiVG/` に基本の字形だけを置いている。ファイル名はコードポイントを5桁の小文字16進数にしたもの（「漢」→ `06f22.svg`）。楷書体などの異体字ファイルは使わないので含めていない。

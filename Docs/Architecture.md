@@ -140,7 +140,8 @@ classDiagram
 | `ChoiceQuizPresenter<TQuestion>` | 「N 個から1つ選ぶ」モード共通の判定 | Presenter |
 | `QuizFrameView` | ヘッダー、進行バー、次へ・前へボタン | View |
 | `ChoiceListView` / `ChoiceItemView` | 選択肢の並びと1つ分の選択肢。中身はモードごとの View が `ChoiceItemView.ContentRoot` の下に描く | View |
-| `SceneLoader` | シーン遷移と、シーン間で渡すデータ | 共通 |
+| `ISceneLoader` / `SceneLoader` / `SceneNames` | シーン遷移。Presenter からはインターフェース経由で使う | 共通 |
+| `QuizResult` / `QuizResultStore` | プレイの結果と、結果をシーン間で渡す置き場所 | 共通 |
 
 ### 3.2 モードごとの部分
 
@@ -248,7 +249,8 @@ flowchart LR
 
 - モードごとにシーンを分ける。1人で開発するので、モード同士の干渉を減らすことを優先する。
 - タイトル、モード選択、結果の画面も同じく MVP で作る（`TitlePresenter` など）。
-- シーン間で渡すのは「選んだモード・難易度」と「結果（回答履歴）」だけ。`SceneLoader` の静的なプロパティで受け渡す。
+- シーン間で渡すのは「選んだモード・難易度」と「結果（回答履歴）」だけ。結果は `QuizResultStore`（静的クラス）で受け渡す。
+- 実装済みのシーンは `StrokeOrder` と `Result`。どちらも Build Profiles のシーンリストに登録している。
 - 画面の詳細は [ScreenDesign.md](ScreenDesign.md) を参照。
 
 ---
