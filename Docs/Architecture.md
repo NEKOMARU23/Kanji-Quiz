@@ -91,15 +91,17 @@ classDiagram
     class QuizPresenterBase~TQuestion~ {
         <<Presenter, abstract>>
         #QuizSession~TQuestion~ Session
+        +Observable~Unit~ OnFinished
         +void Initialize()
-        #abstract UniTask ShowQuestionAsync(TQuestion q, CancellationToken ct)
-        #abstract bool TryJudge(out int selected, out bool isCorrect)
+        #abstract UniTask ShowQuestionAsync(TQuestion q, AnswerRecord previousAnswer, CancellationToken ct)
+        #abstract bool TryJudge(TQuestion q, out int selected, out bool isCorrect)
+        #void RefreshNextButton()
         +void Dispose()
     }
     class ChoiceQuizPresenter~TQuestion~ {
         <<Presenter, abstract>>
-        #ChoiceListView ChoiceView
-        #TryJudge()
+        #IChoiceListView ChoiceListView
+        #abstract UniTask ShowChoicesAsync(TQuestion q, CancellationToken ct)
     }
     class QuizFrameView {
         <<View>>
@@ -112,8 +114,9 @@ classDiagram
     class ChoiceListView {
         <<View>>
         +Observable~int~ OnChoiceSelected
+        +IReadOnlyList~ChoiceItemView~ Items
         +void SetChoiceCount(int count)
-        +void ClearSelection()
+        +void SetSelected(int index)
     }
     QuizPresenterBase <|-- ChoiceQuizPresenter
     ChoiceQuizPresenter <|-- StrokeOrderPresenter
@@ -129,13 +132,14 @@ classDiagram
 | クラス | 役割 | 種類 |
 |---|---|---|
 | `QuizSession<TQuestion>` | 問題リスト、現在位置、回答履歴、スコア。今の `GameContext` を置き換える | Model |
-| `AnswerRecord` | 1問分の回答（未回答・正解・不正解、選んだ番号） | Model |
+| `AnswerRecord` / `AnswerState` | 1問分の回答（未回答・正解・不正解、選んだ番号） | Model |
+| `IChoiceQuestion` | 選択式の問題（選択肢の数と正解の番号）。選択肢の並びは問題を作るときに確定させる | Model |
 | `IQuestionRepository<TQuestion>` | 問題データの読み込み口 | Model |
 | `ShuffleUtility` | シャッフル処理を1か所にまとめる | Model |
 | `QuizPresenterBase<TQuestion>` | 次へ・前へ・結果への遷移など全モード共通の進行 | Presenter |
 | `ChoiceQuizPresenter<TQuestion>` | 「N 個から1つ選ぶ」モード共通の判定 | Presenter |
 | `QuizFrameView` | ヘッダー、進行バー、次へ・前へボタン | View |
-| `ChoiceListView` / `ChoiceItemView` | 選択肢の並びと1つ分の選択肢 | View |
+| `ChoiceListView` / `ChoiceItemView` | 選択肢の並びと1つ分の選択肢。中身はモードごとの View が `ChoiceItemView.ContentRoot` の下に描く | View |
 | `SceneLoader` | シーン遷移と、シーン間で渡すデータ | 共通 |
 
 ### 3.2 モードごとの部分
@@ -149,6 +153,7 @@ classDiagram
 | 画像で名前当て | `ImageNamePresenter` | `QuestionImageView`, `TextChoiceView` | `ImageNameQuestion` |
 
 - 選択式の4モードは `ChoiceQuizPresenter` を継承し、判定処理を共通化する。
+- 前の問題に戻ったときは、`AnswerRecord` から以前の選択を復元する。選択肢の並びは問題データに固定されているので、戻っても変わらない。
 - 四字熟語づくりだけは回答方法が違うので、`QuizPresenterBase` を直接継承する。
 
 ### 3.3 1問の流れ
