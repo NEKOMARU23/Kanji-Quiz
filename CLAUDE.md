@@ -38,7 +38,9 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 
 ## 現在の状態（2026-10-20 時点）
 
-- 実装済みは書き順クイズのみで、**まだ MVP ではない旧構成**。
+- MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/` にある（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `QuizFrameView`, `ChoiceListView` など）。
+  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`）。
+- 書き順クイズは**まだ MVP ではない旧構成**。共通部分への載せ替えは未実施。
   - `Assets/TechC/KanjiQuiz/Scripts/` の `GameContext`, `StrokeOrderQuizMode`, `CumulativeStrokeRenderer`, `KanjiDataParser`, `QuizChoiceItem`
   - 移行先は `Docs/Architecture.md` の「今のコードからの移行」を参照。
 - シーンは `Assets/TechC/KanjiQuiz/Scenes/TestScene.unity` のみ。
@@ -72,6 +74,8 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - `unity command` には `--caller plugin --skill <スキル名>` をつける。
 - パッケージ追加やコンパイルの直後はエディタが応答しないことがある。`unity status --until-ready` で待ってから次の操作をする。
 - コンパイルエラーの確認：`unity command console_status` の `compilationFailed` と、`unity command console --level error`。
+- **エディタのダイアログで CLI が止まる**：ブランチを切り替えてシーンファイルが書き換わると、「The open scene(s) have been modified externally」ダイアログが出てメインスレッドが止まる。`unity status` は ready のままなのに `unity command` がすべてタイムアウトする場合はこれを疑い、ユーザーに Unity の画面を確認してもらう。
+- **SVG の取り込みで数分止まる**：`AssetDatabase.Refresh()` のたびに約1万2千個の SVG の取り込みが再試行され、全件失敗する。不要な Refresh は避ける。
 - `eval` では `using` が効かない。型は完全修飾名で書き、拡張メソッドは静的メソッドとして呼ぶ（例：`R3.ObservableSubscribeExtensions.Subscribe(p, x => ...)`）。
 
 ## ハマりどころ
