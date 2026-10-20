@@ -14,10 +14,14 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
         [SerializeField] private LineRenderer lineRendererPrefab;
         [SerializeField] private float strokeWidth = 0.15f;
         [SerializeField] private Color strokeColor = Color.black;
-        [Tooltip("図と図の横の間隔")]
+        [Tooltip("図と図の横の間隔（この Transform の座標で）")]
         [SerializeField] private float horizontalSpacing = 2.5f;
+        [Tooltip("図を並べる幅の上限（この Transform の座標で）。画数が多くてはみ出すときは図を縮める。0 なら制限しない")]
+        [SerializeField] private float maxRowWidth = 0f;
         [Tooltip("角と端を丸めるための頂点数")]
         [SerializeField] private int roundVertices = 10;
+        [Tooltip("描画順。UI（Screen Space - Camera の Canvas）より手前に描くため、0 より大きくする")]
+        [SerializeField] private int sortingOrder = 1;
 
         private Material sharedMaterial;
 
@@ -49,10 +53,11 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, destroyCancellationToken))
             {
                 var token = linkedCts.Token;
+                float stageScale = CalculateStageScale(strokes.Count);
                 for (int stage = 1; stage <= strokes.Count; stage++)
                 {
                     token.ThrowIfCancellationRequested();
-                    DrawStage(strokes, stage);
+                    DrawStage(strokes, stage, stageScale);
                     await UniTask.Yield(PlayerLoopTiming.Update, token);
                 }
             }
@@ -69,11 +74,25 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             }
         }
 
-        private void DrawStage(IReadOnlyList<StrokeData> strokes, int stage)
+        /// <summary>
+        /// 図を並べた幅が上限を超えるときの縮小率を求める
+        /// </summary>
+        private float CalculateStageScale(int stageCount)
         {
+            float rowWidth = stageCount * horizontalSpacing;
+            if (maxRowWidth <= 0f || rowWidth <= maxRowWidth) return 1f;
+            return maxRowWidth / rowWidth;
+        }
+
+        private void DrawStage(IReadOnlyList<StrokeData> strokes, int stage, float stageScale)
+        {
+            // 1つ目の図の中心を、この Transform の原点から間隔の半分だけ右に置く
+            float x = (stage - 0.5f) * horizontalSpacing * stageScale;
+
             var stageObject = new GameObject($"Stage_{stage}");
             stageObject.transform.SetParent(transform, false);
-            stageObject.transform.localPosition = new Vector3(stage * horizontalSpacing, 0f, 0f);
+            stageObject.transform.localPosition = new Vector3(x, 0f, 0f);
+            stageObject.transform.localScale = Vector3.one * stageScale;
 
             for (int i = 0; i < stage; i++)
             {
@@ -98,6 +117,7 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             lineRenderer.numCapVertices = roundVertices;
             lineRenderer.startWidth = lineRenderer.endWidth = strokeWidth;
             lineRenderer.startColor = lineRenderer.endColor = strokeColor;
+            lineRenderer.sortingOrder = sortingOrder;
             if (sharedMaterial != null) lineRenderer.material = sharedMaterial;
         }
     }
