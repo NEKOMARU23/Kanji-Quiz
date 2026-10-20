@@ -1,12 +1,22 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Xml;
 using UnityEngine;
 
 namespace TechC.KanjiQuiz.Data
 {
+    /// <summary>
+    /// ★ 1画のデータを表すシンプルな構造体
+    /// </summary>
+    public struct StrokeData
+    {
+        public List<Vector3> points; // 1画を構成する点のリスト
+    }
+
+    /// <summary>
+    /// 漢字のSVGデータを読み込み、書き順の座標データに変換するクラス
+    /// </summary>
     public class KanjiDataParser
     {
         private float scaleFactor = 3.0f;
@@ -15,7 +25,7 @@ namespace TechC.KanjiQuiz.Data
         public string MakeSingleKanjiStrokePath(string kanji)
         {
             var code = $"{char.ConvertToUtf32(kanji, 0):X4}";
-            return $"{Application.dataPath}/StreamingAssets/SVG/0{code.ToLower()}.svg";
+            return $"{Application.dataPath}/TechC/KanjiQuiz/SVG/0{code.ToLower()}.svg";
         }
 
         // 漢字データ（SVG）を読み込み、ストロークごとのテキストデータを抽出する
@@ -43,17 +53,23 @@ namespace TechC.KanjiQuiz.Data
             return strokePaths;
         }
 
-        // ストロークのテキストデータ（d属性）を、Unityの座標（Vector3）のリストに変換する
-        public List<List<Vector3>> GenerateStrokePoints(List<string> strokes, bool correctOrder)
+        /// <summary>
+        /// ★ ストロークのテキストデータを、StrokeData のリストに変換する
+        /// </summary>
+        public List<StrokeData> GenerateStrokePoints(List<string> strokes, bool correctOrder)
         {
             List<string> strokeCopy = new List<string>(strokes);
             if (!correctOrder) ShuffleList(strokeCopy);
 
-            List<List<Vector3>> strokePointsList = new List<List<Vector3>>();
+            // 戻り値を List<StrokeData> に変更
+            List<StrokeData> strokeDataList = new List<StrokeData>();
             foreach (string d in strokeCopy)
-                strokePointsList.Add(ParsePath(d));
+            {
+                StrokeData stroke = new StrokeData { points = ParsePath(d) };
+                strokeDataList.Add(stroke);
+            }
 
-            return strokePointsList;
+            return strokeDataList;
         }
 
         private List<Vector3> ParsePath(string d)
