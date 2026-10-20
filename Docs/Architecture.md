@@ -146,7 +146,7 @@ classDiagram
 
 | モード | Presenter | 固有の View | 固有の Model |
 |---|---|---|---|
-| 書き順クイズ | `StrokeOrderPresenter` | `StrokeOrderChoiceView`（書き順の描画） | `StrokeOrderQuestion`, `WrongOrderGenerator`, `KanjiSvgLoader` |
+| 書き順クイズ | `StrokeOrderPresenter` | `StrokeOrderView`, `CumulativeStrokeRenderer`（書き順の描画） | `StrokeOrderQuestion`, `StrokeOrderQuestionFactory`, `WrongOrderGenerator`, `StreamingAssetsKanjiStrokeSource` |
 | 本物の漢字さがし | `RealKanjiPresenter` | `KanjiChoiceView` | `RealKanjiQuestion` |
 | 返信文クイズ | `ReplyMessagePresenter` | `MessageBubbleView`, `TextChoiceView` | `ReplyMessageQuestion` |
 | 四字熟語づくり | `FourCharIdiomPresenter` | `IdiomBoardView`（4つの枠と候補） | `FourCharIdiomQuestion` |
@@ -230,10 +230,10 @@ flowchart LR
 | データ | 置き場所 | 理由 |
 |---|---|---|
 | 問題セット JSON | `Assets/TechC/KanjiQuiz/Data/Questions/` | TextAsset として EntryPoint から渡す |
-| KanjiVG の SVG | `Assets/StreamingAssets/KanjiVG/` | ビルド後も読めるようにする（今はビルド版で読めない） |
+| KanjiVG の SVG | `Assets/StreamingAssets/KanjiVG/` | ビルド後も読めるようにする。UnityWebRequest で読む |
 | 画像で名前当ての画像 | `Assets/TechC/KanjiQuiz/Art/Quiz/ImageName/` | Sprite として扱う |
 
-- KanjiVG の SVG は全部で約1万2千ファイルある。ビルドサイズが気になる場合は、出題に使う漢字だけを入れる。
+- KanjiVG の SVG は、基本の字形のファイル（6,701 ファイル）だけを置く。異体字のファイルは使わないので含めない。ビルドサイズが気になる場合は、出題に使う漢字だけに絞る。
 
 ---
 
@@ -340,20 +340,22 @@ Presenter をテストできるように、View は Presenter からインター
 
 ## 10. 今のコードからの移行
 
-| 今のクラス | 移行先 |
+旧構成のクラスはすべて移行済み。
+
+| 旧クラス | 移行先 |
 |---|---|
-| `GameContext` | `QuizSession<TQuestion>`（Model。MonoBehaviour をやめる） |
-| `StrokeOrderQuizMode` | `StrokeOrderPresenter`（進行）と `StrokeOrderEntryPoint`（組み立て）に分ける |
-| `CumulativeStrokeRenderer` | `StrokeOrderChoiceView` の中で使う。キャンセル処理を追加する |
-| `KanjiDataParser` | `KanjiSvgLoader`（Model）。読み込み先を StreamingAssets に変える |
-| `ApplyDifficultyShuffle` | `WrongOrderGenerator`（Model）。重複チェックを追加する |
+| `GameContext` | `QuizSession<TQuestion>`（Model） |
+| `StrokeOrderQuizMode` | `StrokeOrderPresenter`（進行）、`StrokeOrderQuestionFactory`（問題づくり）、`StrokeOrderEntryPoint`（組み立て） |
+| `CumulativeStrokeRenderer` | 同名の View。描画だけを行い、キャンセルに対応 |
+| `KanjiDataParser` | `StreamingAssetsKanjiStrokeSource`（読み込み）、`KanjiSvgParser`、`StrokePathParser` |
+| `ApplyDifficultyShuffle` | `WrongOrderGenerator`（重複チェックつき） |
 | `QuizChoiceItem` | `ChoiceItemView` |
 
-移行の手順は次のとおり。
+作業の進み具合は次のとおり。
 
-1. R3 を導入する。
-2. 共通部分（`QuizSession`、`QuizPresenterBase`、`ChoiceQuizPresenter`、`QuizFrameView`、`ChoiceListView`）を作る。
-3. 書き順クイズを MVP に載せ替え、レビューで見つかった不具合を直す。
+1. ~~R3 を導入する。~~（完了）
+2. ~~共通部分を作る。~~（完了）
+3. ~~書き順クイズを MVP に載せ替え、レビューで見つかった不具合を直す。~~（完了）
 4. ほかの4モードを1つずつ追加する。
 5. タイトル、モード選択、結果の画面を作る。
 6. 余裕があれば VContainer を導入する。
