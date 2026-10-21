@@ -60,6 +60,7 @@ flowchart LR
 | [アーキテクチャ設計書](Docs/Architecture.md) | クラス構成と設計の理由 |
 | [画面設計書](Docs/ScreenDesign.md) | 画面レイアウトと遷移 |
 | [コーディング規約](Docs/CodingRules.md) | 命名規則、フォルダ構成、Git の運用 |
+| [進行状況](Docs/Progress.md) | 進み具合、スケジュール、次にやること |
 
 ## クレジット
 
