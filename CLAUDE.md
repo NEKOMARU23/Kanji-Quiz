@@ -17,8 +17,10 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 | `Docs/Architecture.md` | MVP 構成、クラス設計、データ設計、移行手順 |
 | `Docs/ScreenDesign.md` | 画面レイアウトと遷移 |
 | `Docs/CodingRules.md` | 命名規則、フォルダ構成、Git・PR の運用 |
+| `Docs/Progress.md` | 進行状況、スケジュール、次にやること、PR の履歴 |
 
 設計や仕様を変えたら、対応する Docs も同じ作業の中で更新する。
+作業が終わったら（PR を作るとき）、`Docs/Progress.md` のチェック・PR の履歴・次にやること・最終更新日も更新する。
 
 ## 技術スタック
 
