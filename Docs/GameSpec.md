@@ -128,14 +128,15 @@
           ├─ 選択肢を1つ選ぶ（トグル）
           ├─ [次へ] 押下 → 正誤を記録 → 次の問題へ
           ├─ [前へ] 押下 → 1つ前の問題へ（以前の選択を復元）
-          └─ 最終問題で [次へ] → 終了画面を表示
+          └─ 最終問題で [次へ] → 結果画面へ
 ```
 
 1. ゲーム開始時に、出題リストのすべての漢字について問題を作る。
 2. 作った問題を、出題リストの順に出す。
 3. プレイヤーは選択肢を1つ選び、[次へ] を押す。
 4. 何も選んでいない間は [次へ] を押せない。
-5. 全問に回答すると終了画面（ConfirmationPanel）を表示する。結果画面ができるまでの仮の表示。
+5. 全問に回答すると結果画面（Result シーン）へ移る。
+6. 結果画面では正解数と問題ごとの正誤（○・×）を表示し、[もう一度] で書き順クイズを最初からやり直せる。
 
 ### 3.1 問題の表示
 
@@ -183,7 +184,10 @@
 ## 4. 画面構成（現状）
 
 今後の画面設計は [ScreenDesign.md](ScreenDesign.md) を参照。
-現状のシーンは `Assets/TechC/KanjiQuiz/Scenes/TestScene.unity` の1つのみ。
+シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `StrokeOrder.unity`（書き順クイズ）と `Result.unity`（結果画面、全モード共通）の2つ。
+基準解像度は 1920×1080（Canvas Scaler：Scale With Screen Size、Match 0.5）。文字はすべて Klee One（4.2）で表示する。
+
+**StrokeOrder シーン**
 
 | オブジェクト | コンポーネント | 役割 |
 |---|---|---|
@@ -193,12 +197,32 @@
 | Canvas | StrokeOrderView | 選択肢に書き順の図を描かせる |
 | Container | VerticalLayoutGroup | 選択肢を並べる親 |
 | ToggleGroup | ToggleGroup | 選択肢を1つだけ選べるようにする |
-| ConfirmationPanel | - | 全問回答後に表示する終了画面（仮）。中のボタンは処理未実装 |
+| Header | ModeTitle / ProgressText | モード名と「1 / 3 問」の進行表示 |
+| ProgressBar | Image（Filled） | 進行バー |
+| QuestionText / KanjiText | TextMeshPro | 問題文と、出題する漢字 |
+
+**Result シーン**
+
+| オブジェクト | コンポーネント | 役割 |
+|---|---|---|
+| ResultEntryPoint | ResultEntryPoint | 直前のプレイの結果を受け取り、Presenter をつなぐ |
+| Canvas | ResultView | モード名、正解数、問題ごとの正誤（ResultItemText プレハブ）、[もう一度] ボタン |
 
 ### 4.1 選択肢プレハブ（ProblemDisplay）
 
 | オブジェクト | コンポーネント | 役割 |
 |---|---|---|
+| ProblemDisplay | ChoiceItemView / Image | トグルの選択を通知する。行の背景 |
+| CumulativeStrokeRenderer | CumulativeStrokeRenderer | 書き順の図を描画する。画数が多いときは横幅に収まるように縮める |
+| Toggle | Toggle | 選択用のチェックボックス |
+
+### 4.2 フォント
+
+- [Klee One](https://github.com/fontworks-fonts/Klee)（Regular）を使う。教科書体に近い字形で、漢字の学習に向いている。
+- ライセンスは SIL Open Font License 1.1。ゲームに同梱できる。ライセンス文は `Art/Fonts/KleeOne/OFL.txt`。
+- TextMeshPro のフォントアセットは Dynamic（使った文字だけを実行時に追加する）。TMP Settings の既定のフォントにしている。
+
+---|---|---|
 | ProblemDisplay | ChoiceItemView | トグルの選択を通知する |
 | CumulativeStrokeRenderer | CumulativeStrokeRenderer | 書き順の図を描画する |
 | Toggle | Toggle | 選択用のチェックボックス |
@@ -296,9 +320,10 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 
 ### 8.1 未実装の機能
 
-- [ ] 結果画面（スコア・正誤一覧）。今は仮の終了画面を表示するだけ
-- [ ] ConfirmationPanel の中のボタン（NextButton、GameBackButton）の処理
-- [ ] 出題する漢字の表示（日本語フォントの TMP アセットが必要）
+- [x] 結果画面（スコア・正誤一覧、もう一度）
+- [x] 出題する漢字と進行状況の表示
+- [ ] 結果画面の [モード選択へ]・[タイトルへ]（それぞれの画面ができてから）
+- [ ] 中断メニュー
 - [ ] ゲーム内での難易度選択
 - [ ] タイトル画面・モード選択画面などのシーン遷移
 - [ ] 出題リストの作り方（固定リスト以外に、学年別・ランダム出題など）
