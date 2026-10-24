@@ -18,6 +18,7 @@ namespace TechC.KanjiQuiz.Common
         private readonly List<ChoiceItemView> items = new List<ChoiceItemView>();
         private readonly Subject<int> onChoiceSelected = new Subject<int>();
         private int activeCount;
+        private bool isInteractable = true;
 
         /// <summary>表示中の選択肢。モードごとの View が中身を描くために使う</summary>
         public IReadOnlyList<ChoiceItemView> Items => items.GetRange(0, activeCount);
@@ -53,10 +54,34 @@ namespace TechC.KanjiQuiz.Common
             }
         }
 
+        public void SetInteractable(bool interactable)
+        {
+            isInteractable = interactable;
+            foreach (var item in items)
+            {
+                item.SetInteractable(interactable);
+            }
+        }
+
+        public void SetMarks(int correctIndex, int selectedIndex)
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                var mark = ChoiceMark.None;
+                if (correctIndex >= 0)
+                {
+                    if (i == correctIndex) mark = ChoiceMark.Correct;
+                    else if (i == selectedIndex) mark = ChoiceMark.SelectedWrong;
+                }
+                items[i].SetMark(mark);
+            }
+        }
+
         private void CreateItem(int index)
         {
             var item = Instantiate(itemPrefab, container);
             item.SetGroup(toggleGroup);
+            item.SetInteractable(isInteractable);
             item.OnSelected
                 .Subscribe((index, onChoiceSelected), static (_, state) => state.onChoiceSelected.OnNext(state.index))
                 .AddTo(this);

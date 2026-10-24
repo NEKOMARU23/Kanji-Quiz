@@ -19,5 +19,15 @@ namespace TechC.KanjiQuiz.Common
         /// </summary>
         /// <param name="index">選択する番号。-1 のときはどれも選ばない</param>
         void SetSelected(int index);
+
+        /// <summary>選択肢を押せるかどうかを切り替える（振り返りのときは押せなくする）</summary>
+        void SetInteractable(bool interactable);
+
+        /// <summary>
+        /// 振り返り用の印をつける
+        /// </summary>
+        /// <param name="correctIndex">正解の選択肢の番号。-1 のときは印をすべて消す</param>
+        /// <param name="selectedIndex">プレイヤーが選んだ選択肢の番号。未回答なら -1</param>
+        void SetMarks(int correctIndex, int selectedIndex);
     }
 }
