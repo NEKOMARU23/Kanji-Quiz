@@ -158,6 +158,7 @@
 | [#3](https://github.com/NEKOMARU23/Knaji-Quiz/pull/3) | 書き順クイズの MVP 化、SVG の移動、既知の不具合の解消 | 2026-10-20 |
 | [#4](https://github.com/NEKOMARU23/Knaji-Quiz/pull/4) | 書き順クイズの仕上げ（日本語フォント、画面レイアウト、結果画面） | 2026-10-21 |
 | [#5](https://github.com/NEKOMARU23/Knaji-Quiz/pull/5) | 書き順クイズの難易度ごとの出題範囲、問題の振り返り、ドキュメントの引き継ぎ用の更新 | 2026-10-24 |
+| [#6](https://github.com/NEKOMARU23/Knaji-Quiz/pull/6) | 結果発表の演出（1問ずつ ○・×、正解数のルーレット）、効果音の仕組み（AudioManager、シングルトンの基礎クラス） | レビュー待ち |
 
 ---
 
