@@ -14,7 +14,13 @@ namespace TechC.KanjiQuiz.Screens.Result
 
         private void Start()
         {
-            presenter = new ResultPresenter(QuizResultStore.Last, resultView, new SceneLoader());
+            IAudioPlayer audioPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullAudioPlayer.Instance;
+
+            // 振り返りから戻ってきたときは演出をせずにすぐ表示する
+            bool playReveal = QuizResultStore.IsRevealPending;
+            QuizResultStore.MarkRevealed();
+
+            presenter = new ResultPresenter(QuizResultStore.Last, resultView, new SceneLoader(), audioPlayer, playReveal);
             presenter.Initialize();
         }
 
