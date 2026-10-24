@@ -23,9 +23,22 @@
 
 今後、プレイヤーが問題を作ってオンラインで共有できる機能を追加する予定です。
 
+### 書き順クイズ
+
+- 3つの選択肢から、正しい書き順の図を選びます。図は1画ずつ積み上げて描き、1段階ごとにマス目で囲みます。
+- 難易度は3段階です。
+
+| 難易度 | 出題範囲 | 問題数 | 不正解の作り方 |
+|---|---|---|---|
+| 簡単 | 小学漢字 | 5問 | 全画をランダムに並べ替える |
+| 常識 | 常用漢字（小学漢字を除く） | 7問 | 連続した30%の画を入れ替える |
+| 困難 | 常用漢字以外 | 7問 | 隣り合う2画を1か所だけ入れ替える |
+
+- 結果画面では正解数と問題ごとの正誤を表示し、各問題を振り返れます。
+
 ## 設計
 
-**MVP（Model-View-Presenter）** で作ります。現在、既存のコードを MVP 構成へ移行しているところです。
+**MVP（Model-View-Presenter）** で作っています。
 
 ```mermaid
 flowchart LR
@@ -40,7 +53,7 @@ flowchart LR
 - **5つのモードで共通の流れを1回だけ書くため。**
   「出題、回答、判定、次の問題、結果」の流れを Presenter の基底クラスにまとめ、各モードは違う部分だけを実装しています。
 - **ロジックをテストできるようにするため。**
-  Model と Presenter は MonoBehaviour に依存しない C# クラスにします。採点や選択肢の生成を EditMode テストで確認できます。
+  Model と Presenter は MonoBehaviour に依存しない C# クラスです。採点、不正解の生成、画面の進行などを EditMode テスト（84 件）で確認しています。
 - **画面とデータを差し替えやすくするため。**
   View はロジックを持たないので、PC 版とスマートフォン版で作り分けられます。問題データはインターフェース経由で読み込むので、将来のオンライン共有にも対応できます。
 
@@ -49,8 +62,10 @@ flowchart LR
 | 技術 | 用途 |
 |---|---|
 | R3 | View から Presenter へのイベント通知、Model の値の変化の通知 |
-| UniTask | 書き順の描画、シーン遷移などの非同期処理 |
+| UniTask | 書き順の描画、SVG の読み込みなどの非同期処理 |
 | uGUI / TextMeshPro | UI |
+| Input System | 入力 |
+| Unity Test Framework | EditMode テスト |
 
 ## ドキュメント
 
@@ -66,6 +81,9 @@ flowchart LR
 
 書き順データには [KanjiVG](https://kanjivg.tagaini.net/) を使用しています。
 KanjiVG © Ulrich Apel, licensed under [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/).
+
+出題範囲の漢字の一覧は、[KANJIDIC2](https://www.edrdg.org/kanjidic/) から作成しています。
+KANJIDIC2 © Electronic Dictionary Research and Development Group, licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 
 フォントには [Klee One](https://github.com/fontworks-fonts/Klee) を使用しています。
 Copyright 2020 The Klee Project Authors, licensed under the [SIL Open Font License 1.1](https://scripts.sil.org/OFL).

@@ -35,17 +35,24 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - View は判断を持たず、入力を R3 の `Observable` で公開するだけ。Presenter と Model を参照しない。
 - 各シーンの `<Mode>EntryPoint`（MonoBehaviour）が Model・View・Presenter を作ってつなぐ。DI コンテナは使わない。
 - 全モード共通の進行は `QuizPresenterBase<TQuestion>`、選択式4モードは `ChoiceQuizPresenter<TQuestion>` に置く（Template Method）。
-- 問題データは JSON。`IQuestionRepository` 経由で読む。
+- 問題データは JSON。`IQuestionRepository` 経由で読む（**未実装**。返信文クイズを作るときに用意する）。
 - 非同期は UniTask。問題ごとに `CancellationTokenSource` を作り直す。`async void` 禁止。
 
-## 現在の状態（2026-10-20 時点）
+## 現在の状態（2026-10-24 時点）
 
-- MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/` にある（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `QuizFrameView`, `ChoiceListView` など）。
-  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`）。
-- 書き順クイズは MVP 構成に載せ替え済み（`Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`）。
-  - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。出題する漢字・難易度・選択肢の数もここで設定する。
+- **遊べるのは書き順クイズだけ**。ほかの4モード、タイトル画面、モード選択画面は未着手。次にやることは `Docs/Progress.md` の9章。
+- MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
+  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、84 件）。
+- 書き順クイズは `Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`。
+  - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。難易度・難易度ごとの漢字セット・選択肢の数・振り返り用の View もここで設定する。
+  - 難易度は `QuizLaunchOptions.Difficulty` があればそちらを優先する。F1 キーで表示されるテスト用ボタン（`Scripts/DebugTools/DebugDifficultySwitcher`、エディタと開発ビルドのみ）で切り替えられる。シーンに保存する難易度は Easy にしておく。
+  - 出題範囲は `Assets/TechC/KanjiQuiz/Data/KanjiSets/` の JSON（小学漢字・常用漢字・常用漢字以外）。`Tools/generate_kanji_sets.py` で KANJIDIC2 から作る。手で編集しない。
+  - 不正解の作り方：簡単は全画シャッフル、常識は連続した30%の画を必ず動かす、困難は隣り合う2画を入れ替える（`WrongOrderGenerator`）。
   - 書き順データは `Assets/StreamingAssets/KanjiVG/` の SVG（基本の字形のみ 6,701 ファイル）を UnityWebRequest で読む。
-- シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `StrokeOrder.unity` と `Result.unity`（全モード共通の結果画面）。全問回答すると `QuizResultStore` に結果を置いて Result へ移る。
+  - 書き順の図は1段階ごとに黒い四角で囲む。枠の太さ・色は選択肢プレハブ（`ProblemDisplay`）の `CumulativeStrokeRenderer` で設定する。
+- シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `StrokeOrder.unity` と `Result.unity`（全モード共通の結果画面）。
+  - 全問回答すると `QuizResultStore` に結果、`QuizReviewStore` に問題と回答を置いて Result へ移る。
+  - 結果画面の [問題を振り返る]（または一覧の問題）で、モードのシーンを振り返りとして開き直す。
 - 文字は Klee One の TMP フォントアセット（Dynamic、TMP Settings の既定）で表示する。
 - 未実装の機能と既知の不具合は `Docs/GameSpec.md` の8章を参照。
 
@@ -70,12 +77,33 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 ## Unity エディタの操作（Unity CLI）
 
 - Unity CLI と Pipeline パッケージ（`com.unity.pipeline`）が導入済み。エディタが開いていれば CLI から操作できる。
-- シーン・プレハブ・アセットを変更する前に `unity status` で接続を確認する。接続できるなら、`.unity` / `.prefab` の YAML を直接編集せずエディタ経由で操作する。
+- エディタが起動していなければ（`unity status` が `STATUS_NO_INSTANCES`）、`unity open .` で開き、`unity status --until-ready` で待つ。
+- シーン・プレハブ・アセットを変更する前に `unity status` で接続を確認する。接続できるなら、`.unity` / `.prefab` の YAML を直接編集せずエディタ経由（`unity command eval` で SerializedObject を使う）で操作する。
 - `unity command` には `--caller plugin --skill <スキル名>` をつける。
 - パッケージ追加やコンパイルの直後はエディタが応答しないことがある。`unity status --until-ready` で待ってから次の操作をする。
 - コンパイルエラーの確認：`unity command console_status` の `compilationFailed` と、`unity command console --level error`。
-- **エディタのダイアログで CLI が止まる**：ブランチを切り替えてシーンファイルが書き換わると、「The open scene(s) have been modified externally」ダイアログが出てメインスレッドが止まる。`unity status` は ready のままなのに `unity command` がすべてタイムアウトする場合はこれを疑い、ユーザーに Unity の画面を確認してもらう。
+- テストの実行：`unity command run_tests --mode EditMode --filter TechC.KanjiQuiz.Tests`。
+- **エディタのダイアログで CLI が止まる**：ブランチを切り替えてシーンファイルが書き換わると、「The open scene(s) have been modified externally」ダイアログが出てメインスレッドが止まる。`unity status` は ready のままなのに `unity command` がすべてタイムアウトする場合はこれを疑い、ユーザーに Unity の画面を確認してもらう。ブランチは `git checkout -b <新ブランチ> origin/main` のように、作業ツリーが変わらない形で切ると起きにくい。
 - `eval` では `using` が効かない。型は完全修飾名で書き、拡張メソッドは静的メソッドとして呼ぶ（例：`R3.ObservableSubscribeExtensions.Subscribe(p, x => ...)`）。
+- 長い `eval` のコードはファイルに書いてから `"$(cat ファイル)"` で渡す。Bash のヒアドキュメントに複雑な引用符を入れると解析に失敗することがある。
+
+### Play モードでの動作確認の手順
+
+1. `unity command set_autotick` を一度実行し、`editor_play` で Play を始める。
+2. Play 中に `eval` で `UnityEngine.Application.runInBackground = true;` を設定する（エディタが非アクティブだとフレームが進まないため）。
+3. ボタンは `eval` で `onClick.Invoke()`、選択肢は `Toggle.isOn = true` で操作する。クリックの当たり判定まで確かめるときは `EventSystem.RaycastAll` と `ExecuteEvents.ExecuteHierarchy` を使う。
+4. 画面は `unity command capture_game_view -- --save_path "Temp/x.png"` で撮る。**保存先は `Assets/Temp/` になる**ので、確認後に `AssetDatabase.DeleteAsset("Assets/Temp")` で消す。
+5. `editor_stop` で止め、`unity status --until-ready` で待つ。止めた直後のシーン編集は取り消されることがあるので、`EditorApplication.isPlayingOrWillChangePlaymode` が false になってから編集する。
+6. 最後に TMP フォントアセットの文字データを消す（ハマりどころを参照）。
+
+### コミットと PR
+
+- 実装ごとにコミットを分ける（パッケージ、Model、View、Presenter、シーン、テスト、ドキュメントなど）。
+- SSH の鍵が使えずプッシュできないときは、GitHub CLI の認証で HTTPS を使う（Git の設定は変えない）。
+
+```bash
+git -c credential.helper= -c "credential.helper=!gh auth git-credential" push https://github.com/NEKOMARU23/Knaji-Quiz.git <ブランチ>
+```
 
 ## ハマりどころ
 
@@ -83,4 +111,8 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - **TMP の Dynamic フォント**：Play するとエディタ上でフォントアセットに文字が追加され、差分が出る。コミット前に `ClearFontAssetData(true)` で消す。
 - **Canvas は Screen Space - Camera**：書き順の線（LineRenderer）を UI より手前に出すため、`CumulativeStrokeRenderer` の `sortingOrder` を 1 以上にしている。UI 要素の z 座標が 0 以外だと遠近法で小さく見えるので注意。
 - **Play モードの確認**：エディタが非アクティブだとフレームが進まない。`unity command set_autotick` と、Play 中に `Application.runInBackground = true` を設定する。
+- **`GetComponent<T>() ?? AddComponent<T>()` が効かない**：エディタでは見つからないコンポーネントが「null に見えるオブジェクト」で返るので `??` で判定できない。`TryGetComponent` を使う。
+- **コードの初期値を変えてもプレハブに反映されない**：エディタが読み込み済みのプレハブは古い値を持ち続ける。SerializedObject でプレハブに値を書き込んで保存する。
+- **Play モードのままだとシーンを編集できない**：ユーザーが Play したままのことがある。`EditorApplication.isPlaying` を確認し、必要なら `editor_stop` してから編集する（止めたことはユーザーに伝える）。
+- **`Scripts/Core/GameContext.cs`（未追跡）**：PR #3 で削除したファイルが、エディタで開いたままのタブから保存されて復活したもの。コミットしない。削除はユーザーに確認してから行う。
 - **KanjiVG の SVG**：`Assets/StreamingAssets/KanjiVG/` に基本の字形だけを置いている。ファイル名はコードポイントを5桁の小文字16進数にしたもの（「漢」→ `06f22.svg`）。楷書体などの異体字ファイルは使わないので含めていない。

@@ -2,8 +2,8 @@
 
 | 項目 | 内容 |
 |---|---|
-| 状態 | **案**（合意後に「確定」へ変更する） |
-| 最終更新 | 2026-10-20 |
+| 状態 | 確定（実装に合わせて更新する） |
+| 最終更新 | 2026-10-24 |
 | 関連 | [GameSpec.md](GameSpec.md) / [ScreenDesign.md](ScreenDesign.md) / [CodingRules.md](CodingRules.md) |
 
 ---
@@ -131,10 +131,12 @@ classDiagram
 
 | クラス | 役割 | 種類 |
 |---|---|---|
-| `QuizSession<TQuestion>` | 問題リスト、現在位置、回答履歴、スコア。今の `GameContext` を置き換える | Model |
+| `QuizSession<TQuestion>` | 問題リスト、現在位置、回答履歴、スコア | Model |
 | `AnswerRecord` / `AnswerState` | 1問分の回答（未回答・正解・不正解、選んだ番号） | Model |
 | `IChoiceQuestion` | 選択式の問題（選択肢の数と正解の番号）。選択肢の並びは問題を作るときに確定させる | Model |
-| `IQuestionRepository<TQuestion>` | 問題データの読み込み口 | Model |
+| `IQuestionRepository<TQuestion>` | 問題データの読み込み口（**未実装**。返信文クイズで作る） | Model |
+| `Difficulty` / `DifficultyExtensions` | 難易度と、その表示名（簡単・常識・困難） | Model |
+| `KanjiSet` | 出題範囲の漢字の集まり。JSON から読む。サロゲートペアの漢字も1文字として扱う | Model |
 | `ShuffleUtility` | シャッフル処理を1か所にまとめる | Model |
 | `QuizPresenterBase<TQuestion>` | 次へ・前へ・結果への遷移など全モード共通の進行 | Presenter |
 | `ChoiceQuizPresenter<TQuestion>` | 「N 個から1つ選ぶ」モード共通の判定 | Presenter |
@@ -142,12 +144,18 @@ classDiagram
 | `ChoiceListView` / `ChoiceItemView` | 選択肢の並びと1つ分の選択肢。中身はモードごとの View が `ChoiceItemView.ContentRoot` の下に描く | View |
 | `ISceneLoader` / `SceneLoader` / `SceneNames` | シーン遷移。Presenter からはインターフェース経由で使う | 共通 |
 | `QuizResult` / `QuizResultStore` | プレイの結果と、結果をシーン間で渡す置き場所 | 共通 |
+| `QuizReviewStore` | 振り返り用の問題と回答、振り返りを頼まれた問題の番号の置き場所 | 共通 |
+| `ChoiceQuizReviewPresenter<TQuestion>` | 選択式モード共通の振り返り（正解・回答の印、前へ・次へ、結果に戻る） | Presenter |
+| `QuizReviewView` | 振り返りのときだけ表示する部品（結果に戻るボタン、その問題の正誤） | View |
+| `ChoiceMark` | 振り返りのときに選択肢につける印（正解・選んだ不正解） | View |
+| `QuizLaunchOptions` | プレイ画面を開くときの設定（難易度）。モード選択画面が設定する予定 | 共通 |
+| `DebugDifficultySwitcher` | テスト用の難易度切り替え。F1 で表示（`Scripts/DebugTools`、エディタと開発ビルドのみ） | 開発用 |
 
 ### 3.2 モードごとの部分
 
 | モード | Presenter | 固有の View | 固有の Model |
 |---|---|---|---|
-| 書き順クイズ | `StrokeOrderPresenter` | `StrokeOrderView`, `CumulativeStrokeRenderer`（書き順の描画） | `StrokeOrderQuestion`, `StrokeOrderQuestionFactory`, `WrongOrderGenerator`, `StreamingAssetsKanjiStrokeSource` |
+| 書き順クイズ | `StrokeOrderPresenter`, `StrokeOrderReviewPresenter`（描画は `StrokeOrderChoiceDrawer` で共通化） | `StrokeOrderView`, `CumulativeStrokeRenderer`（書き順の描画と枠） | `StrokeOrderQuestion`, `StrokeOrderQuestionFactory`, `StrokeOrderRule`, `WrongOrderGenerator`, `StreamingAssetsKanjiStrokeSource`, `KanjiSvgParser`, `StrokePathParser` |
 | 本物の漢字さがし | `RealKanjiPresenter` | `KanjiChoiceView` | `RealKanjiQuestion` |
 | 返信文クイズ | `ReplyMessagePresenter` | `MessageBubbleView`, `TextChoiceView` | `ReplyMessageQuestion` |
 | 四字熟語づくり | `FourCharIdiomPresenter` | `IdiomBoardView`（4つの枠と候補） | `FourCharIdiomQuestion` |
@@ -230,7 +238,9 @@ flowchart LR
 
 | データ | 置き場所 | 理由 |
 |---|---|---|
-| 問題セット JSON | `Assets/TechC/KanjiQuiz/Data/Questions/` | TextAsset として EntryPoint から渡す |
+| 問題セット JSON | `Assets/TechC/KanjiQuiz/Data/Questions/` | TextAsset として EntryPoint から渡す（返信文クイズから使う予定） |
+| 漢字セット JSON（出題範囲） | `Assets/TechC/KanjiQuiz/Data/KanjiSets/` | TextAsset として EntryPoint から渡す。`Tools/generate_kanji_sets.py` で KANJIDIC2 から作る |
+| フォント | `Assets/TechC/KanjiQuiz/Art/Fonts/KleeOne/` | Klee One と TMP フォントアセット（Dynamic）、ライセンス文 |
 | KanjiVG の SVG | `Assets/StreamingAssets/KanjiVG/` | ビルド後も読めるようにする。UnityWebRequest で読む |
 | 画像で名前当ての画像 | `Assets/TechC/KanjiQuiz/Art/Quiz/ImageName/` | Sprite として扱う |
 
@@ -249,7 +259,8 @@ flowchart LR
 
 - モードごとにシーンを分ける。1人で開発するので、モード同士の干渉を減らすことを優先する。
 - タイトル、モード選択、結果の画面も同じく MVP で作る（`TitlePresenter` など）。
-- シーン間で渡すのは「選んだモード・難易度」と「結果（回答履歴）」だけ。結果は `QuizResultStore`（静的クラス）で受け渡す。
+- シーン間で渡すのは「選んだモード・難易度」と「結果（回答履歴）」だけ。難易度は `QuizLaunchOptions`、結果は `QuizResultStore`（どちらも静的クラス）で受け渡す。
+- 問題の振り返りは、結果画面から各モードのシーンを開き直して行う。各モードの EntryPoint は、`QuizReviewStore` に振り返りが頼まれていれば出題せずに振り返りの Presenter を作る。
 - 実装済みのシーンは `StrokeOrder` と `Result`。どちらも Build Profiles のシーンリストに登録している。
 - 画面の詳細は [ScreenDesign.md](ScreenDesign.md) を参照。
 
@@ -258,33 +269,35 @@ flowchart LR
 ## 6. 組み立て役（EntryPoint）
 
 各シーンに1つ、Model・View・Presenter を作ってつなぐ MonoBehaviour を置く。
+書き順クイズの `StrokeOrderEntryPoint` は、次の流れで動く（実際のコードを短くしたもの）。
 
 ```csharp
-public class StrokeOrderEntryPoint : MonoBehaviour
+private async UniTaskVoid InitializeAsync(CancellationToken ct)
 {
-    [SerializeField] private QuizFrameView frameView;
-    [SerializeField] private ChoiceListView choiceListView;
-    [SerializeField] private TextAsset questionSet;
+    reviewView.SetVisible(false);
 
-    private StrokeOrderPresenter presenter;
-
-    private void Start()
+    // 結果画面から振り返りを頼まれていれば、出題せずに振り返りを開く
+    if (QuizReviewStore.TryTakeRequest<StrokeOrderQuestion>(out var questions, out var answers, out int index))
     {
-        var repository = new LocalQuestionRepository<StrokeOrderQuestion>(questionSet);
-        var session = new QuizSession<StrokeOrderQuestion>(repository.LoadAll());
-        presenter = new StrokeOrderPresenter(session, frameView, choiceListView);
-        presenter.Initialize();
+        reviewPresenter = new StrokeOrderReviewPresenter(questions, answers, index, frameView, choiceListView, reviewView, strokeOrderView, sceneLoader);
+        reviewPresenter.Initialize();
+        return;
     }
 
-    private void OnDestroy()
-    {
-        presenter?.Dispose();
-    }
+    // 難易度（QuizLaunchOptions があれば優先）に合った出題範囲から、ランダムに問題を作る
+    var kanjiSet = KanjiSet.FromJson(GetKanjiSetAsset(difficulty).text);
+    var factory = new StrokeOrderQuestionFactory(new StreamingAssetsKanjiStrokeSource());
+    var list = await factory.CreateRandomAsync(kanjiSet.Kanji, difficulty, choiceCount, StrokeOrderRule.QuestionCount(difficulty), ct);
+
+    session = new QuizSession<StrokeOrderQuestion>(list);
+    presenter = new StrokeOrderPresenter(session, frameView, choiceListView, strokeOrderView);
+    presenter.OnFinished.Subscribe(this, static (_, self) => self.GoToResult()).AddTo(this);
+    presenter.Initialize();
 }
 ```
 
 - View への参照は EntryPoint だけが SerializeField で持つ。
-- Presenter は `IDisposable` を実装し、R3 の購読と UniTask のキャンセルを `Dispose` でまとめて解除する。
+- Presenter は `IDisposable` を実装し、R3 の購読と UniTask のキャンセルを `Dispose` でまとめて解除する。EntryPoint の `OnDestroy` で `Dispose` する。
 - VContainer を入れるときは、EntryPoint を `LifetimeScope` に置き換える。Presenter と Model のコードは変えなくてよい。
 
 ---
@@ -299,7 +312,7 @@ public class StrokeOrderEntryPoint : MonoBehaviour
 
 - Model の ReactiveProperty は外には `ReadOnlyReactiveProperty` として公開し、Model の中だけで値を変える。
 - Presenter は問題を表示するたびに `CancellationTokenSource` を作り直し、前の問題の処理をキャンセルする。
-  - 今の書き順描画は、問題を切り替えても前の描画が止まらない不具合がある。この仕組みで直す。
+  - 書き順の描画もこのトークンでキャンセルするので、問題を切り替えても前の描画が混ざらない。
 
 ---
 
@@ -311,12 +324,20 @@ public class StrokeOrderEntryPoint : MonoBehaviour
 | `TechC.KanjiQuiz.Editor` | エディタ拡張（必要になったら） |
 | `TechC.KanjiQuiz.Tests` | EditMode テスト |
 
-テストの対象は次の4つ。
+テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-24 時点で 84 件）。主な対象は次のとおり。
 
-- `QuizSession` の進行と採点
-- 不正解の選択肢が正解やほかの不正解と重複しないこと
-- 問題セット JSON の読み込み
-- Presenter の進行（View をテスト用の偽物に差し替えて確認する）
+| 対象 | テストクラス |
+|---|---|
+| 進行と採点 | `QuizSessionTests` |
+| 選択式モード共通の進行 | `ChoiceQuizPresenterTests` |
+| 振り返り | `ChoiceQuizReviewPresenterTests`, `QuizReviewStoreTests` |
+| 結果画面 | `ResultPresenterTests`, `QuizResultTests` |
+| 漢字セットと難易度の表示名 | `KanjiSetTests` |
+| 書き順クイズの Model | `WrongOrderGeneratorTests`, `StrokeOrderQuestionFactoryTests`, `KanjiSvgParserTests`, `StrokePathParserTests` |
+| シャッフル | `ShuffleUtilityTests` |
+
+- View はテスト用の偽物（`Tests/EditMode/Fakes/`）に差し替える。
+- `TechC.KanjiQuiz` アセンブリは UniTask、R3.Unity、uGUI、TextMeshPro、Input System を参照する。
 
 Presenter をテストできるように、View は Presenter からインターフェース（`IQuizFrameView` など）経由で使う。
 
