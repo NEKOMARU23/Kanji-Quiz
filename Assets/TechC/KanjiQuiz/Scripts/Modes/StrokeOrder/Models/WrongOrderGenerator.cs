@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TechC.KanjiQuiz.Common;
 
@@ -82,6 +83,20 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             return false;
         }
 
+        /// <summary>
+        /// 難易度「常識」で位置を変える画の割合
+        /// </summary>
+        public const float NormalChangeRatio = 0.3f;
+
+        /// <summary>
+        /// 難易度「常識」で位置を変える画の数（画数の30%、最低2画）
+        /// </summary>
+        public static int NormalChangeCount(int strokeCount)
+        {
+            int count = (int)Math.Round(strokeCount * NormalChangeRatio, MidpointRounding.AwayFromZero);
+            return Math.Min(strokeCount, Math.Max(2, count));
+        }
+
         private static int[] CreateCandidate(int strokeCount, Difficulty difficulty)
         {
             var order = CreateIdentity(strokeCount);
@@ -89,36 +104,36 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             switch (difficulty)
             {
                 case Difficulty.Easy:
-                    // 全画を並べ替える
+                    // 全画をランダムに並べ替える
                     ShuffleUtility.Shuffle(order);
                     break;
 
                 case Difficulty.Normal:
-                    // ランダムに選んだ2〜3画だけを並べ替える
-                    ShuffleSubset(order, UnityEngine.Random.Range(2, 4));
+                    // 連続した画数の30%の画を、すべて元の位置から動かす
+                    DerangeBlock(order, NormalChangeCount(strokeCount));
                     break;
 
                 case Difficulty.Hard:
-                    // ランダムに選んだ2画だけを入れ替える
-                    ShuffleSubset(order, 2);
+                    // 隣り合う2画を1か所だけ入れ替える
+                    int index = UnityEngine.Random.Range(0, strokeCount - 1);
+                    (order[index], order[index + 1]) = (order[index + 1], order[index]);
                     break;
             }
 
             return order;
         }
 
-        private static void ShuffleSubset(int[] order, int subsetSize)
+        /// <summary>
+        /// ランダムな位置から連続した blockSize 個の画を選び、どの画も元の位置に残らないように並べ替える
+        /// （Sattolo のアルゴリズム。必ず全要素が動く並べ替えになる）
+        /// </summary>
+        private static void DerangeBlock(int[] order, int blockSize)
         {
-            subsetSize = System.Math.Min(subsetSize, order.Length);
-
-            var indices = ShuffleUtility.ShuffledCopy(CreateIdentity(order.Length)).GetRange(0, subsetSize);
-            var values = new List<int>(subsetSize);
-            foreach (int index in indices) values.Add(order[index]);
-
-            ShuffleUtility.Shuffle(values);
-            for (int i = 0; i < subsetSize; i++)
+            int start = UnityEngine.Random.Range(0, order.Length - blockSize + 1);
+            for (int i = blockSize - 1; i > 0; i--)
             {
-                order[indices[i]] = values[i];
+                int k = UnityEngine.Random.Range(0, i);
+                (order[start + i], order[start + k]) = (order[start + k], order[start + i]);
             }
         }
     }
