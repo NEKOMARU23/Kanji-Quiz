@@ -35,11 +35,27 @@ namespace TechC.KanjiQuiz.Screens.Result
 
             view.SetModeName(result.ModeName);
             view.SetScore(result.CorrectCount, result.Total);
+            view.SetReviewAvailable(result.CanReview);
             view.SetItems(result.Items);
+
+            view.OnItemClicked
+                .Subscribe(this, static (index, self) => self.OpenReview(index))
+                .AddTo(disposables);
+            view.OnReviewClicked
+                .Subscribe(this, static (_, self) => self.OpenReview(self.result.GetFirstReviewIndex()))
+                .AddTo(disposables);
 
             view.OnRetryClicked
                 .Subscribe(this, static (_, self) => self.sceneLoader.Load(self.result.RetrySceneName))
                 .AddTo(disposables);
+        }
+
+        private void OpenReview(int index)
+        {
+            if (!result.CanReview || index < 0 || index >= result.Total) return;
+
+            QuizReviewStore.Request(index);
+            sceneLoader.Load(result.ReviewSceneName);
         }
 
         public void Dispose()

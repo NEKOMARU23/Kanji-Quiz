@@ -21,17 +21,25 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
         [SerializeField] private QuizFrameView frameView;
         [SerializeField] private ChoiceListView choiceListView;
         [SerializeField] private StrokeOrderView strokeOrderView;
+        [Tooltip("問題の振り返りのときだけ表示する部品")]
+        [SerializeField] private QuizReviewView reviewView;
 
         [Header("--- 出題設定 ---")]
-        [Tooltip("出題する漢字のリスト。書き順データがない漢字や、難易度の条件を満たさない漢字は除外される")]
-        [SerializeField] private List<string> questionKanjiList = new List<string> { "令", "漢", "字" };
+        [Tooltip("難易度。モード選択画面などで QuizLaunchOptions.Difficulty が設定されていれば、そちらを優先する")]
         [SerializeField] private Difficulty difficulty = Difficulty.Easy;
+        [Tooltip("難易度「簡単」の出題範囲（小学漢字）")]
+        [SerializeField] private TextAsset easyKanjiSet;
+        [Tooltip("難易度「常識」の出題範囲（常用漢字のうち小学校で学ばない漢字）")]
+        [SerializeField] private TextAsset normalKanjiSet;
+        [Tooltip("難易度「困難」の出題範囲（常用漢字以外）")]
+        [SerializeField] private TextAsset hardKanjiSet;
         [Range(2, 4)]
         [SerializeField] private int choiceCount = 3;
 
         private readonly ISceneLoader sceneLoader = new SceneLoader();
         private QuizSession<StrokeOrderQuestion> session;
         private StrokeOrderPresenter presenter;
+        private StrokeOrderReviewPresenter reviewPresenter;
 
         private void Start()
         {
@@ -41,16 +49,33 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
         private void OnDestroy()
         {
             presenter?.Dispose();
+            reviewPresenter?.Dispose();
             session?.Dispose();
         }
 
         private async UniTaskVoid InitializeAsync(CancellationToken ct)
         {
+            reviewView.SetVisible(false);
+
+            // 結果画面から振り返りを頼まれていれば、出題せずに振り返りを開く
+            if (QuizReviewStore.TryTakeRequest<StrokeOrderQuestion>(out var reviewQuestions, out var reviewAnswers, out int reviewIndex))
+            {
+                StartReview(reviewQuestions, reviewAnswers, reviewIndex);
+                return;
+            }
+
+            if (QuizLaunchOptions.Difficulty.HasValue)
+            {
+                difficulty = QuizLaunchOptions.Difficulty.Value;
+            }
+            frameView.SetTitle(Title);
+
+            var kanjiSet = KanjiSet.FromJson(GetKanjiSetAsset(difficulty).text);
             var factory = new StrokeOrderQuestionFactory(new StreamingAssetsKanjiStrokeSource());
             List<StrokeOrderQuestion> questions;
             try
             {
-                questions = await factory.CreateAsync(questionKanjiList, difficulty, choiceCount, ct);
+                questions = await factory.CreateRandomAsync(kanjiSet.Kanji, difficulty, choiceCount, StrokeOrderRule.QuestionCount(difficulty), ct);
             }
             catch (OperationCanceledException)
             {
@@ -59,7 +84,7 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
 
             if (questions.Count == 0)
             {
-                Debug.LogError("[StrokeOrderEntryPoint] 出題できる問題が1問もありません。出題する漢字と難易度の設定を確認してください。");
+                Debug.LogError($"[StrokeOrderEntryPoint] 出題範囲「{kanjiSet.Title}」から問題を1問も作れませんでした。");
                 return;
             }
 
@@ -71,9 +96,33 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             presenter.Initialize();
         }
 
+        /// <summary>画面と結果に表示する名前（例：書き順クイズ（簡単））</summary>
+        private string Title => $"{ModeName}（{difficulty.ToDisplayName()}）";
+
+        private TextAsset GetKanjiSetAsset(Difficulty value)
+        {
+            switch (value)
+            {
+                case Difficulty.Normal: return normalKanjiSet;
+                case Difficulty.Hard: return hardKanjiSet;
+                default: return easyKanjiSet;
+            }
+        }
+
+        private void StartReview(IReadOnlyList<StrokeOrderQuestion> questions, IReadOnlyList<AnswerRecord> answers, int startIndex)
+        {
+            // 振り返りの難易度は、そのプレイの結果の名前から引き継ぐ
+            frameView.SetTitle(QuizResultStore.Last != null ? QuizResultStore.Last.ModeName : ModeName);
+
+            reviewPresenter = new StrokeOrderReviewPresenter(
+                questions, answers, startIndex, frameView, choiceListView, reviewView, strokeOrderView, sceneLoader);
+            reviewPresenter.Initialize();
+        }
+
         private void GoToResult()
         {
-            QuizResultStore.Set(QuizResult.FromSession(ModeName, SceneNames.StrokeOrder, session, q => q.Kanji));
+            QuizReviewStore.Set(session.Questions, session.Answers);
+            QuizResultStore.Set(QuizResult.FromSession(Title, SceneNames.StrokeOrder, session, q => q.Kanji, SceneNames.StrokeOrder));
             sceneLoader.Load(SceneNames.Result);
         }
     }

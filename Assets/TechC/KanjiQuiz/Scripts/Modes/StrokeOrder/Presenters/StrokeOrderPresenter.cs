@@ -25,14 +25,7 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
 
         protected override UniTask ShowChoicesAsync(StrokeOrderQuestion question, CancellationToken ct)
         {
-            strokeOrderView.SetKanji(question.Kanji);
-
-            var drawTasks = new UniTask[question.ChoiceCount];
-            for (int i = 0; i < question.ChoiceCount; i++)
-            {
-                drawTasks[i] = strokeOrderView.DrawChoiceAsync(i, question.GetChoiceStrokes(i), ct);
-            }
-            return UniTask.WhenAll(drawTasks);
+            return StrokeOrderChoiceDrawer.DrawAsync(strokeOrderView, question, ct);
         }
     }
 }

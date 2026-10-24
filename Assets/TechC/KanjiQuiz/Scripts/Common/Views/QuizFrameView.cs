@@ -13,12 +13,22 @@ namespace TechC.KanjiQuiz.Common
     {
         [SerializeField] private Button nextButton;
         [SerializeField] private Button prevButton;
+        [Tooltip("モード名や難易度を表示するテキスト。不要なら空でよい")]
+        [SerializeField] private TMP_Text titleText;
         [SerializeField] private TMP_Text progressText;
         [Tooltip("進行バー。Image Type を Filled にしておく。不要なら空でよい")]
         [SerializeField] private Image progressFill;
 
         public Observable<Unit> OnNextClicked => nextButton.OnClickAsObservable();
         public Observable<Unit> OnPrevClicked => prevButton.OnClickAsObservable();
+
+        public void SetTitle(string title)
+        {
+            if (titleText != null)
+            {
+                titleText.text = title;
+            }
+        }
 
         public void SetProgress(int current, int total)
         {

@@ -13,6 +13,9 @@ namespace TechC.KanjiQuiz.Common
         /// <summary>[前へ] が押されたとき</summary>
         Observable<Unit> OnPrevClicked { get; }
 
+        /// <summary>画面の上に出すタイトル（モード名や難易度）を表示する</summary>
+        void SetTitle(string title);
+
         /// <summary>
         /// 進行状況を表示する
         /// </summary>

@@ -20,8 +20,16 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
         [SerializeField] private float maxRowWidth = 0f;
         [Tooltip("角と端を丸めるための頂点数")]
         [SerializeField] private int roundVertices = 10;
-        [Tooltip("描画順。UI（Screen Space - Camera の Canvas）より手前に描くため、0 より大きくする")]
+        [Tooltip("描画順。UI（Screen Space - Camera の Canvas）より手前に描くため、0 より大きくする。画は枠より1つ手前に描く")]
         [SerializeField] private int sortingOrder = 1;
+
+        [Header("--- 枠（1段階ごとに囲む四角） ---")]
+        [SerializeField] private bool drawFrame = true;
+        [Tooltip("枠の1辺の長さ（この Transform の座標で）。KanjiVG の文字の範囲は StrokePathParser の拡大率と同じ大きさ")]
+        [SerializeField] private float frameSize = 3f;
+        [Tooltip("枠の線の太さ（ワールド座標）。図を縮めても変えない")]
+        [SerializeField] private float frameWidth = 0.4f;
+        [SerializeField] private Color frameColor = Color.black;
 
         private Material sharedMaterial;
 
@@ -94,13 +102,44 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             stageObject.transform.localPosition = new Vector3(x, 0f, 0f);
             stageObject.transform.localScale = Vector3.one * stageScale;
 
+            if (drawFrame)
+            {
+                DrawFrame(stageObject.transform);
+            }
+
             for (int i = 0; i < stage; i++)
             {
-                DrawStroke(stageObject.transform, strokes[i], i + 1);
+                DrawStroke(stageObject.transform, strokes[i], i + 1, stageScale);
             }
         }
 
-        private void DrawStroke(Transform parent, StrokeData stroke, int number)
+        /// <summary>
+        /// 1段階の図を囲む四角を描く
+        /// </summary>
+        private void DrawFrame(Transform parent)
+        {
+            var frame = Instantiate(lineRendererPrefab, parent);
+            frame.name = "Frame";
+
+            float half = frameSize / 2f;
+            frame.positionCount = 4;
+            frame.SetPosition(0, new Vector3(-half, half, 0f));
+            frame.SetPosition(1, new Vector3(half, half, 0f));
+            frame.SetPosition(2, new Vector3(half, -half, 0f));
+            frame.SetPosition(3, new Vector3(-half, -half, 0f));
+            frame.loop = true;
+
+            frame.useWorldSpace = false;
+            frame.numCornerVertices = 0;
+            frame.numCapVertices = 0;
+            // 枠の線はもともと細いので、図を縮めても細くしない（細くしすぎると線が途切れて見える）
+            frame.startWidth = frame.endWidth = frameWidth;
+            frame.startColor = frame.endColor = frameColor;
+            frame.sortingOrder = sortingOrder;
+            if (sharedMaterial != null) frame.material = sharedMaterial;
+        }
+
+        private void DrawStroke(Transform parent, StrokeData stroke, int number, float stageScale)
         {
             var lineRenderer = Instantiate(lineRendererPrefab, parent);
             lineRenderer.name = $"Stroke_{number}";
@@ -115,9 +154,10 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             lineRenderer.useWorldSpace = false;
             lineRenderer.numCornerVertices = roundVertices;
             lineRenderer.numCapVertices = roundVertices;
-            lineRenderer.startWidth = lineRenderer.endWidth = strokeWidth;
+            // 線の太さは Transform の拡大縮小の影響を受けないので、図を縮めた分だけ細くする
+            lineRenderer.startWidth = lineRenderer.endWidth = strokeWidth * stageScale;
             lineRenderer.startColor = lineRenderer.endColor = strokeColor;
-            lineRenderer.sortingOrder = sortingOrder;
+            lineRenderer.sortingOrder = sortingOrder + 1;
             if (sharedMaterial != null) lineRenderer.material = sharedMaterial;
         }
     }

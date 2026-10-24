@@ -2,8 +2,8 @@
 
 | 項目 | 内容 |
 |---|---|
-| 状態 | **案**（合意後に「確定」へ変更する） |
-| 最終更新 | 2026-10-20 |
+| 状態 | 確定 |
+| 最終更新 | 2026-10-24 |
 | 関連 | [Architecture.md](Architecture.md) |
 
 既存のコードの書き方をもとに、迷いやすい点だけを決める。
@@ -110,7 +110,9 @@ Assets/
 │   └─ KanjiVG/              … 書き順の SVG
 └─ TechC/KanjiQuiz/
     ├─ Art/                  … 画像、フォント、音
-    ├─ Data/Questions/       … 問題セット JSON
+    ├─ Data/
+    │   ├─ KanjiSets/        … 出題範囲の漢字セット JSON（Tools で生成）
+    │   └─ Questions/        … 問題セット JSON（予定）
     ├─ Prefabs/
     │   ├─ Common/           … 全モードで使う UI
     │   └─ Modes/<モード名>/
@@ -126,8 +128,12 @@ Assets/
     │   │   ├─ Views/
     │   │   ├─ Presenters/
     │   │   └─ <モード名>EntryPoint.cs
-    │   └─ Screens/<画面名>/ … Title、ModeSelect、Result（同じく MVP）
+    │   ├─ Screens/<画面名>/ … Title、ModeSelect、Result（同じく MVP）
+    │   └─ DebugTools/       … テスト用の機能（エディタと開発ビルドのみ）
     └─ Tests/EditMode/
+        ├─ Fakes/            … テスト用の偽物の View など
+        └─ <対象>/           … StrokeOrder、Result、Review など
+Tools/                       … データを作るスクリプト（Unity の外で実行）
 ```
 
 - モード名のフォルダは `StrokeOrder`, `RealKanji`, `ReplyMessage`, `FourCharIdiom`, `ImageName` とする。

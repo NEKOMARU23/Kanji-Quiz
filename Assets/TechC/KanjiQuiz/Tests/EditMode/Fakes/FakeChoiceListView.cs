@@ -14,9 +14,19 @@ namespace TechC.KanjiQuiz.Tests
 
         public int ChoiceCount { get; private set; }
         public int SelectedIndex { get; private set; } = -1;
+        public bool IsInteractable { get; private set; } = true;
+        public int MarkedCorrectIndex { get; private set; } = -1;
+        public int MarkedSelectedIndex { get; private set; } = -1;
 
         public void SetChoiceCount(int count) => ChoiceCount = count;
         public void SetSelected(int index) => SelectedIndex = index;
+        public void SetInteractable(bool interactable) => IsInteractable = interactable;
+
+        public void SetMarks(int correctIndex, int selectedIndex)
+        {
+            MarkedCorrectIndex = correctIndex;
+            MarkedSelectedIndex = selectedIndex;
+        }
 
         public void Select(int index)
         {
