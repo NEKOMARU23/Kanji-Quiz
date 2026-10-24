@@ -66,6 +66,8 @@
 - 他のオブジェクトへの参照は EntryPoint の SerializeField で Inspector から渡す。`GameObject.Find` や `FindObjectOfType` は使わない。
 - 調整したい数値は SerializeField か定数にする。コードに直接数字を書かない。
 - `Random` は `UnityEngine.Random` に統一する。シャッフルは `ShuffleUtility` を使う。
+- シングルトンにする MonoBehaviour は `SingletonMonoBehaviour<T>` を継承する。Awake・OnDestroy の代わりに `OnAwake`・`OnRelease` を上書きする。Presenter からはインターフェース（`IAudioPlayer` など）経由で使い、`Instance` を直接参照するのは EntryPoint だけにする。
+- イベントは R3 の Observable で受け渡す（View の入力、Model の値の変化）。全体で共有するイベントの管理クラスは、複数の画面で同じイベントを受け取る必要が出たときに作る。
 - 非同期処理は UniTask で書き、`CancellationToken` を必ず受け取る。
 - `async void` は使わない。投げっぱなしにする場合は `UniTaskVoid` と `.Forget()` を使う。
 
