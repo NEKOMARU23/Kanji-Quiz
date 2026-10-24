@@ -60,26 +60,45 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
-        public void Hardでは2画だけが入れ替わる()
+        public void Hardでは隣り合う2画だけが入れ替わる()
         {
             Assert.IsTrue(WrongOrderGenerator.TryGenerate(10, Difficulty.Hard, 3, out var orders));
 
             foreach (var order in orders)
             {
-                int moved = order.Where((value, index) => value != index).Count();
-                Assert.AreEqual(2, moved);
+                var moved = Enumerable.Range(0, order.Length).Where(i => order[i] != i).ToList();
+                Assert.AreEqual(2, moved.Count, "入れ替わった画の数");
+                Assert.AreEqual(1, moved[1] - moved[0], "隣り合っていない");
             }
         }
 
-        [Test]
-        public void Normalでは3画以下だけが動く()
+        [TestCase(3, 2)]
+        [TestCase(5, 2)]
+        [TestCase(10, 3)]
+        [TestCase(13, 4)]
+        [TestCase(20, 6)]
+        public void Normalで位置を変える画の数は画数の30パーセント最低2画(int strokeCount, int expected)
         {
-            Assert.IsTrue(WrongOrderGenerator.TryGenerate(10, Difficulty.Normal, 3, out var orders));
+            Assert.AreEqual(expected, WrongOrderGenerator.NormalChangeCount(strokeCount));
+        }
 
-            foreach (var order in orders)
+        [TestCase(5)]
+        [TestCase(10)]
+        [TestCase(20)]
+        public void Normalでは連続した30パーセントの画がすべて動く(int strokeCount)
+        {
+            int expected = WrongOrderGenerator.NormalChangeCount(strokeCount);
+
+            for (int round = 0; round < 20; round++)
             {
-                int moved = order.Where((value, index) => value != index).Count();
-                Assert.That(moved, Is.InRange(2, 3));
+                Assert.IsTrue(WrongOrderGenerator.TryGenerate(strokeCount, Difficulty.Normal, 2, out var orders));
+
+                foreach (var order in orders)
+                {
+                    var moved = Enumerable.Range(0, order.Length).Where(i => order[i] != i).ToList();
+                    Assert.AreEqual(expected, moved.Count, "位置が変わった画の数");
+                    Assert.AreEqual(expected - 1, moved[moved.Count - 1] - moved[0], "動いた画が連続していない");
+                }
             }
         }
     }

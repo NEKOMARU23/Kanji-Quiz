@@ -14,10 +14,13 @@ namespace TechC.KanjiQuiz.Tests
         public Observable<Unit> OnNextClicked => onNextClicked;
         public Observable<Unit> OnPrevClicked => onPrevClicked;
 
+        public string Title { get; private set; }
         public int ProgressCurrent { get; private set; }
         public int ProgressTotal { get; private set; }
         public bool IsNextInteractable { get; private set; }
         public bool IsPrevInteractable { get; private set; }
+
+        public void SetTitle(string title) => Title = title;
 
         public void SetProgress(int current, int total)
         {

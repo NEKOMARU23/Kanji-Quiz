@@ -86,6 +86,45 @@ namespace TechC.KanjiQuiz.Tests
             }
         }
 
+        [Test]
+        public void ランダムに選んで指定した数の問題を作る()
+        {
+            var candidates = new[] { "三", "令", "漢" };
+
+            var questions = factory.CreateRandomAsync(candidates, Difficulty.Easy, 3, 2, CancellationToken.None).GetAwaiter().GetResult();
+
+            Assert.AreEqual(2, questions.Count);
+            CollectionAssert.AllItemsAreUnique(questions.Select(q => q.Kanji));
+            CollectionAssert.IsSubsetOf(questions.Select(q => q.Kanji), candidates);
+        }
+
+        [Test]
+        public void ランダムに選んだ漢字で作れないときは別の漢字を選び直す()
+        {
+            // 「一」「二」は作れない。作れるのは「令」だけ
+            var questions = factory.CreateRandomAsync(new[] { "一", "二", "令" }, Difficulty.Easy, 3, 1, CancellationToken.None).GetAwaiter().GetResult();
+
+            CollectionAssert.AreEqual(new[] { "令" }, questions.Select(q => q.Kanji));
+        }
+
+        [Test]
+        public void 出題範囲が足りないときは作れた分だけ返す()
+        {
+            LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("作れませんでした"));
+
+            var questions = factory.CreateRandomAsync(new[] { "一", "令" }, Difficulty.Easy, 3, 5, CancellationToken.None).GetAwaiter().GetResult();
+
+            Assert.AreEqual(1, questions.Count);
+        }
+
+        [TestCase(Difficulty.Easy, 5)]
+        [TestCase(Difficulty.Normal, 7)]
+        [TestCase(Difficulty.Hard, 7)]
+        public void 難易度ごとの問題数(Difficulty difficulty, int expected)
+        {
+            Assert.AreEqual(expected, StrokeOrderRule.QuestionCount(difficulty));
+        }
+
         private List<StrokeOrderQuestion> Create(IEnumerable<string> kanjiList, Difficulty difficulty, int choiceCount)
         {
             // テスト用のデータ源はすぐに完了するので、同期的に結果を取り出せる
