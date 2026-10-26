@@ -10,6 +10,7 @@ namespace TechC.KanjiQuiz.Tests
         private FakeQuizFrameView frameView;
         private FakeChoiceListView choiceListView;
         private TestChoiceQuizPresenter presenter;
+        private FakeAudioPlayer audioPlayer;
 
         [SetUp]
         public void SetUp()
@@ -23,7 +24,8 @@ namespace TechC.KanjiQuiz.Tests
             });
             frameView = new FakeQuizFrameView();
             choiceListView = new FakeChoiceListView();
-            presenter = new TestChoiceQuizPresenter(session, frameView, choiceListView);
+            audioPlayer = new FakeAudioPlayer();
+            presenter = new TestChoiceQuizPresenter(session, frameView, choiceListView, audioPlayer);
             presenter.Initialize();
         }
 
@@ -141,6 +143,26 @@ namespace TechC.KanjiQuiz.Tests
             Assert.AreEqual(3, session.Score.CurrentValue);
             Assert.IsFalse(frameView.IsNextInteractable);
             Assert.IsFalse(frameView.IsPrevInteractable);
+        }
+    
+        [Test]
+        public void 選択肢を選ぶと選択の音が鳴る()
+        {
+            choiceListView.Select(1);
+
+            CollectionAssert.AreEqual(new[] { SeType.Select }, audioPlayer.PlayedSe);
+        }
+
+        [Test]
+        public void 問題を切り替えるとページをめくる音と向きに合った演出をする()
+        {
+            choiceListView.Select(0);
+            frameView.ClickNext();
+            frameView.ClickPrev();
+
+            // 最初の問題は下から、次へは右から、前へは左から入る
+            CollectionAssert.AreEqual(new[] { 0, 1, -1 }, frameView.TransitionDirections);
+            CollectionAssert.AreEqual(new[] { SeType.Select, SeType.PageTurn, SeType.PageTurn }, audioPlayer.PlayedSe);
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using R3;
 using TechC.KanjiQuiz.Common;
 
@@ -20,6 +21,9 @@ namespace TechC.KanjiQuiz.Tests
         public bool IsNextInteractable { get; private set; }
         public bool IsPrevInteractable { get; private set; }
 
+        /// <summary>問題を切り替える演出の向き（演出した順）</summary>
+        public List<int> TransitionDirections { get; } = new List<int>();
+
         public void SetTitle(string title) => Title = title;
 
         public void SetProgress(int current, int total)
@@ -30,6 +34,7 @@ namespace TechC.KanjiQuiz.Tests
 
         public void SetNextInteractable(bool interactable) => IsNextInteractable = interactable;
         public void SetPrevInteractable(bool interactable) => IsPrevInteractable = interactable;
+        public void PlayQuestionTransition(int direction) => TransitionDirections.Add(direction);
 
         public void ClickNext() => onNextClicked.OnNext(Unit.Default);
         public void ClickPrev() => onPrevClicked.OnNext(Unit.Default);

@@ -36,6 +36,17 @@ namespace TechC.KanjiQuiz.Tests
         public bool IsMenuVisible { get; private set; } = true;
         public bool IsAllRevealed { get; private set; }
         public int RouletteCount { get; private set; }
+        public int BeatCount { get; private set; }
+
+        /// <summary>表示した級。まだなら null</summary>
+        public string Rank { get; private set; }
+        public bool IsRankAnimated { get; private set; }
+        public bool IsHanamaruShown { get; private set; }
+        public bool IsHanamaruAnimated { get; private set; }
+
+        /// <summary>表示した自己ベスト。まだなら -1</summary>
+        public int BestCorrectCount { get; private set; } = -1;
+        public bool IsNewBestShown { get; private set; }
 
         /// <summary>○× を出した問題の番号（出した順）</summary>
         public List<int> RevealedIndices { get; } = new List<int>();
@@ -63,6 +74,36 @@ namespace TechC.KanjiQuiz.Tests
             CorrectCount = correctCount;
             Total = total;
             IsScoreAnimated = animate;
+        }
+
+        public UniTask WaitBeatAsync(CancellationToken ct)
+        {
+            BeatCount++;
+            return UniTask.CompletedTask;
+        }
+
+        public UniTask PlayRankStampAsync(string rank, CancellationToken ct)
+        {
+            Rank = rank;
+            IsRankAnimated = true;
+            return UniTask.CompletedTask;
+        }
+
+        public void ShowRank(string rank) => Rank = rank;
+
+        public UniTask PlayHanamaruAsync(CancellationToken ct)
+        {
+            IsHanamaruShown = true;
+            IsHanamaruAnimated = true;
+            return UniTask.CompletedTask;
+        }
+
+        public void ShowHanamaru() => IsHanamaruShown = true;
+
+        public void ShowBestRecord(int bestCorrectCount, int total, bool isNewBest, bool animate)
+        {
+            BestCorrectCount = bestCorrectCount;
+            IsNewBestShown = isNewBest;
         }
 
         public void SetMenuVisible(bool visible) => IsMenuVisible = visible;

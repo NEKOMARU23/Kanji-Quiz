@@ -19,8 +19,9 @@ namespace TechC.KanjiQuiz.Tests
             IQuizFrameView frameView,
             IChoiceListView choiceListView,
             IQuizReviewView reviewView,
-            ISceneLoader sceneLoader)
-            : base(questions, answers, startIndex, frameView, choiceListView, reviewView, sceneLoader, "Result")
+            ISceneLoader sceneLoader,
+            IAudioPlayer audioPlayer = null)
+            : base(questions, answers, startIndex, frameView, choiceListView, reviewView, sceneLoader, "Result", audioPlayer)
         {
         }
 

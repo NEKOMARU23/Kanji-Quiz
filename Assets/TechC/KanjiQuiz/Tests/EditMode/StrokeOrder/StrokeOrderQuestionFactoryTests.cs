@@ -117,12 +117,29 @@ namespace TechC.KanjiQuiz.Tests
             Assert.AreEqual(1, questions.Count);
         }
 
+        [Test]
+        public void 並べた順に漢字を選んで問題を作る()
+        {
+            // 先頭の「一」は作れないので飛ばし、「漢」「令」を選ぶ。「三」は選ばない
+            var questions = factory.CreateFromOrderedAsync(new[] { "一", "漢", "令", "三" }, Difficulty.Easy, 3, 2, CancellationToken.None).GetAwaiter().GetResult();
+
+            CollectionAssert.AreEquivalent(new[] { "漢", "令" }, questions.Select(q => q.Kanji));
+        }
+
         [TestCase(Difficulty.Easy, 5)]
         [TestCase(Difficulty.Normal, 7)]
         [TestCase(Difficulty.Hard, 7)]
         public void 難易度ごとの問題数(Difficulty difficulty, int expected)
         {
             Assert.AreEqual(expected, StrokeOrderRule.QuestionCount(difficulty));
+        }
+
+        [TestCase(Difficulty.Easy, 2)]
+        [TestCase(Difficulty.Normal, 3)]
+        [TestCase(Difficulty.Hard, 3)]
+        public void 優先して出す苦手な漢字は問題数の半分まで(Difficulty difficulty, int expected)
+        {
+            Assert.AreEqual(expected, StrokeOrderRule.WeakQuestionCount(difficulty));
         }
 
         private List<StrokeOrderQuestion> Create(IEnumerable<string> kanjiList, Difficulty difficulty, int choiceCount)
