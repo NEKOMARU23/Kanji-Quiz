@@ -148,6 +148,8 @@ classDiagram
 | `ChoiceQuizReviewPresenter<TQuestion>` | 選択式モード共通の振り返り（正解・回答の印、前へ・次へ、結果に戻る） | Presenter |
 | `QuizReviewView` | 振り返りのときだけ表示する部品（結果に戻るボタン、その問題の正誤） | View |
 | `ChoiceMark` | 振り返りのときに選択肢につける印（正解・選んだ不正解） | View |
+| `SingletonMonoBehaviour<T>` | シーンに1つだけ置く MonoBehaviour の基礎クラス。2つ目は消す。シーンをまたいで残すかを Inspector で選べる | 共通 |
+| `AudioManager` / `IAudioPlayer` / `SeType` | 効果音を鳴らす（`SingletonMonoBehaviour` を継承）。Presenter は `IAudioPlayer` 経由で使い、AudioManager がなければ `NullAudioPlayer` を渡す | 共通 |
 | `QuizLaunchOptions` | プレイ画面を開くときの設定（難易度）。モード選択画面が設定する予定 | 共通 |
 | `DebugDifficultySwitcher` | テスト用の難易度切り替え。F1 で表示（`Scripts/DebugTools`、エディタと開発ビルドのみ） | 開発用 |
 
@@ -324,14 +326,14 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | `TechC.KanjiQuiz.Editor` | エディタ拡張（必要になったら） |
 | `TechC.KanjiQuiz.Tests` | EditMode テスト |
 
-テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-24 時点で 84 件）。主な対象は次のとおり。
+テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-24 時点で 90 件）。主な対象は次のとおり。
 
 | 対象 | テストクラス |
 |---|---|
 | 進行と採点 | `QuizSessionTests` |
 | 選択式モード共通の進行 | `ChoiceQuizPresenterTests` |
 | 振り返り | `ChoiceQuizReviewPresenterTests`, `QuizReviewStoreTests` |
-| 結果画面 | `ResultPresenterTests`, `QuizResultTests` |
+| 結果画面（結果発表の演出と効果音を含む） | `ResultPresenterTests`, `QuizResultTests`, `QuizResultStoreTests` |
 | 漢字セットと難易度の表示名 | `KanjiSetTests` |
 | 書き順クイズの Model | `WrongOrderGeneratorTests`, `StrokeOrderQuestionFactoryTests`, `KanjiSvgParserTests`, `StrokePathParserTests` |
 | シャッフル | `ShuffleUtilityTests` |

@@ -42,7 +42,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 
 - **遊べるのは書き順クイズだけ**。ほかの4モード、タイトル画面、モード選択画面は未着手。次にやることは `Docs/Progress.md` の9章。
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
-  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、84 件）。
+  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、90 件）。
 - 書き順クイズは `Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`。
   - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。難易度・難易度ごとの漢字セット・選択肢の数・振り返り用の View もここで設定する。
   - 難易度は `QuizLaunchOptions.Difficulty` があればそちらを優先する。F1 キーで表示されるテスト用ボタン（`Scripts/DebugTools/DebugDifficultySwitcher`、エディタと開発ビルドのみ）で切り替えられる。シーンに保存する難易度は Easy にしておく。
@@ -53,6 +53,8 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `StrokeOrder.unity` と `Result.unity`（全モード共通の結果画面）。
   - 全問回答すると `QuizResultStore` に結果、`QuizReviewStore` に問題と回答を置いて Result へ移る。
   - 結果画面の [問題を振り返る]（または一覧の問題）で、モードのシーンを振り返りとして開き直す。
+  - 結果画面は、1問ずつ ○× → 正解数のルーレット → 正解数、の順に効果音つきで見せる（クリックで飛ばせる。振り返りから戻ったときは演出しない）。
+- 効果音は `AudioManager`（`Prefabs/Common/AudioManager`、今は Result シーンにだけ置いている）。シングルトンは `SingletonMonoBehaviour<T>` を継承して作る。今の効果音は `Tools/generate_placeholder_se.py` で作った仮の音。
 - 文字は Klee One の TMP フォントアセット（Dynamic、TMP Settings の既定）で表示する。
 - 未実装の機能と既知の不具合は `Docs/GameSpec.md` の8章を参照。
 
