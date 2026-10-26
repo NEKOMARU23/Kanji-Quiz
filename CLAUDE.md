@@ -38,11 +38,11 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - 問題データは JSON。`IQuestionRepository` 経由で読む（**未実装**。返信文クイズを作るときに用意する）。
 - 非同期は UniTask。問題ごとに `CancellationTokenSource` を作り直す。`async void` 禁止。
 
-## 現在の状態（2026-10-24 時点）
+## 現在の状態（2026-10-26 時点）
 
 - **遊べるのは書き順クイズだけ**。ほかの4モード、タイトル画面、モード選択画面は未着手。次にやることは `Docs/Progress.md` の9章。
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
-  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、90 件）。
+  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、127 件）。
 - 書き順クイズは `Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`。
   - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。難易度・難易度ごとの漢字セット・選択肢の数・振り返り用の View もここで設定する。
   - 難易度は `QuizLaunchOptions.Difficulty` があればそちらを優先する。F1 キーで表示されるテスト用ボタン（`Scripts/DebugTools/DebugDifficultySwitcher`、エディタと開発ビルドのみ）で切り替えられる。シーンに保存する難易度は Easy にしておく。
@@ -53,8 +53,14 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `StrokeOrder.unity` と `Result.unity`（全モード共通の結果画面）。
   - 全問回答すると `QuizResultStore` に結果、`QuizReviewStore` に問題と回答を置いて Result へ移る。
   - 結果画面の [問題を振り返る]（または一覧の問題）で、モードのシーンを振り返りとして開き直す。
-  - 結果画面は、1問ずつ ○× → 正解数のルーレット → 正解数、の順に効果音つきで見せる（クリックで飛ばせる。振り返りから戻ったときは演出しない）。
-- 効果音は `AudioManager`（`Prefabs/Common/AudioManager`、今は Result シーンにだけ置いている）。シングルトンは `SingletonMonoBehaviour<T>` を継承して作る。今の効果音は `Tools/generate_placeholder_se.py` で作った仮の音。
+  - 結果画面は、1問ずつ ○×（ハンコの画像）→ 正解数のルーレット → 正解数 → 級のハンコ → 全問正解なら花丸 → 自己ベスト、の順に効果音つきで見せる（クリックで飛ばせる。振り返りから戻ったときは演出しない）。
+  - 級は `KanjiRank`、自己ベストは `QuizResult.UpdateBestRecord` と `PlayerPrefsBestRecordRepository`（キー `BestRecord_StrokeOrder_<難易度>`）。Play で確かめたあとは、残った自己ベストを `PlayerPrefs.DeleteKey` で消す。
+  - プレイ中は、選択・ページめくりの音と、問題を切り替えるときのスライド（`QuizFrameView` の `transitionTargets`）がある。
+  - 振り返りでは、出題する漢字の右にお手本の書き順アニメーション（`StrokeAnimationView`）を出す。
+  - 間違えた漢字は `WeakQuestionList`（PlayerPrefs のキー `WeakQuestions_StrokeOrder_<難易度>`）に残し、次のプレイで問題数の半分まで優先して出す。出たときは「苦手」のハンコを出す。Play で確かめたあとは、このキーも `PlayerPrefs.DeleteKey` で消す。
+- 背景は学校のプリントのような画像（各 Canvas の Background）。シーンの切り替えは `SceneTransitionView`（`Prefabs/Common/SceneTransition`、プリントを回収して次を配る）で、`new SceneLoader(SceneTransitionView.Instance)` のように EntryPoint で渡す。
+- 切り替えはカメラの映像をテクスチャに描いて使うので、**新しいシーンの Canvas は Screen Space - Camera にする**（Overlay の UI はプリントに映らない）。StrokeOrder と Result はどちらも Camera にしてある。
+- 効果音は `AudioManager`（`Prefabs/Common/AudioManager`、StrokeOrder と Result の両方のシーンに置いている）。シングルトンは `SingletonMonoBehaviour<T>` を継承して作る。今の効果音と画像は `Tools/generate_placeholder_se.py`・`Tools/generate_placeholder_ui.py` で作った仮のもの。
 - 文字は Klee One の TMP フォントアセット（Dynamic、TMP Settings の既定）で表示する。
 - 未実装の機能と既知の不具合は `Docs/GameSpec.md` の8章を参照。
 
