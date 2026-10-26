@@ -19,8 +19,13 @@ namespace TechC.KanjiQuiz.Common
         /// <summary>選択肢を並べる View</summary>
         protected IChoiceListView ChoiceListView { get; }
 
-        protected ChoiceQuizPresenter(QuizSession<TQuestion> session, IQuizFrameView frameView, IChoiceListView choiceListView)
-            : base(session, frameView)
+        /// <param name="audioPlayer">効果音を鳴らす。null なら鳴らさない</param>
+        protected ChoiceQuizPresenter(
+            QuizSession<TQuestion> session,
+            IQuizFrameView frameView,
+            IChoiceListView choiceListView,
+            IAudioPlayer audioPlayer = null)
+            : base(session, frameView, audioPlayer)
         {
             ChoiceListView = choiceListView ?? throw new ArgumentNullException(nameof(choiceListView));
         }
@@ -57,6 +62,7 @@ namespace TechC.KanjiQuiz.Common
         private void HandleChoiceSelected(int index)
         {
             selectedIndex = index;
+            AudioPlayer.PlaySe(SeType.Select);
             RefreshNextButton();
         }
     }

@@ -13,6 +13,7 @@ namespace TechC.KanjiQuiz.Common
     public abstract class QuizPresenterBase<TQuestion> : IDisposable
     {
         private readonly IQuizFrameView frameView;
+        private readonly IAudioPlayer audioPlayer;
         private readonly Subject<Unit> onFinished = new Subject<Unit>();
         private CancellationTokenSource questionCts;
         private bool isInitialized;
@@ -27,10 +28,15 @@ namespace TechC.KanjiQuiz.Common
         /// <summary>最後の問題に回答して [次へ] が押されたとき</summary>
         public Observable<Unit> OnFinished => onFinished;
 
-        protected QuizPresenterBase(QuizSession<TQuestion> session, IQuizFrameView frameView)
+        /// <summary>効果音</summary>
+        protected IAudioPlayer AudioPlayer => audioPlayer;
+
+        /// <param name="audioPlayer">効果音を鳴らす。null なら鳴らさない</param>
+        protected QuizPresenterBase(QuizSession<TQuestion> session, IQuizFrameView frameView, IAudioPlayer audioPlayer = null)
         {
             Session = session ?? throw new ArgumentNullException(nameof(session));
             this.frameView = frameView ?? throw new ArgumentNullException(nameof(frameView));
+            this.audioPlayer = audioPlayer ?? NullAudioPlayer.Instance;
         }
 
         /// <summary>
@@ -49,7 +55,7 @@ namespace TechC.KanjiQuiz.Common
                 .AddTo(Disposables);
 
             OnInitialize();
-            ShowCurrentQuestionAsync().Forget();
+            ShowCurrentQuestionAsync(0).Forget();
         }
 
         public void Dispose()
@@ -96,10 +102,11 @@ namespace TechC.KanjiQuiz.Common
             if (!TryJudge(Session.Current, out var selectedIndex, out var isCorrect)) return;
 
             Session.RecordAnswer(selectedIndex, isCorrect);
+            audioPlayer.PlaySe(SeType.PageTurn);
 
             if (Session.MoveNext())
             {
-                ShowCurrentQuestionAsync().Forget();
+                ShowCurrentQuestionAsync(1).Forget();
                 return;
             }
 
@@ -113,11 +120,13 @@ namespace TechC.KanjiQuiz.Common
         {
             if (Session.MovePrev())
             {
-                ShowCurrentQuestionAsync().Forget();
+                audioPlayer.PlaySe(SeType.PageTurn);
+                ShowCurrentQuestionAsync(-1).Forget();
             }
         }
 
-        private async UniTaskVoid ShowCurrentQuestionAsync()
+        /// <param name="direction">切り替えの向き（IQuizFrameView.PlayQuestionTransition を参照）</param>
+        private async UniTaskVoid ShowCurrentQuestionAsync(int direction)
         {
             CancelQuestion();
             questionCts = new CancellationTokenSource();
@@ -126,6 +135,7 @@ namespace TechC.KanjiQuiz.Common
             frameView.SetProgress(Session.CurrentIndex.CurrentValue + 1, Session.Count);
             frameView.SetPrevInteractable(!Session.IsFirst);
             frameView.SetNextInteractable(false);
+            frameView.PlayQuestionTransition(direction);
 
             try
             {

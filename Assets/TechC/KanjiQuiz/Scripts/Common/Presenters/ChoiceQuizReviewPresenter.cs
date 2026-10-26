@@ -22,6 +22,7 @@ namespace TechC.KanjiQuiz.Common
         private readonly IQuizReviewView reviewView;
         private readonly ISceneLoader sceneLoader;
         private readonly string resultSceneName;
+        private readonly IAudioPlayer audioPlayer;
         private readonly CompositeDisposable disposables = new CompositeDisposable();
         private CancellationTokenSource questionCts;
         private bool isDisposed;
@@ -37,7 +38,8 @@ namespace TechC.KanjiQuiz.Common
             IChoiceListView choiceListView,
             IQuizReviewView reviewView,
             ISceneLoader sceneLoader,
-            string resultSceneName)
+            string resultSceneName,
+            IAudioPlayer audioPlayer = null)
         {
             this.questions = questions ?? throw new ArgumentNullException(nameof(questions));
             this.answers = answers ?? throw new ArgumentNullException(nameof(answers));
@@ -50,6 +52,7 @@ namespace TechC.KanjiQuiz.Common
             this.reviewView = reviewView ?? throw new ArgumentNullException(nameof(reviewView));
             this.sceneLoader = sceneLoader ?? throw new ArgumentNullException(nameof(sceneLoader));
             this.resultSceneName = resultSceneName ?? throw new ArgumentNullException(nameof(resultSceneName));
+            this.audioPlayer = audioPlayer ?? NullAudioPlayer.Instance;
             CurrentIndex = startIndex;
         }
 
@@ -71,7 +74,7 @@ namespace TechC.KanjiQuiz.Common
                 .Subscribe(this, static (_, self) => self.sceneLoader.Load(self.resultSceneName))
                 .AddTo(disposables);
 
-            ShowCurrentAsync().Forget();
+            ShowCurrentAsync(0).Forget();
         }
 
         public void Dispose()
@@ -94,10 +97,12 @@ namespace TechC.KanjiQuiz.Common
             if (next < 0 || next >= questions.Count) return;
 
             CurrentIndex = next;
-            ShowCurrentAsync().Forget();
+            audioPlayer.PlaySe(SeType.PageTurn);
+            ShowCurrentAsync(delta).Forget();
         }
 
-        private async UniTaskVoid ShowCurrentAsync()
+        /// <param name="direction">切り替えの向き（IQuizFrameView.PlayQuestionTransition を参照）</param>
+        private async UniTaskVoid ShowCurrentAsync(int direction)
         {
             CancelQuestion();
             questionCts = new CancellationTokenSource();
@@ -110,6 +115,7 @@ namespace TechC.KanjiQuiz.Common
             frameView.SetPrevInteractable(CurrentIndex > 0);
             frameView.SetNextInteractable(CurrentIndex < questions.Count - 1);
             reviewView.SetAnswerState(answer.State);
+            frameView.PlayQuestionTransition(direction);
 
             choiceListView.SetChoiceCount(question.ChoiceCount);
             choiceListView.SetSelected(answer.IsAnswered ? answer.SelectedIndex : -1);

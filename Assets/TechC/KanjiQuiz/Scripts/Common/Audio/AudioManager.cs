@@ -25,6 +25,8 @@ namespace TechC.KanjiQuiz.Common
 
         public void PlaySe(SeType type)
         {
+            // Play を止めたときやアプリの終了時は、AudioSource が呼んだ側より先に破棄されていることがある
+            if (seSource == null) return;
             if (!TryGetEntry(type, out var entry)) return;
 
             seSource.PlayOneShot(entry.clip, entry.volume);
@@ -32,6 +34,7 @@ namespace TechC.KanjiQuiz.Common
 
         public void PlayLoop(SeType type)
         {
+            if (loopSource == null) return;
             if (!TryGetEntry(type, out var entry)) return;
 
             loopSource.Stop();
@@ -43,6 +46,7 @@ namespace TechC.KanjiQuiz.Common
 
         public void StopLoop()
         {
+            if (loopSource == null) return;
             loopSource.Stop();
         }
 

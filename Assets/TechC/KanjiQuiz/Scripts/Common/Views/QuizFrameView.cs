@@ -1,3 +1,5 @@
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using R3;
 using TMPro;
 using UnityEngine;
@@ -19,8 +21,34 @@ namespace TechC.KanjiQuiz.Common
         [Tooltip("進行バー。Image Type を Filled にしておく。不要なら空でよい")]
         [SerializeField] private Image progressFill;
 
+        [Header("問題を切り替える演出")]
+        [Tooltip("問題を切り替えるときにスライドさせるもの（問題文、選択肢を並べる親など）")]
+        [SerializeField] private RectTransform[] transitionTargets;
+        [Tooltip("スライドの距離（Canvas の座標で）")]
+        [SerializeField] private float transitionDistance = 160f;
+        [Tooltip("スライドの秒数")]
+        [SerializeField] private float transitionDuration = 0.25f;
+
+        private Vector2[] basePositions;
+        private CancellationTokenSource transitionCts;
+
         public Observable<Unit> OnNextClicked => nextButton.OnClickAsObservable();
         public Observable<Unit> OnPrevClicked => prevButton.OnClickAsObservable();
+
+        private void Awake()
+        {
+            basePositions = new Vector2[transitionTargets.Length];
+            for (int i = 0; i < transitionTargets.Length; i++)
+            {
+                basePositions[i] = transitionTargets[i].anchoredPosition;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            transitionCts?.Cancel();
+            transitionCts?.Dispose();
+        }
 
         public void SetTitle(string title)
         {
@@ -51,6 +79,43 @@ namespace TechC.KanjiQuiz.Common
         public void SetPrevInteractable(bool interactable)
         {
             prevButton.interactable = interactable;
+        }
+
+        public void PlayQuestionTransition(int direction)
+        {
+            if (transitionTargets.Length == 0) return;
+
+            transitionCts?.Cancel();
+            transitionCts?.Dispose();
+            transitionCts = new CancellationTokenSource();
+
+            var offset = direction == 0
+                ? new Vector2(0f, -transitionDistance)
+                : new Vector2(Mathf.Sign(direction) * transitionDistance, 0f);
+            SlideInAsync(offset, transitionCts.Token).Forget();
+        }
+
+        private async UniTaskVoid SlideInAsync(Vector2 offset, CancellationToken ct)
+        {
+            float elapsed = 0f;
+            while (elapsed < transitionDuration)
+            {
+                // 最初に速く、最後にゆっくり止まる（ease out）
+                float t = 1f - Mathf.Pow(1f - elapsed / transitionDuration, 3f);
+                SetOffset(offset * (1f - t));
+
+                await UniTask.Yield(PlayerLoopTiming.Update, ct);
+                elapsed += Time.deltaTime;
+            }
+            SetOffset(Vector2.zero);
+        }
+
+        private void SetOffset(Vector2 offset)
+        {
+            for (int i = 0; i < transitionTargets.Length; i++)
+            {
+                transitionTargets[i].anchoredPosition = basePositions[i] + offset;
+            }
         }
     }
 }
