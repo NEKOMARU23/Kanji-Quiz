@@ -20,7 +20,9 @@ namespace TechC.KanjiQuiz.Screens.Result
             bool playReveal = QuizResultStore.IsRevealPending;
             QuizResultStore.MarkRevealed();
 
-            presenter = new ResultPresenter(QuizResultStore.Last, resultView, new SceneLoader(), audioPlayer, playReveal);
+            ISceneTransition transition = SceneTransitionView.HasInstance ? SceneTransitionView.Instance : null;
+            presenter = new ResultPresenter(
+                QuizResultStore.Last, resultView, new SceneLoader(transition), audioPlayer, new PlayerPrefsBestRecordRepository(), playReveal, transition);
             presenter.Initialize();
         }
 

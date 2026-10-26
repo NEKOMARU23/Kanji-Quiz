@@ -18,8 +18,8 @@ namespace TechC.KanjiQuiz.Screens.Result
         [SerializeField] private TMP_Text scoreText;
         [Tooltip("問題ごとの結果を並べる親")]
         [SerializeField] private RectTransform itemContainer;
-        [Tooltip("問題1つ分の結果を表示するテキストのプレハブ")]
-        [SerializeField] private TMP_Text itemPrefab;
+        [Tooltip("問題1つ分の結果のプレハブ")]
+        [SerializeField] private ResultItemView itemPrefab;
         [SerializeField] private Button retryButton;
         [Tooltip("[問題を振り返る] ボタン")]
         [SerializeField] private Button reviewButton;
@@ -27,16 +27,23 @@ namespace TechC.KanjiQuiz.Screens.Result
         [SerializeField] private TMP_Text reviewHintText;
         [Tooltip("演出中のクリックを受け取る、画面全体を覆う透明なボタン")]
         [SerializeField] private Button skipButton;
-        [SerializeField] private Color correctColor = new Color(0.85f, 0.2f, 0.2f);
-        [SerializeField] private Color incorrectColor = new Color(0.2f, 0.35f, 0.8f);
-        [Tooltip("○× を出す前の文字の色")]
-        [SerializeField] private Color hiddenColor = new Color(0.4f, 0.4f, 0.4f);
+
+        [Header("級・花丸・自己ベスト")]
+        [Tooltip("級のハンコ（枠の画像と、中の文字の親）")]
+        [SerializeField] private RectTransform rankStamp;
+        [SerializeField] private TMP_Text rankText;
+        [Tooltip("全問正解の花丸。Image Type を Filled（Radial 360）にしておく")]
+        [SerializeField] private Image hanamaruImage;
+        [Tooltip("「自己ベスト 4 / 5 問」の表示")]
+        [SerializeField] private TMP_Text bestRecordText;
+        [Tooltip("「自己ベスト更新！」の表示")]
+        [SerializeField] private RectTransform newRecordBadge;
 
         [Header("演出")]
-        [Tooltip("○× を出すときに、この倍率から元の大きさに縮める")]
-        [SerializeField] private float revealStartScale = 1.6f;
+        [Tooltip("○× を出すときに、この倍率から元の大きさに縮める（ハンコを押すように）")]
+        [SerializeField] private float revealStartScale = 2.2f;
         [Tooltip("○× を出すアニメーションの秒数")]
-        [SerializeField] private float revealDuration = 0.2f;
+        [SerializeField] private float revealDuration = 0.15f;
         [Tooltip("1問の ○× を出してから次の問題までの秒数")]
         [SerializeField] private float revealInterval = 0.5f;
         [Tooltip("点数のルーレットを回す秒数")]
@@ -47,9 +54,17 @@ namespace TechC.KanjiQuiz.Screens.Result
         [SerializeField] private float scoreStartScale = 1.8f;
         [Tooltip("点数が出るアニメーションの秒数")]
         [SerializeField] private float scoreDuration = 0.25f;
+        [Tooltip("演出と演出の間（秒）")]
+        [SerializeField] private float beatDuration = 0.4f;
+        [Tooltip("級のハンコを押すときに、この倍率から元の大きさに縮める")]
+        [SerializeField] private float rankStartScale = 3f;
+        [Tooltip("級のハンコを押すアニメーションの秒数")]
+        [SerializeField] private float rankDuration = 0.18f;
+        [Tooltip("花丸を書く秒数")]
+        [SerializeField] private float hanamaruDuration = 1.1f;
 
         private readonly Subject<int> onItemClicked = new Subject<int>();
-        private readonly List<TMP_Text> itemTexts = new List<TMP_Text>();
+        private readonly List<ResultItemView> itemViews = new List<ResultItemView>();
         private IReadOnlyList<QuizResultItem> items;
         private bool isReviewAvailable;
         private bool isMenuVisible = true;
@@ -62,6 +77,7 @@ namespace TechC.KanjiQuiz.Screens.Result
         private void Awake()
         {
             onItemClicked.AddTo(this);
+            HideExtras();
         }
 
         public void SetModeName(string modeName)
@@ -72,7 +88,7 @@ namespace TechC.KanjiQuiz.Screens.Result
         public void SetItems(IReadOnlyList<QuizResultItem> items)
         {
             this.items = items;
-            itemTexts.Clear();
+            itemViews.Clear();
             foreach (Transform child in itemContainer)
             {
                 Destroy(child.gameObject);
@@ -80,35 +96,31 @@ namespace TechC.KanjiQuiz.Screens.Result
 
             for (int i = 0; i < items.Count; i++)
             {
-                var text = Instantiate(itemPrefab, itemContainer);
-                // 印の幅だけ空けておき、○× を出したときに文字の位置がずれないようにする
-                text.text = $"{FormatLabel(i)}<alpha=#00>○";
-                text.color = hiddenColor;
-                itemTexts.Add(text);
-
-                if (text.TryGetComponent<Button>(out var button))
-                {
-                    int index = i;
-                    button.onClick.AddListener(() => onItemClicked.OnNext(index));
-                }
+                var itemView = Instantiate(itemPrefab, itemContainer);
+                itemView.SetLabel($"{i + 1}. {items[i].Label}");
+                itemView.OnClicked
+                    .Subscribe((index: i, subject: onItemClicked), static (_, state) => state.subject.OnNext(state.index))
+                    .AddTo(itemView);
+                itemViews.Add(itemView);
             }
             RefreshItemInteractable();
             scoreText.text = string.Empty;
+            HideExtras();
         }
 
         public async UniTask RevealItemAsync(int index, CancellationToken ct)
         {
-            ShowItemMark(index);
-            await ScaleAsync(itemTexts[index].transform, revealStartScale, revealDuration, ct);
+            itemViews[index].ShowMark(items[index].State);
+            await ScaleAsync(itemViews[index].MarkTransform, revealStartScale, revealDuration, ct);
             await UniTask.Delay(System.TimeSpan.FromSeconds(revealInterval), cancellationToken: ct);
         }
 
         public void RevealAllItems()
         {
-            for (int i = 0; i < itemTexts.Count; i++)
+            for (int i = 0; i < itemViews.Count; i++)
             {
-                ShowItemMark(i);
-                itemTexts[i].transform.localScale = Vector3.one;
+                itemViews[i].ShowMark(items[i].State);
+                itemViews[i].MarkTransform.localScale = Vector3.one;
             }
         }
 
@@ -136,6 +148,57 @@ namespace TechC.KanjiQuiz.Screens.Result
             if (animate)
             {
                 ScaleAsync(scoreText.transform, scoreStartScale, scoreDuration, destroyCancellationToken).Forget();
+            }
+        }
+
+        public UniTask WaitBeatAsync(CancellationToken ct)
+        {
+            return UniTask.Delay(System.TimeSpan.FromSeconds(beatDuration), cancellationToken: ct);
+        }
+
+        public UniTask PlayRankStampAsync(string rank, CancellationToken ct)
+        {
+            ShowRank(rank);
+            return ScaleAsync(rankStamp, rankStartScale, rankDuration, ct);
+        }
+
+        public void ShowRank(string rank)
+        {
+            rankText.text = rank;
+            rankStamp.localScale = Vector3.one;
+            rankStamp.gameObject.SetActive(true);
+        }
+
+        public async UniTask PlayHanamaruAsync(CancellationToken ct)
+        {
+            hanamaruImage.fillAmount = 0f;
+            hanamaruImage.gameObject.SetActive(true);
+
+            float elapsed = 0f;
+            while (elapsed < hanamaruDuration)
+            {
+                hanamaruImage.fillAmount = elapsed / hanamaruDuration;
+                await UniTask.Yield(PlayerLoopTiming.Update, ct);
+                elapsed += Time.deltaTime;
+            }
+            hanamaruImage.fillAmount = 1f;
+        }
+
+        public void ShowHanamaru()
+        {
+            hanamaruImage.fillAmount = 1f;
+            hanamaruImage.gameObject.SetActive(true);
+        }
+
+        public void ShowBestRecord(int bestCorrectCount, int total, bool isNewBest, bool animate)
+        {
+            bestRecordText.text = $"自己ベスト　{bestCorrectCount} / {total} 問";
+            bestRecordText.gameObject.SetActive(true);
+            newRecordBadge.gameObject.SetActive(isNewBest);
+            newRecordBadge.localScale = Vector3.one;
+            if (isNewBest && animate)
+            {
+                ScaleAsync(newRecordBadge, scoreStartScale, scoreDuration, destroyCancellationToken).Forget();
             }
         }
 
@@ -167,11 +230,12 @@ namespace TechC.KanjiQuiz.Screens.Result
             if (reviewHintText != null) reviewHintText.gameObject.SetActive(false);
         }
 
-        private void ShowItemMark(int index)
+        private void HideExtras()
         {
-            var state = items[index].State;
-            itemTexts[index].text = $"{FormatLabel(index)}{ToMark(state)}";
-            itemTexts[index].color = state == AnswerState.Correct ? correctColor : incorrectColor;
+            rankStamp.gameObject.SetActive(false);
+            hanamaruImage.gameObject.SetActive(false);
+            bestRecordText.gameObject.SetActive(false);
+            newRecordBadge.gameObject.SetActive(false);
         }
 
         private void RefreshReviewHint()
@@ -181,15 +245,10 @@ namespace TechC.KanjiQuiz.Screens.Result
 
         private void RefreshItemInteractable()
         {
-            foreach (var text in itemTexts)
+            foreach (var itemView in itemViews)
             {
-                if (text.TryGetComponent<Button>(out var button)) button.interactable = isReviewAvailable && isMenuVisible;
+                itemView.SetInteractable(isReviewAvailable && isMenuVisible);
             }
-        }
-
-        private string FormatLabel(int index)
-        {
-            return $"{index + 1}. {items[index].Label}　";
         }
 
         private static string FormatScore(int correctCount, int total)
@@ -214,16 +273,6 @@ namespace TechC.KanjiQuiz.Screens.Result
                 elapsed += Time.deltaTime;
             }
             target.localScale = Vector3.one;
-        }
-
-        private static string ToMark(AnswerState state)
-        {
-            switch (state)
-            {
-                case AnswerState.Correct: return "○";
-                case AnswerState.Incorrect: return "×";
-                default: return "－";
-            }
         }
     }
 }
