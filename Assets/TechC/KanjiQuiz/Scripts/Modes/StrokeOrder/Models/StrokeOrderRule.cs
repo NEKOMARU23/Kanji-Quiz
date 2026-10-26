@@ -20,5 +20,14 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
                 default: return 5;
             }
         }
+
+        /// <summary>
+        /// 1回のプレイで優先して出す苦手な漢字の数の上限（問題数の半分）
+        /// 苦手な漢字ばかりにならないように、残りは新しい漢字にする
+        /// </summary>
+        public static int WeakQuestionCount(Difficulty difficulty)
+        {
+            return QuestionCount(difficulty) / 2;
+        }
     }
 }

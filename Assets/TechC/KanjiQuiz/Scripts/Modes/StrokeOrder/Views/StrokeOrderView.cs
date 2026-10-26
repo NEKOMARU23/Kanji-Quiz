@@ -16,6 +16,10 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
         [SerializeField] private ChoiceListView choiceListView;
         [Tooltip("出題する漢字を表示するテキスト。日本語フォントが必要。不要なら空でよい")]
         [SerializeField] private TMP_Text kanjiText;
+        [Tooltip("苦手な漢字のときに出す「苦手」の印。不要なら空でよい")]
+        [SerializeField] private GameObject weakMark;
+        [Tooltip("振り返りで、お手本の書き順を書くアニメーション。振り返りのときだけ表示される場所に置く。不要なら空でよい")]
+        [SerializeField] private StrokeAnimationView modelAnimation;
 
         public void SetKanji(string kanji)
         {
@@ -23,6 +27,11 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             {
                 kanjiText.text = kanji;
             }
+        }
+
+        public void SetWeakMarkVisible(bool visible)
+        {
+            if (weakMark != null) weakMark.SetActive(visible);
         }
 
         public UniTask DrawChoiceAsync(int choiceIndex, IReadOnlyList<StrokeData> strokes, CancellationToken ct)
@@ -36,6 +45,13 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             }
 
             return strokeRenderer.DrawAsync(strokes, ct);
+        }
+
+        public UniTask PlayModelAnimationAsync(IReadOnlyList<StrokeData> strokes, CancellationToken ct)
+        {
+            if (modelAnimation == null) return UniTask.CompletedTask;
+
+            return modelAnimation.PlayAsync(strokes, ct);
         }
     }
 }

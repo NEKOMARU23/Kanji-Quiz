@@ -52,11 +52,29 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             CancellationToken ct)
         {
             if (candidates == null) throw new ArgumentNullException(nameof(candidates));
+
+            return await CreateFromOrderedAsync(ShuffleUtility.ShuffledCopy(candidates), difficulty, choiceCount, questionCount, ct);
+        }
+
+        /// <summary>
+        /// 並べた順に漢字を選んで、指定した数の問題を作る。作った問題の出題順はシャッフルする
+        /// 苦手な漢字を先頭に並べておけば、優先して出題できる（WeakQuestionList.OrderCandidates）
+        /// </summary>
+        /// <param name="orderedCandidates">問題を作る順に並べた出題範囲の漢字</param>
+        /// <param name="questionCount">作る問題の数</param>
+        /// <returns>作れた問題のリスト。出題範囲の漢字が足りないときは指定した数より少なくなる</returns>
+        public async UniTask<List<StrokeOrderQuestion>> CreateFromOrderedAsync(
+            IReadOnlyList<string> orderedCandidates,
+            Difficulty difficulty,
+            int choiceCount,
+            int questionCount,
+            CancellationToken ct)
+        {
+            if (orderedCandidates == null) throw new ArgumentNullException(nameof(orderedCandidates));
             if (questionCount < 1) throw new ArgumentOutOfRangeException(nameof(questionCount));
 
-            var shuffled = ShuffleUtility.ShuffledCopy(candidates);
             var questions = new List<StrokeOrderQuestion>(questionCount);
-            foreach (var kanji in shuffled)
+            foreach (var kanji in orderedCandidates)
             {
                 if (questions.Count >= questionCount) break;
 
@@ -69,6 +87,9 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             {
                 Debug.LogWarning($"[StrokeOrderQuestionFactory] 出題範囲から {questionCount} 問を作れませんでした（{questions.Count} 問）。");
             }
+
+            // 苦手な漢字がいつも最初に出ないように、出題順を混ぜる
+            ShuffleUtility.Shuffle(questions);
             return questions;
         }
 

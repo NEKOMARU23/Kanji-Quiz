@@ -8,7 +8,7 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
 {
     /// <summary>
     /// 書き順クイズの問題の振り返りの Presenter
-    /// 進行と印は ChoiceQuizReviewPresenter に任せ、書き順の図を描かせるだけを行う
+    /// 進行と印は ChoiceQuizReviewPresenter に任せ、書き順の図とお手本のアニメーションを描かせる
     /// </summary>
     public sealed class StrokeOrderReviewPresenter : ChoiceQuizReviewPresenter<StrokeOrderQuestion>
     {
@@ -22,14 +22,19 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             IChoiceListView choiceListView,
             IQuizReviewView reviewView,
             IStrokeOrderView strokeOrderView,
-            ISceneLoader sceneLoader)
-            : base(questions, answers, startIndex, frameView, choiceListView, reviewView, sceneLoader, SceneNames.Result)
+            ISceneLoader sceneLoader,
+            IAudioPlayer audioPlayer = null)
+            : base(questions, answers, startIndex, frameView, choiceListView, reviewView, sceneLoader, SceneNames.Result, audioPlayer)
         {
             this.strokeOrderView = strokeOrderView ?? throw new ArgumentNullException(nameof(strokeOrderView));
         }
 
         protected override UniTask ShowChoicesAsync(StrokeOrderQuestion question, CancellationToken ct)
         {
+            strokeOrderView.SetWeakMarkVisible(false);
+
+            // お手本はキャンセルされる（別の問題へ移る）まで繰り返すので、待たない
+            strokeOrderView.PlayModelAnimationAsync(question.Strokes, ct).Forget();
             return StrokeOrderChoiceDrawer.DrawAsync(strokeOrderView, question, ct);
         }
     }
