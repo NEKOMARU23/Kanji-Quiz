@@ -27,7 +27,7 @@ namespace TechC.KanjiQuiz.Screens.Result
         void SetModeName(string modeName);
 
         /// <summary>
-        /// 問題ごとの結果を一覧で表示する。○× はまだ見せない
+        /// 問題ごとの結果を一覧で表示する。○×、正解数、級、花丸、自己ベストはまだ見せない
         /// </summary>
         void SetItems(IReadOnlyList<QuizResultItem> items);
 
@@ -49,6 +49,27 @@ namespace TechC.KanjiQuiz.Screens.Result
         /// <summary>正解数を表示する</summary>
         /// <param name="animate">数字が出る演出をするかどうか</param>
         void ShowScore(int correctCount, int total, bool animate);
+
+        /// <summary>演出と演出の間（ま）を置く</summary>
+        UniTask WaitBeatAsync(CancellationToken ct);
+
+        /// <summary>級のハンコを押す演出をする</summary>
+        /// <param name="rank">級の名前（例：5級）</param>
+        UniTask PlayRankStampAsync(string rank, CancellationToken ct);
+
+        /// <summary>級のハンコを演出なしで表示する</summary>
+        void ShowRank(string rank);
+
+        /// <summary>全問正解の花丸を書く演出をする</summary>
+        UniTask PlayHanamaruAsync(CancellationToken ct);
+
+        /// <summary>全問正解の花丸を演出なしで表示する</summary>
+        void ShowHanamaru();
+
+        /// <summary>自己ベストを表示する</summary>
+        /// <param name="isNewBest">このプレイで更新したかどうか（「自己ベスト更新」を出す）</param>
+        /// <param name="animate">更新の表示を演出つきで出すかどうか</param>
+        void ShowBestRecord(int bestCorrectCount, int total, bool isNewBest, bool animate);
 
         /// <summary>
         /// ボタンと案内を表示するかどうかを切り替える。演出中は隠す

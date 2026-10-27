@@ -28,5 +28,11 @@ namespace TechC.KanjiQuiz.Common
 
         /// <summary>[前へ] を押せるかどうかを切り替える</summary>
         void SetPrevInteractable(bool interactable);
+
+        /// <summary>
+        /// 問題を切り替える演出（問題がスライドして入ってくる）。待たずにすぐ戻る
+        /// </summary>
+        /// <param name="direction">1 なら次の問題へ（右から入る）、-1 なら前の問題へ（左から入る）、0 なら最初の問題（下から入る）</param>
+        void PlayQuestionTransition(int direction);
     }
 }

@@ -11,8 +11,12 @@ namespace TechC.KanjiQuiz.Tests
     {
         public int ShowCount { get; private set; }
 
-        public TestChoiceQuizPresenter(QuizSession<FakeChoiceQuestion> session, IQuizFrameView frameView, IChoiceListView choiceListView)
-            : base(session, frameView, choiceListView)
+        public TestChoiceQuizPresenter(
+            QuizSession<FakeChoiceQuestion> session,
+            IQuizFrameView frameView,
+            IChoiceListView choiceListView,
+            IAudioPlayer audioPlayer = null)
+            : base(session, frameView, choiceListView, audioPlayer)
         {
         }
 

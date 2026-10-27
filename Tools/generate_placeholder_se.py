@@ -1,5 +1,5 @@
 """
-結果画面の仮の効果音（WAV）を作る。
+仮の効果音（WAV）を作る。
 
 正式な素材に差し替えるまでの仮の音。標準ライブラリだけで動く。
 出力先: Assets/TechC/KanjiQuiz/Art/Audio/SE/
@@ -123,8 +123,75 @@ def score_reveal():
     return normalize(mix(brass, noise))
 
 
+def select():
+    """選択肢を選んだ：コッという短い木の音"""
+    return normalize(mix(
+        tone(1400, 0.06, attack=0.001, decay=0.012),
+        tone(700, 0.06, attack=0.001, decay=0.02, volume=0.6),
+    ), peak=0.6)
+
+
+def page_turn():
+    """次の問題へ：紙をめくるサッという音"""
+    random.seed(1)
+    count = int(SAMPLE_RATE * 0.22)
+    noise = []
+    for i in range(count):
+        t = i / count
+        envelope = math.sin(math.pi * t) ** 2
+        noise.append(random.uniform(-1, 1) * envelope)
+    # こもらせてから高い音を少し足し、紙らしい音にする
+    soft = lowpass(noise, 0.75)
+    return normalize(mix(soft, [v * 0.25 for v in noise]), peak=0.45)
+
+
+def stamp():
+    """ハンコを押す：ポンという低い音"""
+    random.seed(2)
+    body = []
+    count = int(SAMPLE_RATE * 0.25)
+    for i in range(count):
+        t = i / SAMPLE_RATE
+        freq = 180 * math.exp(-t * 8) + 70
+        body.append(math.sin(2 * math.pi * freq * t) * math.exp(-t / 0.06))
+    click = [random.uniform(-1, 1) * math.exp(-i / (SAMPLE_RATE * 0.004)) * 0.6 for i in range(int(SAMPLE_RATE * 0.03))]
+    return normalize(mix(body, lowpass(click, 0.4)), peak=0.85)
+
+
+def hanamaru_draw():
+    """花丸を書く：ペンでキュキュッと書く音（花丸の画像が出る時間に合わせて約 1.2 秒）"""
+    random.seed(3)
+    count = int(SAMPLE_RATE * 1.2)
+    track = []
+    phase = 0.0
+    for i in range(count):
+        t = i / SAMPLE_RATE
+        # 音の高さを揺らして、ペン先がこすれる感じにする
+        freq = 2600 + 900 * math.sin(2 * math.pi * 7 * t)
+        phase += freq / SAMPLE_RATE
+        squeak = math.sin(2 * math.pi * phase) * 0.25
+        scratch = random.uniform(-1, 1) * 0.5
+        envelope = (0.6 + 0.4 * abs(math.sin(2 * math.pi * 3.5 * t))) * min(1.0, (count - i) / (SAMPLE_RATE * 0.05))
+        track.append((squeak + scratch) * envelope)
+    return normalize(lowpass(track, 0.55), peak=0.4)
+
+
+def new_record():
+    """自己ベスト更新：キラキラと上がっていく音"""
+    notes = [1046.5, 1318.5, 1568.0, 2093.0]
+    track = []
+    for i, f in enumerate(notes):
+        track = mix(track or [0.0], silence(0.07 * i) + tone(f, 0.5, decay=0.15, volume=0.7))
+    return normalize(track, peak=0.6)
+
+
 if __name__ == "__main__":
     save("se_correct.wav", correct())
     save("se_incorrect.wav", incorrect())
     save("se_roulette_loop.wav", roulette_loop())
     save("se_score_reveal.wav", score_reveal())
+    save("se_select.wav", select())
+    save("se_page_turn.wav", page_turn())
+    save("se_stamp.wav", stamp())
+    save("se_hanamaru.wav", hanamaru_draw())
+    save("se_new_record.wav", new_record())

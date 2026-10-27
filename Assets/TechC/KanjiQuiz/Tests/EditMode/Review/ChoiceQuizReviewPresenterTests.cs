@@ -11,6 +11,7 @@ namespace TechC.KanjiQuiz.Tests
         private FakeChoiceListView choiceListView;
         private FakeQuizReviewView reviewView;
         private FakeSceneLoader sceneLoader;
+        private FakeAudioPlayer audioPlayer;
 
         [SetUp]
         public void SetUp()
@@ -36,7 +37,8 @@ namespace TechC.KanjiQuiz.Tests
 
         private TestChoiceQuizReviewPresenter Create(int startIndex)
         {
-            var presenter = new TestChoiceQuizReviewPresenter(questions, answers, startIndex, frameView, choiceListView, reviewView, sceneLoader);
+            audioPlayer = new FakeAudioPlayer();
+            var presenter = new TestChoiceQuizReviewPresenter(questions, answers, startIndex, frameView, choiceListView, reviewView, sceneLoader, audioPlayer);
             presenter.Initialize();
             return presenter;
         }
@@ -101,6 +103,19 @@ namespace TechC.KanjiQuiz.Tests
             }
 
             CollectionAssert.AreEqual(new[] { "Result" }, sceneLoader.LoadedScenes);
+        }
+    
+        [Test]
+        public void 振り返りでも問題を切り替えるとページをめくる音と演出をする()
+        {
+            using (var presenter = Create(0))
+            {
+                frameView.ClickNext();
+                frameView.ClickPrev();
+            }
+
+            CollectionAssert.AreEqual(new[] { 0, 1, -1 }, frameView.TransitionDirections);
+            CollectionAssert.AreEqual(new[] { SeType.PageTurn, SeType.PageTurn }, audioPlayer.PlayedSe);
         }
     }
 }

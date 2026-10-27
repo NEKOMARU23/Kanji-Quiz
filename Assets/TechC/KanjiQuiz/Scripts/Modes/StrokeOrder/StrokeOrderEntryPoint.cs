@@ -36,7 +36,10 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
         [Range(2, 4)]
         [SerializeField] private int choiceCount = 3;
 
-        private readonly ISceneLoader sceneLoader = new SceneLoader();
+        private readonly IWeakQuestionRepository weakRepository = new PlayerPrefsWeakQuestionRepository();
+        private ISceneLoader sceneLoader;
+        private IAudioPlayer audioPlayer;
+        private WeakQuestionList weakList;
         private QuizSession<StrokeOrderQuestion> session;
         private StrokeOrderPresenter presenter;
         private StrokeOrderReviewPresenter reviewPresenter;
@@ -56,6 +59,8 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
         private async UniTaskVoid InitializeAsync(CancellationToken ct)
         {
             reviewView.SetVisible(false);
+            audioPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullAudioPlayer.Instance;
+            sceneLoader = new SceneLoader(SceneTransitionView.HasInstance ? SceneTransitionView.Instance : null);
 
             // 結果画面から振り返りを頼まれていれば、出題せずに振り返りを開く
             if (QuizReviewStore.TryTakeRequest<StrokeOrderQuestion>(out var reviewQuestions, out var reviewAnswers, out int reviewIndex))
@@ -72,10 +77,14 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
 
             var kanjiSet = KanjiSet.FromJson(GetKanjiSetAsset(difficulty).text);
             var factory = new StrokeOrderQuestionFactory(new StreamingAssetsKanjiStrokeSource());
+
+            // 前に間違えた漢字を優先して出す
+            weakList = weakRepository.Load(RecordKey);
+            var candidates = weakList.OrderCandidates(kanjiSet.Kanji, StrokeOrderRule.WeakQuestionCount(difficulty));
             List<StrokeOrderQuestion> questions;
             try
             {
-                questions = await factory.CreateRandomAsync(kanjiSet.Kanji, difficulty, choiceCount, StrokeOrderRule.QuestionCount(difficulty), ct);
+                questions = await factory.CreateFromOrderedAsync(candidates, difficulty, choiceCount, StrokeOrderRule.QuestionCount(difficulty), ct);
             }
             catch (OperationCanceledException)
             {
@@ -89,7 +98,7 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             }
 
             session = new QuizSession<StrokeOrderQuestion>(questions);
-            presenter = new StrokeOrderPresenter(session, frameView, choiceListView, strokeOrderView);
+            presenter = new StrokeOrderPresenter(session, frameView, choiceListView, strokeOrderView, audioPlayer, weakList);
             presenter.OnFinished
                 .Subscribe(this, static (_, self) => self.GoToResult())
                 .AddTo(this);
@@ -98,6 +107,9 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
 
         /// <summary>画面と結果に表示する名前（例：書き順クイズ（簡単））</summary>
         private string Title => $"{ModeName}（{difficulty.ToDisplayName()}）";
+
+        /// <summary>自己ベストと苦手な漢字を保存するときのキー。難易度ごとに分ける（例：StrokeOrder_Easy）</summary>
+        private string RecordKey => $"{SceneNames.StrokeOrder}_{difficulty}";
 
         private TextAsset GetKanjiSetAsset(Difficulty value)
         {
@@ -115,14 +127,21 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
             frameView.SetTitle(QuizResultStore.Last != null ? QuizResultStore.Last.ModeName : ModeName);
 
             reviewPresenter = new StrokeOrderReviewPresenter(
-                questions, answers, startIndex, frameView, choiceListView, reviewView, strokeOrderView, sceneLoader);
+                questions, answers, startIndex, frameView, choiceListView, reviewView, strokeOrderView, sceneLoader, audioPlayer);
             reviewPresenter.Initialize();
         }
 
         private void GoToResult()
         {
             QuizReviewStore.Set(session.Questions, session.Answers);
-            QuizResultStore.Set(QuizResult.FromSession(Title, SceneNames.StrokeOrder, session, q => q.Kanji, SceneNames.StrokeOrder));
+            var result = QuizResult.FromSession(
+                Title, SceneNames.StrokeOrder, session, q => q.Kanji, SceneNames.StrokeOrder, difficulty, RecordKey);
+            QuizResultStore.Set(result);
+
+            // 間違えた漢字を苦手に加え、正解した漢字を外す
+            weakList.RecordResult(result);
+            weakRepository.Save(RecordKey, weakList);
+
             sceneLoader.Load(SceneNames.Result);
         }
     }

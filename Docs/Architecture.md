@@ -150,6 +150,11 @@ classDiagram
 | `ChoiceMark` | 振り返りのときに選択肢につける印（正解・選んだ不正解） | View |
 | `SingletonMonoBehaviour<T>` | シーンに1つだけ置く MonoBehaviour の基礎クラス。2つ目は消す。シーンをまたいで残すかを Inspector で選べる | 共通 |
 | `AudioManager` / `IAudioPlayer` / `SeType` | 効果音を鳴らす（`SingletonMonoBehaviour` を継承）。Presenter は `IAudioPlayer` 経由で使い、AudioManager がなければ `NullAudioPlayer` を渡す | 共通 |
+| `KanjiRank` | 正解率と難易度から級（10級〜初段）を決める | Model |
+| `IBestRecordRepository` / `PlayerPrefsBestRecordRepository` / `BestRecordUpdate` | 自己ベストの保存先と、1回のプレイで更新したかどうか。`QuizResult.UpdateBestRecord` が1回だけ調べて保存する | Model |
+| `WeakQuestionList` / `IWeakQuestionRepository` / `PlayerPrefsWeakQuestionRepository` | 苦手な問題（間違えた問題）のリストと保存先。`OrderCandidates` で苦手な問題を先頭に並べる。問題は文字列で表すので、ほかのモードでも使える | Model |
+| `SceneTransitionView` / `ISceneTransition` | プリントを回収して次を配るようにシーンを切り替える（`SingletonMonoBehaviour` を継承）。`SceneLoader` に渡すと演出つきになる。カメラの映像をテクスチャに描いて使うので、各シーンの Canvas は Screen Space - Camera にする | View |
+| `ResultItemView` | 結果画面の、問題1つ分の行（○・× のハンコ） | View |
 | `QuizLaunchOptions` | プレイ画面を開くときの設定（難易度）。モード選択画面が設定する予定 | 共通 |
 | `DebugDifficultySwitcher` | テスト用の難易度切り替え。F1 で表示（`Scripts/DebugTools`、エディタと開発ビルドのみ） | 開発用 |
 
@@ -157,7 +162,7 @@ classDiagram
 
 | モード | Presenter | 固有の View | 固有の Model |
 |---|---|---|---|
-| 書き順クイズ | `StrokeOrderPresenter`, `StrokeOrderReviewPresenter`（描画は `StrokeOrderChoiceDrawer` で共通化） | `StrokeOrderView`, `CumulativeStrokeRenderer`（書き順の描画と枠） | `StrokeOrderQuestion`, `StrokeOrderQuestionFactory`, `StrokeOrderRule`, `WrongOrderGenerator`, `StreamingAssetsKanjiStrokeSource`, `KanjiSvgParser`, `StrokePathParser` |
+| 書き順クイズ | `StrokeOrderPresenter`, `StrokeOrderReviewPresenter`（描画は `StrokeOrderChoiceDrawer` で共通化） | `StrokeOrderView`, `CumulativeStrokeRenderer`（書き順の描画と枠）, `StrokeAnimationView`（振り返りのお手本） | `StrokeOrderQuestion`, `StrokeOrderQuestionFactory`, `StrokeOrderRule`, `WrongOrderGenerator`, `StreamingAssetsKanjiStrokeSource`, `KanjiSvgParser`, `StrokePathParser` |
 | 本物の漢字さがし | `RealKanjiPresenter` | `KanjiChoiceView` | `RealKanjiQuestion` |
 | 返信文クイズ | `ReplyMessagePresenter` | `MessageBubbleView`, `TextChoiceView` | `ReplyMessageQuestion` |
 | 四字熟語づくり | `FourCharIdiomPresenter` | `IdiomBoardView`（4つの枠と候補） | `FourCharIdiomQuestion` |
@@ -326,16 +331,18 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | `TechC.KanjiQuiz.Editor` | エディタ拡張（必要になったら） |
 | `TechC.KanjiQuiz.Tests` | EditMode テスト |
 
-テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-24 時点で 90 件）。主な対象は次のとおり。
+テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-26 時点で 127 件）。主な対象は次のとおり。
 
 | 対象 | テストクラス |
 |---|---|
 | 進行と採点 | `QuizSessionTests` |
 | 選択式モード共通の進行 | `ChoiceQuizPresenterTests` |
 | 振り返り | `ChoiceQuizReviewPresenterTests`, `QuizReviewStoreTests` |
-| 結果画面（結果発表の演出と効果音を含む） | `ResultPresenterTests`, `QuizResultTests`, `QuizResultStoreTests` |
+| 結果画面（結果発表の演出、効果音、級、花丸、自己ベスト） | `ResultPresenterTests`, `QuizResultTests`, `QuizResultStoreTests`, `BestRecordTests`, `KanjiRankTests` |
 | 漢字セットと難易度の表示名 | `KanjiSetTests` |
 | 書き順クイズの Model | `WrongOrderGeneratorTests`, `StrokeOrderQuestionFactoryTests`, `KanjiSvgParserTests`, `StrokePathParserTests` |
+| 書き順クイズの Presenter（苦手の印、振り返りのお手本） | `StrokeOrderPresenterTests` |
+| 苦手な問題 | `WeakQuestionListTests` |
 | シャッフル | `ShuffleUtilityTests` |
 
 - View はテスト用の偽物（`Tests/EditMode/Fakes/`）に差し替える。

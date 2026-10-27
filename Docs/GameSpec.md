@@ -133,15 +133,21 @@
 1. ゲーム開始時に、出題リストのすべての漢字について問題を作る。
 2. 作った問題を、出題リストの順に出す。
 3. プレイヤーは選択肢を1つ選び、[次へ] を押す。
+   - 選択肢を選ぶと「コッ」、[次へ]・[前へ] を押すと紙をめくる音が鳴る。
+   - 問題を切り替えると、問題文・漢字・選択肢がスライドして入ってくる（次へは右から、前へは左から、最初の問題は下から）。
+   - 前に間違えた漢字（苦手な漢字、3.8）が出たときは、漢字の右に「苦手」のハンコを出す。
 4. 何も選んでいない間は [次へ] を押せない。
 5. 全問に回答すると結果画面（Result シーン）へ移る。
 6. 結果画面では正解数と問題ごとの正誤（○・×）を表示し、[もう一度] で書き順クイズを最初からやり直せる。
-   - 結果発表の演出：問題ごとの ○・× を1問ずつ効果音（正解・不正解）つきで出す → 正解数の数字をルーレットのように回す（回っている間はカチカチという音）→ 正解数を「ジャン」という音とともに出す → ボタンを出す。
-   - 演出中に画面をクリックすると、残りを飛ばしてすぐに正解数を出す（ジャンの音だけ鳴らす）。
+   - 結果発表の演出：問題ごとの ○・× を1問ずつ効果音（正解・不正解）つきで出す → 正解数の数字をルーレットのように回す（回っている間はカチカチという音）→ 正解数を「ジャン」という音とともに出す → 級のハンコを押す → 全問正解なら花丸を書く → 自己ベストを出す → ボタンを出す。
+   - ○ は朱色、× は青いハンコの画像で、押すように大きいところから縮んで出る。
+   - 演出中に画面をクリックすると、残りを飛ばしてすぐに正解数・級・花丸・自己ベストを出す（ジャンの音だけ鳴らす）。
    - 演出中は [もう一度]・[問題を振り返る] を隠し、問題を押しても振り返らない。
    - 振り返りから結果画面に戻ったときは、演出をせずにすぐすべて表示する。
    - 演出の速さ（1問ごとの間隔、ルーレットの長さなど）は `ResultView` の Inspector で調整する。
 7. 結果画面の [問題を振り返る] で、問題を振り返れる（3.5）。
+8. 結果には級（3.6）と自己ベスト（3.7）を表示する。
+9. シーンを切り替えるときは、前の画面がプリントのように上へ回収され、入れ替わりに次の画面のプリントが下から配られる（4.3）。
 
 ### 3.1 問題の表示
 
@@ -205,6 +211,31 @@
 - 画面上部に「振り返り：正解／不正解」を表示する。
 - 振り返りでは選択肢を押せない。[前へ]・[次へ] で問題を切り替え、[結果に戻る] で結果画面に戻る。
 - 振り返りから結果画面に戻っても、結果はそのまま残る。[もう一度] を押すと通常の出題に戻る。
+- 出題する漢字の右に、**お手本**として正しい書き順で1画ずつ筆で書くアニメーションを表示する（薄い字の上に、線が伸びていくように書く。書き終わったら少し待って繰り返す）。
+
+### 3.6 級
+
+正解率と難易度から「10級〜初段」の級を決め、結果画面でハンコとして押す（`KanjiRank`）。
+
+| 難易度 | 全問正解 | 80% 以上 | 60% 以上 | 40% 以上 | 20% 以上 | 20% 未満 |
+|---|---|---|---|---|---|---|
+| 簡単 | 5級 | 6級 | 7級 | 8級 | 9級 | 10級 |
+| 常識 | 3級 | 4級 | 5級 | 6級 | 7級 | 8級 |
+| 困難 | 初段 | 1級 | 2級 | 3級 | 4級 | 5級 |
+
+### 3.7 自己ベスト
+
+- 難易度ごとに、最高の正解数を PlayerPrefs に保存する（キーは `BestRecord_StrokeOrder_Easy` など）。
+- 前の記録を超えたら「自己ベスト更新！」を出して音を鳴らす。初めての記録は、1問以上正解していれば更新とする。
+- 振り返りから結果画面に戻ったときは保存し直さず、更新の表示はそのまま残す。
+
+### 3.8 苦手な漢字の復習
+
+- 間違えた漢字を「苦手な漢字」として、難易度ごとに PlayerPrefs に保存する（キーは `WeakQuestions_StrokeOrder_Easy` など、改行区切り）。
+- 次のプレイでは、苦手な漢字（その難易度の出題範囲にあるもの）を問題数の半分まで優先して出す（簡単は2問、常識・困難は3問）。残りは新しい漢字からランダムに選ぶ。出題順は混ぜる。
+- 苦手な漢字に正解したらリストから外す。もう一度間違えたら一番新しくする。
+- 覚えておくのは 30 字まで。超えたら古いものから外す。
+- 振り返りでは「苦手」のハンコは出さない。
 
 ---
 
@@ -223,6 +254,11 @@
 | Canvas | ChoiceListView | 選択肢（ProblemDisplay プレハブ）を Container の下に並べる |
 | Canvas | StrokeOrderView | 選択肢に書き順の図を描かせる |
 | ReviewPanel | QuizReviewView | 振り返りのときだけ表示する。「振り返り：正解／不正解」と [結果に戻る] ボタン |
+| ReviewPanel/ModelAnimation | StrokeAnimationView | 振り返りのお手本（正しい書き順を筆で書くアニメーション）。横の ModelLabel は「正しい書き順」の見出し |
+| AudioManager | AudioManager / AudioSource ×2 | 効果音を鳴らす（Prefabs/Common/AudioManager プレハブ） |
+| SceneTransition | SceneTransitionView / Canvas（Overlay）/ AudioSource | プリントを回収して次を配るようにシーンを切り替える（Prefabs/Common/SceneTransition プレハブ） |
+| Canvas/Background | Image | 学校のプリントのような背景。Canvas の一番後ろに置く |
+| KanjiText/WeakMark | Image / TextMeshPro | 苦手な漢字のときに出す「苦手」のハンコ。漢字と一緒にスライドするよう KanjiText の子にしている |
 | DebugDifficultySwitcher | DebugDifficultySwitcher / CanvasGroup | テスト用の難易度切り替えボタン。F1 で表示（エディタと開発ビルドのみ） |
 | Container | VerticalLayoutGroup | 選択肢を並べる親 |
 | ToggleGroup | ToggleGroup | 選択肢を1つだけ選べるようにする |
@@ -235,14 +271,33 @@
 | オブジェクト | コンポーネント | 役割 |
 |---|---|---|
 | ResultEntryPoint | ResultEntryPoint | 直前のプレイの結果を受け取り、Presenter をつなぐ |
-| Canvas | ResultView | モード名、正解数、問題ごとの正誤（ResultItemText プレハブ、クリックで振り返り）、[もう一度]・[問題を振り返る] ボタン、結果発表の演出 |
+| Canvas | ResultView | モード名、正解数、問題ごとの正誤（ResultItem プレハブ、クリックで振り返り）、[もう一度]・[問題を振り返る] ボタン、結果発表の演出 |
+| Hanamaru | Image（Filled、Radial 360） | 全問正解の花丸。塗りつぶしの割合を増やして書いているように見せる |
+| RankStamp / RankText | Image / TextMeshPro | 級のハンコ（枠の画像と、中の文字） |
+| BestRecordText / NewRecordBadge | TextMeshPro | 自己ベストと「自己ベスト更新！」 |
 | SkipArea | Image（透明）/ Button | 画面全体を覆う透明なボタン。演出中だけ有効にし、クリックで演出を飛ばす。Canvas の一番後ろに置く |
 | AudioManager | AudioManager / AudioSource ×2 | 効果音を鳴らす（Prefabs/Common/AudioManager プレハブ）。シーンを切り替えても残る |
+| SceneTransition | SceneTransitionView / Canvas（Overlay）/ AudioSource | プリントを回収して次を配るようにシーンを切り替える。シーンを切り替えても残る |
+| Canvas/Background | Image | 学校のプリントのような背景。SkipArea より後ろに置く |
 
 **効果音**
 
 - `Art/Audio/SE/` の `se_correct`（正解）、`se_incorrect`（不正解）、`se_roulette_loop`（ルーレット、ループ）、`se_score_reveal`（正解数の発表）。
+- プレイ中の音は `se_select`（選択肢を選んだ）、`se_page_turn`（問題を切り替えた）。結果画面では、ほかに `se_stamp`（級のハンコ）、`se_hanamaru`（花丸を書く）、`se_new_record`（自己ベスト更新）を使う。
 - 今は `Tools/generate_placeholder_se.py` で作った**仮の音**。正式な素材に差し替えるときは、AudioManager プレハブの `seEntries` で種類ごとに音と音量を設定する。
+
+**画像**
+
+- `Art/UI/` の `bg_print`（学校のプリントのような背景）、`bg_desk`（切り替えのときに見える机）、`fx_sheet_shadow`（切り替えで動くプリントの影）、`icon_stamp_correct`（○のハンコ）、`icon_stamp_incorrect`（×のハンコ）、`frame_stamp_rank`（級のハンコの枠）、`icon_hanamaru`（花丸）。
+- 今は `Tools/generate_placeholder_ui.py` で作った**仮の画像**。
+
+**ResultItem プレハブ**（問題1つ分の行）
+
+| オブジェクト | コンポーネント | 役割 |
+|---|---|---|
+| ResultItem | ResultItemView / TextMeshPro / Button | 「1. 令」の文字。クリックで振り返り |
+| CorrectStamp | Image | 正解のときの ○ のハンコ |
+| IncorrectStamp | Image | 不正解（と未回答）のときの × のハンコ |
 
 ### 4.1 選択肢プレハブ（ProblemDisplay）
 
@@ -259,10 +314,17 @@
 - ライセンスは SIL Open Font License 1.1。ゲームに同梱できる。ライセンス文は `Art/Fonts/KleeOne/OFL.txt`。
 - TextMeshPro のフォントアセットは Dynamic（使った文字だけを実行時に追加する）。TMP Settings の既定のフォントにしている。
 
----|---|---|
-| ProblemDisplay | ChoiceItemView | トグルの選択を通知する |
-| CumulativeStrokeRenderer | CumulativeStrokeRenderer | 書き順の図を描画する |
-| Toggle | Toggle | 選択用のチェックボックス |
+### 4.3 シーンの切り替え
+
+- `SceneLoader` に `SceneTransitionView` を渡すと、演出つきで切り替える（各 EntryPoint で渡している）。
+- 前の画面をカメラで1枚描いてプリントにし、少し傾きながら上へ回収する（0.69 秒）。回収している間に次のシーンを読み込む。
+- 回収が始まって 0.38 秒たったら（読み込みが遅ければ読み込み後に）、次の画面のプリントが下から少し傾いて配られ（0.69 秒）、机に落ち着くと影が消える（0.19 秒）。2枚の間から机が見える。
+- 次の画面のプリントには次のシーンのカメラの映像をそのまま映すので、配られている間も画面は動いている。演出が終わると同じフレームでカメラを画面に戻す。
+- プリントが動くたびに紙の音を鳴らす。
+- 結果画面は、切り替えが終わってから結果発表を始める。
+- カメラの映像に UI を入れるため、各シーンの Canvas は **Screen Space - Camera** にする（Overlay の UI はプリントに映らない）。
+- 切り替えの途中はクリックを受け付けず、もう一度切り替えを頼まれても無視する。
+- SceneTransition プレハブがないシーンでは、演出なしですぐに切り替える。
 
 ---
 
@@ -351,7 +413,12 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 | Difficulty | Model | 難易度 |
 | ShuffleUtility | Model | シャッフル処理 |
 | QuizPresenterBase / ChoiceQuizPresenter | Presenter | 全モード共通の進行と、選択式モード共通の判定 |
-| QuizFrameView / ChoiceListView / ChoiceItemView | View | 次へ・前へボタン、選択肢の並び |
+| QuizFrameView / ChoiceListView / ChoiceItemView | View | 次へ・前へボタン、問題を切り替えるときのスライド、選択肢の並び |
+| KanjiRank | Model | 正解率と難易度から級を決める |
+| IBestRecordRepository / PlayerPrefsBestRecordRepository / BestRecordUpdate | Model | 自己ベストの保存先と、1回のプレイで更新したかどうか |
+| AudioManager / IAudioPlayer | View・共通 | 効果音 |
+| WeakQuestionList / IWeakQuestionRepository / PlayerPrefsWeakQuestionRepository | Model | 苦手な問題のリストと保存先。優先して出す問題の並べ方も決める |
+| SceneTransitionView / ISceneTransition / SceneLoader | View・共通 | プリントを回収して次を配るようにシーンを切り替える |
 
 **書き順クイズ**（`Scripts/Modes/StrokeOrder`、名前空間 `TechC.KanjiQuiz.Modes.StrokeOrder`）
 
@@ -365,6 +432,8 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 | StrokeData | Model | 1画分の座標の列 |
 | StrokeOrderPresenter | Presenter | 選択肢ごとの書き順の図を描かせる |
 | StrokeOrderView / CumulativeStrokeRenderer | View | 書き順を1画ずつ積み上げて描画する |
+| StrokeAnimationView | View | 振り返りのお手本。正しい書き順で1画ずつ筆で書くアニメーション |
+| StrokeOrderReviewPresenter | Presenter | 振り返りで書き順の図とお手本を描かせる |
 | StrokeOrderEntryPoint | 組み立て役 | 問題を作り、Model・View・Presenter をつなぐ |
 
 ---
@@ -381,6 +450,9 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 - [ ] タイトル画面・モード選択画面などのシーン遷移
 - [x] 難易度ごとの出題範囲とランダムな出題
 - [x] 結果画面からの問題の振り返り
+- [x] 結果発表の演出、級、自己ベスト、全問正解の花丸
+- [x] 振り返りのお手本アニメーション
+- [x] 苦手な漢字の復習、学校のプリントのような背景、プリントを配るシーン切り替え
 - [ ] 書き順クイズ以外のゲームモード
 - [ ] 問題作成モード
 - [ ] 問題のオンライン公開・一覧・プレイ
@@ -421,9 +493,16 @@ PR #1 のコードレビューで見つかった不具合は、書き順クイ�
 **書き順クイズモード**
 
 - 制限時間の有無
-- 結果画面での演出（効果音など）
 
 **決定済み（2026-10-24）**
 
 - 難易度ごとの出題範囲と問題数（3.2）
 - 正解・不正解は結果画面でまとめて表示する（3.3）
+
+**決定済み（2026-10-26）**
+
+- 結果画面の演出（○のハンコ、級、全問正解の花丸、自己ベスト）（3.0、3.6、3.7）
+- プレイ中の手応え（選択・ページめくりの音、問題を切り替えるときのスライド）（3.0）
+- 振り返りのお手本アニメーション（3.5）
+- 苦手な漢字の復習（3.8）、学校のプリントのような背景と、プリントを回収して次を配るシーン切り替え（4.3）
+- タイトルのロゴを筆で書く演出と、漢字帳（正解した漢字のコレクション）は、タイトル画面を作るときに作る

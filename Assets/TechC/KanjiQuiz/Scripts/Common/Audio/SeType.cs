@@ -16,5 +16,20 @@ namespace TechC.KanjiQuiz.Common
 
         /// <summary>点数の発表（ジャン）</summary>
         ScoreReveal,
+
+        /// <summary>選択肢を選んだ</summary>
+        Select,
+
+        /// <summary>問題を切り替えた（ページをめくる）</summary>
+        PageTurn,
+
+        /// <summary>級のハンコを押す</summary>
+        Stamp,
+
+        /// <summary>全問正解の花丸を書く</summary>
+        Hanamaru,
+
+        /// <summary>自己ベストを更新した</summary>
+        NewRecord,
     }
 }
