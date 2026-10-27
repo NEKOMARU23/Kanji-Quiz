@@ -38,9 +38,10 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - 問題データは JSON。`IQuestionRepository` 経由で読む（**未実装**。返信文クイズを作るときに用意する）。
 - 非同期は UniTask。問題ごとに `CancellationTokenSource` を作り直す。`async void` 禁止。
 
-## 現在の状態（2026-10-26 時点）
+## 現在の状態（2026-10-27 時点）
 
 - **遊べるのは書き順クイズだけ**。ほかの4モード、タイトル画面、モード選択画面は未着手。次にやることは `Docs/Progress.md` の9章。
+- **次は「本物の漢字さがし」（RealKanji）**。仕様は `Docs/GameSpec.md` 2.1 で決定済み（同じ部首を残して部首以外を入れ替えた偽物3つ＋本物の4択、読みつき、難易度は出題範囲）。次は `Tools/` の Python で偽物のデータを作る（実在しないかの確認は BabelStone IDS）。返信文クイズは後回し（正しい返信文を作るのが難しいため）。
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
   - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、136 件）。
 - 書き順クイズは `Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`。
