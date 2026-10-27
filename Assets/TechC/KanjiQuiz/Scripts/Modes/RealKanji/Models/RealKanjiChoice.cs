@@ -15,7 +15,7 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
         /// <summary>字の下に出す読み</summary>
         public string Reading { get; }
 
-        /// <summary>振り返りで出す説明。本物は漢字、偽物は部品の組み合わせ（例：氵＋舎（捨の右側））</summary>
+        /// <summary>振り返りで出す説明。本物は「本物」、偽物は部品の組み合わせ（例：氵＋舎（捨の右側））</summary>
         public string Description { get; }
 
         public RealKanjiChoice(IReadOnlyList<StrokeData> strokes, string reading, string description)

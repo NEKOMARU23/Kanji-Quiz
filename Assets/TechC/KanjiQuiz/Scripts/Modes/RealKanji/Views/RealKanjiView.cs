@@ -17,6 +17,8 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
         [SerializeField] private GameObject weakMark;
         [Tooltip("振り返りで、本物の漢字の読みと使用例を出すテキスト。振り返りのときだけ表示される場所に置く")]
         [SerializeField] private TMP_Text answerInfoText;
+        [Tooltip("問題文。振り返りでは、同じ場所に読みと使用例を出すので隠す。不要なら空でよい")]
+        [SerializeField] private GameObject questionText;
 
         public void SetWeakMarkVisible(bool visible)
         {
@@ -38,6 +40,7 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
 
         public void ShowAnswerInfo(string kanji, string reading, IReadOnlyList<KanjiWord> words)
         {
+            if (questionText != null) questionText.SetActive(false);
             if (answerInfoText == null) return;
 
             var text = new StringBuilder();

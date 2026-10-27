@@ -13,6 +13,9 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
     /// </summary>
     public sealed class RealKanjiQuestionFactory
     {
+        /// <summary>振り返りで本物の選択肢に出す説明</summary>
+        public const string RealDescription = "本物";
+
         private readonly IKanjiSvgSource svgSource;
         private readonly KanjiWordDictionary wordDictionary;
         private readonly Dictionary<string, RealKanjiEntry> entries = new Dictionary<string, RealKanjiEntry>();
@@ -106,7 +109,7 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
             }
 
             int correctIndex = UnityEngine.Random.Range(0, choiceCount);
-            choices.Insert(correctIndex, new RealKanjiChoice(FakeKanjiComposer.ToStrokeData(realStrokes), entry.reading, entry.kanji));
+            choices.Insert(correctIndex, new RealKanjiChoice(FakeKanjiComposer.ToStrokeData(realStrokes), entry.reading, RealDescription));
 
             var words = wordDictionary != null ? wordDictionary.GetWords(entry.kanji) : Array.Empty<KanjiWord>();
             return new RealKanjiQuestion(entry.kanji, entry.reading, words, choices, correctIndex);

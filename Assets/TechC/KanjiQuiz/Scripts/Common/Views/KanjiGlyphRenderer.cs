@@ -11,8 +11,8 @@ namespace TechC.KanjiQuiz.Common
     public class KanjiGlyphRenderer : MonoBehaviour
     {
         [SerializeField] private LineRenderer lineRendererPrefab;
-        [Tooltip("線の太さ（この Transform の座標で）")]
-        [SerializeField] private float strokeWidth = 0.15f;
+        [Tooltip("線の太さ（この Transform の座標で。字の1辺が 3）")]
+        [SerializeField] private float strokeWidth = 0.2f;
         [SerializeField] private Color strokeColor = Color.black;
         [Tooltip("角と端を丸めるための頂点数")]
         [SerializeField] private int roundVertices = 10;
