@@ -14,7 +14,7 @@ namespace TechC.KanjiQuiz.Tests
 ""id"": ""Elementary"",
 ""sources"": [""test""],
 ""questions"": [
-{""kanji"":""海"",""reading"":""カイ"",""radical"":""氵"",""position"":""left"",""radicalGroups"":[""kvg:06d77-g1""],""fakes"":[{""part"":""舎"",""donor"":""捨"",""groups"":[""kvg:06368-g2""],""reading"":""シャ""}]}
+{""kanji"":""海"",""reading"":""カイ"",""radical"":""氵"",""position"":""left"",""radicalGroups"":[""kvg:06d77-g1""],""fakes"":[{""part"":""舎"",""donor"":""捨"",""groups"":[""kvg:06368-g2""],""reading"":""シャ"",""box"":[50.5,14.0,40.25,76.0]}]}
 ]
 }");
             var entries = repository.LoadAll();
@@ -26,6 +26,7 @@ namespace TechC.KanjiQuiz.Tests
             CollectionAssert.AreEqual(new[] { "kvg:06d77-g1" }, entries[0].radicalGroups);
             Assert.AreEqual("捨", entries[0].fakes[0].donor);
             CollectionAssert.AreEqual(new[] { "kvg:06368-g2" }, entries[0].fakes[0].groups);
+            CollectionAssert.AreEqual(new[] { 50.5f, 14.0f, 40.25f, 76.0f }, entries[0].fakes[0].box);
         }
 
         [Test]

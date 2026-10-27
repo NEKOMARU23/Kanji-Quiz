@@ -52,6 +52,37 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
+        public void 部品を置く枠があればその枠に合わせる()
+        {
+            // 本物の残りの部分（x 50〜90）より右に寄せた枠（x 60〜90・y 20〜80）
+            var box = new[] { 60f, 20f, 30f, 60f };
+            var strokes = FakeKanjiComposer.Compose(real, new[] { "radical" }, Donor(), new[] { "right" }, box);
+
+            var expected = FakeKanjiComposer.FromKanjiVgBox(box);
+            var actual = FakeKanjiComposer.GetBounds(strokes.GetRange(1, 2));
+            Assert.AreEqual(expected.xMin, actual.xMin, Tolerance);
+            Assert.AreEqual(expected.xMax, actual.xMax, Tolerance);
+            Assert.AreEqual(expected.yMin, actual.yMin, Tolerance);
+            Assert.AreEqual(expected.yMax, actual.yMax, Tolerance);
+        }
+
+        [Test]
+        public void 枠をKanjiVGの座標から描画の座標に変える()
+        {
+            // KanjiVG の字の範囲（0〜109）は、中心が原点で1辺 3 の範囲になる。y は上下が逆になる
+            var whole = FakeKanjiComposer.FromKanjiVgBox(new[] { 0f, 0f, 109f, 109f });
+            Assert.AreEqual(-1.5f, whole.xMin, Tolerance);
+            Assert.AreEqual(1.5f, whole.xMax, Tolerance);
+            Assert.AreEqual(-1.5f, whole.yMin, Tolerance);
+            Assert.AreEqual(1.5f, whole.yMax, Tolerance);
+
+            // 上半分の枠は、描画の座標では y が 0 より上になる
+            var top = FakeKanjiComposer.FromKanjiVgBox(new[] { 0f, 0f, 109f, 54.5f });
+            Assert.AreEqual(0f, top.yMin, Tolerance);
+            Assert.AreEqual(1.5f, top.yMax, Tolerance);
+        }
+
+        [Test]
         public void 借りるグループが空なら部品を借りる漢字の画をすべて使う()
         {
             var strokes = FakeKanjiComposer.Compose(real, new[] { "radical" }, Donor(), new string[0]);
