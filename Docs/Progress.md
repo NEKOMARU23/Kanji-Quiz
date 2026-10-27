@@ -178,6 +178,7 @@
 | [#6](https://github.com/NEKOMARU23/Knaji-Quiz/pull/6) | 結果発表の演出（1問ずつ ○・×、正解数のルーレット）、効果音の仕組み（AudioManager、シングルトンの基礎クラス） | 2026-10-26 |
 | [#7](https://github.com/NEKOMARU23/Knaji-Quiz/pull/7) | 結果画面の演出（ハンコ・級・花丸・自己ベスト）、苦手な漢字の復習、振り返りのお手本、プリントの背景と切り替え | 2026-10-27 |
 | [#8](https://github.com/NEKOMARU23/Knaji-Quiz/pull/8) | 全モード共通のシーンのひな形（シーンテンプレートと共通プレハブ）、モードの定義、中断メニューと音量、キーボード操作 | 2026-10-27 |
+| [#9](https://github.com/NEKOMARU23/Knaji-Quiz/pull/9) | 返信文クイズを後回しにし、本物の漢字さがしの仕様（4択、偽物の作り方、使う IDS）を決めた | （レビュー中） |
 
 ---
 
