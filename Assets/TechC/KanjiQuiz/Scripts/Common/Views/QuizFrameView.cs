@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using R3;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace TechC.KanjiQuiz.Common
@@ -10,6 +11,7 @@ namespace TechC.KanjiQuiz.Common
     /// <summary>
     /// 全モード共通のプレイ画面の枠
     /// 判断は持たず、入力の通知と表示の切り替えだけを行う
+    /// キーボードでは Enter・スペース・→ で [次へ]、← で [前へ] を押す
     /// </summary>
     public class QuizFrameView : MonoBehaviour, IQuizFrameView
     {
@@ -42,6 +44,29 @@ namespace TechC.KanjiQuiz.Common
             {
                 basePositions[i] = transitionTargets[i].anchoredPosition;
             }
+        }
+
+        private void Update()
+        {
+            if (InputGate.IsBlocked) return;
+            var keyboard = Keyboard.current;
+            if (keyboard == null) return;
+
+            if (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame
+                || keyboard.spaceKey.wasPressedThisFrame || keyboard.rightArrowKey.wasPressedThisFrame)
+            {
+                PressIfAvailable(nextButton);
+            }
+            else if (keyboard.leftArrowKey.wasPressedThisFrame)
+            {
+                PressIfAvailable(prevButton);
+            }
+        }
+
+        /// <summary>ボタンが表示されていて押せるときだけ、押したことにする</summary>
+        private static void PressIfAvailable(Button button)
+        {
+            if (button.IsActive() && button.IsInteractable()) button.onClick.Invoke();
         }
 
         private void OnDestroy()

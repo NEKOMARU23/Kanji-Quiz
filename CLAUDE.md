@@ -42,7 +42,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 
 - **遊べるのは書き順クイズだけ**。ほかの4モード、タイトル画面、モード選択画面は未着手。次にやることは `Docs/Progress.md` の9章。
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
-  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、127 件）。
+  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、136 件）。
 - 書き順クイズは `Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`。
   - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。難易度・難易度ごとの漢字セット・選択肢の数・振り返り用の View もここで設定する。
   - 難易度は `QuizLaunchOptions.Difficulty` があればそちらを優先する。F1 キーで表示されるテスト用ボタン（`Scripts/DebugTools/DebugDifficultySwitcher`、エディタと開発ビルドのみ）で切り替えられる。シーンに保存する難易度は Easy にしておく。
@@ -59,6 +59,9 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
   - 振り返りでは、出題する漢字の右にお手本の書き順アニメーション（`StrokeAnimationView`）を出す。
   - 間違えた漢字は `WeakQuestionList`（PlayerPrefs のキー `WeakQuestions_StrokeOrder_<難易度>`）に残し、次のプレイで問題数の半分まで優先して出す。出たときは「苦手」のハンコを出す。Play で確かめたあとは、このキーも `PlayerPrefs.DeleteKey` で消す。
 - 背景は学校のプリントのような画像（各 Canvas の Background）。シーンの切り替えは `SceneTransitionView`（`Prefabs/Common/SceneTransition`、プリントを回収して次を配る）で、`new SceneLoader(SceneTransitionView.Instance)` のように EntryPoint で渡す。
+- **新しいモードのシーンは File > New Scene のテンプレート「漢字クイズのモード」から作る**（`Scenes/Templates/`、手順は `Docs/GameSpec.md` 4.6）。共通の部品は `Prefabs/Common/` のプレハブ（QuizFrame、PauseMenu、PrintBackground、AudioManager、SceneTransition）。
+- モード名・シーン名・難易度ごとの問題数・保存のキーは `Data/Modes/` のモードの定義（`QuizModeDefinition`）に書く。書き順クイズは `Mode_StrokeOrder`（`StrokeOrderEntryPoint` の `mode` に設定）。
+- 中断メニュー（Esc か右上の [メニュー]）で、続ける・最初からやり直す・効果音の音量。音量は PlayerPrefs の `Volume_Se`。キーボード操作は数字キー・Enter・← →・Esc。メニューを開いている間とシーンの切り替え中は `InputGate` でキー操作を止める。
 - 切り替えはカメラの映像をテクスチャに描いて使うので、**新しいシーンの Canvas は Screen Space - Camera にする**（Overlay の UI はプリントに映らない）。StrokeOrder と Result はどちらも Camera にしてある。
 - 効果音は `AudioManager`（`Prefabs/Common/AudioManager`、StrokeOrder と Result の両方のシーンに置いている）。シングルトンは `SingletonMonoBehaviour<T>` を継承して作る。今の効果音と画像は `Tools/generate_placeholder_se.py`・`Tools/generate_placeholder_ui.py` で作った仮のもの。
 - 文字は Klee One の TMP フォントアセット（Dynamic、TMP Settings の既定）で表示する。
@@ -99,7 +102,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 
 1. `unity command set_autotick` を一度実行し、`editor_play` で Play を始める。
 2. Play 中に `eval` で `UnityEngine.Application.runInBackground = true;` を設定する（エディタが非アクティブだとフレームが進まないため）。
-3. ボタンは `eval` で `onClick.Invoke()`、選択肢は `Toggle.isOn = true` で操作する。クリックの当たり判定まで確かめるときは `EventSystem.RaycastAll` と `ExecuteEvents.ExecuteHierarchy` を使う。
+3. ボタンは `eval` で `onClick.Invoke()`、選択肢は `Toggle.isOn = true` で操作する。キー操作は `InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState(Key.Digit2))` で押し、次の `eval` で `new KeyboardState()` を送って離す。クリックの当たり判定まで確かめるときは `EventSystem.RaycastAll` と `ExecuteEvents.ExecuteHierarchy` を使う。
 4. 画面は `unity command capture_game_view -- --save_path "Temp/x.png"` で撮る。**保存先は `Assets/Temp/` になる**ので、確認後に `AssetDatabase.DeleteAsset("Assets/Temp")` で消す。
 5. `editor_stop` で止め、`unity status --until-ready` で待つ。止めた直後のシーン編集は取り消されることがあるので、`EditorApplication.isPlayingOrWillChangePlaymode` が false になってから編集する。
 6. 最後に TMP フォントアセットの文字データを消す（ハマりどころを参照）。

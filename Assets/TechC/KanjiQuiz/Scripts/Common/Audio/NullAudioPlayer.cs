@@ -23,5 +23,9 @@ namespace TechC.KanjiQuiz.Common
         public void StopLoop()
         {
         }
+
+        public void SetSeVolume(float volume)
+        {
+        }
     }
 }

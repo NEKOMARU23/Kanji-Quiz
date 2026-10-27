@@ -126,22 +126,6 @@ namespace TechC.KanjiQuiz.Tests
             CollectionAssert.AreEquivalent(new[] { "漢", "令" }, questions.Select(q => q.Kanji));
         }
 
-        [TestCase(Difficulty.Easy, 5)]
-        [TestCase(Difficulty.Normal, 7)]
-        [TestCase(Difficulty.Hard, 7)]
-        public void 難易度ごとの問題数(Difficulty difficulty, int expected)
-        {
-            Assert.AreEqual(expected, StrokeOrderRule.QuestionCount(difficulty));
-        }
-
-        [TestCase(Difficulty.Easy, 2)]
-        [TestCase(Difficulty.Normal, 3)]
-        [TestCase(Difficulty.Hard, 3)]
-        public void 優先して出す苦手な漢字は問題数の半分まで(Difficulty difficulty, int expected)
-        {
-            Assert.AreEqual(expected, StrokeOrderRule.WeakQuestionCount(difficulty));
-        }
-
         private List<StrokeOrderQuestion> Create(IEnumerable<string> kanjiList, Difficulty difficulty, int choiceCount)
         {
             // テスト用のデータ源はすぐに完了するので、同期的に結果を取り出せる

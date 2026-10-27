@@ -26,5 +26,10 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         public void StopLoop() => IsLooping = false;
+
+        /// <summary>最後に設定された効果音の音量</summary>
+        public float SeVolume { get; private set; } = 1f;
+
+        public void SetSeVolume(float volume) => SeVolume = volume;
     }
 }
