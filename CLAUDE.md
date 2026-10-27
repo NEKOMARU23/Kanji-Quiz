@@ -18,6 +18,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 | `Docs/ScreenDesign.md` | 画面レイアウトと遷移 |
 | `Docs/CodingRules.md` | 命名規則、フォルダ構成、Git・PR の運用 |
 | `Docs/Progress.md` | 進行状況、スケジュール、次にやること、PR の履歴 |
+| `Docs/BugFixes.md` | バグ修正の記録（症状・原因・調べ方・直し方・結果・学んだこと）。就活で説明できるように、直した不具合をここに書く |
 
 設計や仕様を変えたら、対応する Docs も同じ作業の中で更新する。
 作業が終わったら（PR を作るとき）、`Docs/Progress.md` のチェック・PR の履歴・次にやること・最終更新日も更新する。
@@ -43,11 +44,11 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - **遊べるのは書き順クイズと本物の漢字さがし**。ほかの3モード、タイトル画面、モード選択画面は未着手。次にやることは `Docs/Progress.md` の9章（**次はタイトル画面とモード選択画面**。見た目と流れをユーザーに確認するところから始める）。返信文クイズは後回し（正しい返信文を作るのが難しいため）。
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
   - KanjiVG の SVG を読む部品（`KanjiSvgParser`, `StrokePathParser`, `StrokeData`, `StreamingAssetsKanjiStrokeSource`）と、字を線で描く `KanjiGlyphRenderer`、熟語の辞書 `KanjiWordDictionary` も Common にある。
-  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、157 件）。
+  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、159 件）。
 - 書き順クイズは `Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`。
   - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。難易度・難易度ごとの漢字セット・選択肢の数・振り返り用の View もここで設定する。
   - 難易度は `QuizLaunchOptions.Difficulty` があればそちらを優先する。F1 キーで表示されるテスト用ボタン（`Scripts/DebugTools/DebugDifficultySwitcher`、エディタと開発ビルドのみ）で切り替えられる。シーンに保存する難易度は Easy にしておく。
-  - 出題範囲は `Assets/TechC/KanjiQuiz/Data/KanjiSets/` の JSON（小学漢字・常用漢字・常用漢字以外）。`Tools/generate_kanji_sets.py` で KANJIDIC2 から作る。手で編集しない。
+  - 出題範囲は `Assets/TechC/KanjiQuiz/Data/KanjiSets/` の JSON（簡単＝小学漢字 `Elementary`、常識＝小学校で学ばない常用漢字のうちよく使う半分 `JoyoCommon`、困難＝あまり使わない半分 `JoyoRare`）。**人名用漢字はほかのモードに混ぜない**（数が多く何でもありになるため）。常用漢字以外の `Hyogai` は、あとで作る人名漢字のモード用に残しているだけで、どの難易度にも使わない。`Tools/generate_kanji_sets.py` で KANJIDIC2 から作る。手で編集しない。
   - 不正解の作り方：簡単は全画シャッフル、常識は連続した30%の画を必ず動かす、困難は隣り合う2画を入れ替える（`WrongOrderGenerator`）。
   - 書き順データは `Assets/StreamingAssets/KanjiVG/` の SVG（基本の字形のみ 6,701 ファイル）を UnityWebRequest で読む。
   - 書き順の図は1段階ごとに黒い四角で囲む。枠の太さ・色は選択肢プレハブ（`ProblemDisplay`）の `CumulativeStrokeRenderer` で設定する。

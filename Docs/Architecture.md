@@ -344,7 +344,7 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | `TechC.KanjiQuiz.Editor` | エディタ拡張（必要になったら） |
 | `TechC.KanjiQuiz.Tests` | EditMode テスト |
 
-テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-27 時点で 157 件）。主な対象は次のとおり。
+テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-27 時点で 159 件）。主な対象は次のとおり。
 
 | 対象 | テストクラス |
 |---|---|
