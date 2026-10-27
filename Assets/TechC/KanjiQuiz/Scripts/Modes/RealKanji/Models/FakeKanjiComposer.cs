@@ -6,7 +6,7 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
 {
     /// <summary>
     /// 本物の漢字の部首を残し、部首以外の部分を別の漢字から借りた部品に入れ替えて、偽物の字を組み立てる
-    /// 借りた部品は、元の部分の外枠に合わせて縮める・伸ばす
+    /// 借りた部品は、部品を置く枠（問題データの box。なければ元の部分の外枠）に合わせて縮める・伸ばす
     /// </summary>
     public static class FakeKanjiComposer
     {
@@ -36,12 +36,14 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
         /// <param name="radicalGroups">本物の漢字で残す部首のグループの id</param>
         /// <param name="donorStrokes">部品を借りる漢字の画</param>
         /// <param name="donorGroups">借りるグループの id。空なら donorStrokes をすべて使う</param>
+        /// <param name="partBox">借りた部品を置く枠（KanjiVG の座標で x, y, 幅, 高さ。y は下向き）。null なら本物の部首以外の部分の外枠</param>
         /// <returns>組み立てた字の画（部首の画のあとに借りた部品の画）。部首・残りの部分・借りる部品のどれかがなければ null</returns>
         public static List<StrokeData> Compose(
             IReadOnlyList<KanjiSvgStroke> realStrokes,
             ICollection<string> radicalGroups,
             IReadOnlyList<KanjiSvgStroke> donorStrokes,
-            ICollection<string> donorGroups)
+            ICollection<string> donorGroups,
+            IReadOnlyList<float> partBox = null)
         {
             var radical = new List<KanjiSvgStroke>();
             var rest = new List<KanjiSvgStroke>();
@@ -60,7 +62,7 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
 
             var result = ToStrokeData(radical);
             var partStrokes = ToStrokeData(part);
-            var target = GetBounds(ToStrokeData(rest));
+            var target = partBox != null && partBox.Count == 4 ? FromKanjiVgBox(partBox) : GetBounds(ToStrokeData(rest));
             var source = GetBounds(partStrokes);
             foreach (var stroke in partStrokes)
             {
@@ -90,6 +92,16 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
             var center = new Vector2((xMin + xMax) / 2f, (yMin + yMax) / 2f);
             var size = new Vector2(Mathf.Max(xMax - xMin, MinExtent), Mathf.Max(yMax - yMin, MinExtent));
             return new Rect(center - size / 2f, size);
+        }
+
+        /// <summary>
+        /// KanjiVG の座標（y は下向き）の枠 (x, y, 幅, 高さ) を、StrokePathParser の座標（中心が原点、y は上向き）の枠にする
+        /// </summary>
+        public static Rect FromKanjiVgBox(IReadOnlyList<float> box, float scale = 3f)
+        {
+            var topLeft = StrokePathParser.Normalize(new Vector2(box[0], box[1]), scale);
+            var bottomRight = StrokePathParser.Normalize(new Vector2(box[0] + box[2], box[1] + box[3]), scale);
+            return Rect.MinMaxRect(topLeft.x, bottomRight.y, bottomRight.x, topLeft.y);
         }
 
         /// <summary>

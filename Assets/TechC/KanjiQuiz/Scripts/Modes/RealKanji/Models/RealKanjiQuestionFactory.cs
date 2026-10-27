@@ -96,7 +96,7 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
 
                 var donorStrokes = await svgSource.LoadStrokesAsync(fake.donor, ct);
                 var strokes = FakeKanjiComposer.Compose(
-                    realStrokes, radicalGroups, donorStrokes, new HashSet<string>(fake.groups ?? Array.Empty<string>()));
+                    realStrokes, radicalGroups, donorStrokes, new HashSet<string>(fake.groups ?? Array.Empty<string>()), fake.box);
                 if (strokes == null) continue;
 
                 choices.Add(new RealKanjiChoice(strokes, fake.reading, DescribeFake(entry, fake)));

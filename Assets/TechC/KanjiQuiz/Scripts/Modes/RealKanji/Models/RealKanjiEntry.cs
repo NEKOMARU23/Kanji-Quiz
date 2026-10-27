@@ -45,5 +45,11 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
 
         /// <summary>偽物の読み（part の音読み）</summary>
         public string reading;
+
+        /// <summary>
+        /// 借りた部品を置く枠（KanjiVG の座標で x, y, 幅, 高さ。y は下向き）
+        /// 部首とぶつからないように Tools/generate_real_kanji_fakes.py が求めたもの。空なら本物の部首以外の部分の外枠に置く
+        /// </summary>
+        public float[] box;
     }
 }
