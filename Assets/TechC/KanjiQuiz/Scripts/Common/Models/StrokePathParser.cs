@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace TechC.KanjiQuiz.Modes.StrokeOrder
+namespace TechC.KanjiQuiz.Common
 {
     /// <summary>
     /// SVG のパスデータ（d 属性）を、描画用の座標の列に変換する

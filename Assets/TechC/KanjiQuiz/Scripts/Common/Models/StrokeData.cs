@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace TechC.KanjiQuiz.Modes.StrokeOrder
+namespace TechC.KanjiQuiz.Common
 {
     /// <summary>
     /// 1画分の座標データ

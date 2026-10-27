@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using TechC.KanjiQuiz.Common;
 using UnityEngine;
 
 namespace TechC.KanjiQuiz.Modes.StrokeOrder

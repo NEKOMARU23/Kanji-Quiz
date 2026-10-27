@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
-namespace TechC.KanjiQuiz.Modes.StrokeOrder
+namespace TechC.KanjiQuiz.Common
 {
     /// <summary>
     /// 漢字の書き順データ（1画ごとのパスデータ）の読み込み口

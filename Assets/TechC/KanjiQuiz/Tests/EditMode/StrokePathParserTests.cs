@@ -1,5 +1,5 @@
 using NUnit.Framework;
-using TechC.KanjiQuiz.Modes.StrokeOrder;
+using TechC.KanjiQuiz.Common;
 using UnityEngine;
 
 namespace TechC.KanjiQuiz.Tests
