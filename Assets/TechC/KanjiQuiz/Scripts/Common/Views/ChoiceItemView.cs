@@ -16,6 +16,8 @@ namespace TechC.KanjiQuiz.Common
         [SerializeField] private Toggle toggle;
         [Tooltip("モードごとの中身（文字、画像、書き順の図など）を置く親")]
         [SerializeField] private RectTransform contentRoot;
+        [Tooltip("選ぶときに押す数字キーを表示するテキスト。不要なら空でよい")]
+        [SerializeField] private TMP_Text keyHintText;
 
         [Header("--- 振り返り用の印 ---")]
         [Tooltip("行の背景。印に合わせて色を変える。不要なら空でよい")]
@@ -54,9 +56,25 @@ namespace TechC.KanjiQuiz.Common
         public void OnPointerClick(PointerEventData eventData)
         {
             if (eventData.button != PointerEventData.InputButton.Left) return;
+            Select();
+        }
+
+        /// <summary>
+        /// この選択肢を選ぶ（クリックやキー操作と同じ扱い）。押せないときは何もしない
+        /// </summary>
+        public void Select()
+        {
             if (!toggle.IsInteractable()) return;
 
             toggle.isOn = true;
+        }
+
+        /// <summary>
+        /// 選ぶときに押すキーを表示する
+        /// </summary>
+        public void SetKeyHint(string key)
+        {
+            if (keyHintText != null) keyHintText.text = key;
         }
 
         /// <summary>

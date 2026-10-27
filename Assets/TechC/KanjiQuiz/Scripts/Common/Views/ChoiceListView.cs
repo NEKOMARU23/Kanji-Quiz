@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using R3;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace TechC.KanjiQuiz.Common
@@ -24,10 +25,38 @@ namespace TechC.KanjiQuiz.Common
         public IReadOnlyList<ChoiceItemView> Items => items.GetRange(0, activeCount);
 
         public Observable<int> OnChoiceSelected => onChoiceSelected;
+        /// <summary>選択肢を選ぶキー。1つ目の選択肢から順に、数字キーとテンキーの数字</summary>
+        private static readonly Key[][] ChoiceKeys =
+        {
+            new[] { Key.Digit1, Key.Numpad1 },
+            new[] { Key.Digit2, Key.Numpad2 },
+            new[] { Key.Digit3, Key.Numpad3 },
+            new[] { Key.Digit4, Key.Numpad4 },
+            new[] { Key.Digit5, Key.Numpad5 },
+            new[] { Key.Digit6, Key.Numpad6 },
+        };
 
         private void Awake()
         {
             onChoiceSelected.AddTo(this);
+        }
+
+        private void Update()
+        {
+            if (!isInteractable || InputGate.IsBlocked) return;
+            var keyboard = Keyboard.current;
+            if (keyboard == null) return;
+
+            for (int i = 0; i < activeCount && i < ChoiceKeys.Length; i++)
+            {
+                foreach (var key in ChoiceKeys[i])
+                {
+                    if (!keyboard[key].wasPressedThisFrame) continue;
+
+                    items[i].Select();
+                    return;
+                }
+            }
         }
 
         public void SetChoiceCount(int count)
@@ -81,6 +110,7 @@ namespace TechC.KanjiQuiz.Common
         {
             var item = Instantiate(itemPrefab, container);
             item.SetGroup(toggleGroup);
+            item.SetKeyHint((index + 1).ToString());
             item.SetInteractable(isInteractable);
             item.OnSelected
                 .Subscribe((index, onChoiceSelected), static (_, state) => state.onChoiceSelected.OnNext(state.index))

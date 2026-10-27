@@ -5,6 +5,7 @@ using R3;
 using TechC.KanjiQuiz.Common;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace TechC.KanjiQuiz.Screens.Result
@@ -78,6 +79,19 @@ namespace TechC.KanjiQuiz.Screens.Result
         {
             onItemClicked.AddTo(this);
             HideExtras();
+        }
+
+        private void Update()
+        {
+            // 演出中は Enter・スペースでも飛ばせる
+            if (!skipButton.gameObject.activeInHierarchy || InputGate.IsBlocked) return;
+            var keyboard = Keyboard.current;
+            if (keyboard == null) return;
+
+            if (keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame || keyboard.spaceKey.wasPressedThisFrame)
+            {
+                skipButton.onClick.Invoke();
+            }
         }
 
         public void SetModeName(string modeName)

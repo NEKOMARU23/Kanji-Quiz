@@ -63,6 +63,8 @@ namespace TechC.KanjiQuiz.Common
         private async UniTaskVoid PlayAsync(string sceneName, CancellationToken ct)
         {
             isPlaying = true;
+            // 切り替えの途中は、後ろの画面がキーに反応しないようにする
+            InputGate.Block(this);
             RenderTexture oldView = null;
             RenderTexture newView = null;
             Camera newCamera = null;
@@ -104,6 +106,7 @@ namespace TechC.KanjiQuiz.Common
                 ReleaseTexture(newView);
                 ReleaseTexture(oldView);
                 if (stage != null) stage.SetActive(false);
+                InputGate.Unblock(this);
                 isPlaying = false;
             }
         }
