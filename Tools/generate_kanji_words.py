@@ -28,7 +28,7 @@ import xml.etree.ElementTree as ET
 
 SOURCE = "JMdict (Electronic Dictionary Research and Development Group, CC BY-SA 4.0)"
 
-LEVELS = ["Elementary", "Joyo", "Hyogai"]
+LEVELS = ["Elementary", "JoyoCommon", "JoyoRare", "Hyogai"]
 
 MAX_WORDS = 3
 MAX_UNCOMMON_WORDS = 2

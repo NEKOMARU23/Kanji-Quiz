@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using TechC.KanjiQuiz.Modes.StrokeOrder;
+using TechC.KanjiQuiz.Common;
 
 namespace TechC.KanjiQuiz.Tests
 {

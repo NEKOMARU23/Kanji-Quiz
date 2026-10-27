@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: TechC.KanjiQuiz::TechC.KanjiQuiz.Common.QuizModeCatalog
   modes:
   - {fileID: 11400000, guid: 3ecc200c72a7f6d4a86aa74b6dba899d, type: 2}
+  - {fileID: 11400000, guid: c4c460e28825fa649936a0584740c25d, type: 2}

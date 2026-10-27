@@ -6,6 +6,7 @@ namespace TechC.KanjiQuiz.Common
     public static class SceneNames
     {
         public const string StrokeOrder = "StrokeOrder";
+        public const string RealKanji = "RealKanji";
         public const string Result = "Result";
     }
 }

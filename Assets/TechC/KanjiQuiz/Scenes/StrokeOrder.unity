@@ -312,8 +312,8 @@ MonoBehaviour:
   reviewView: {fileID: 1790868583}
   difficulty: 0
   easyKanjiSet: {fileID: 4900000, guid: d82bf868a9c3e5f49be91d6b49c72192, type: 3}
-  normalKanjiSet: {fileID: 4900000, guid: 8e07e5a412c9628458a7ab148601a228, type: 3}
-  hardKanjiSet: {fileID: 4900000, guid: 6cac64c913a3ecc43a3ca32d709c2bc5, type: 3}
+  normalKanjiSet: {fileID: 4900000, guid: d31e2ccb10f47e645bb47785047f7f64, type: 3}
+  hardKanjiSet: {fileID: 4900000, guid: 2cb358999c69b5441b818693b96b55a5, type: 3}
   choiceCount: 3
 --- !u!1 &166037273
 GameObject:

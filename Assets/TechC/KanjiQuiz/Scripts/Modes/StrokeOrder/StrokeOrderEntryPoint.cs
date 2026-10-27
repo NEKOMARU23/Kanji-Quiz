@@ -29,9 +29,9 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
         [SerializeField] private Difficulty difficulty = Difficulty.Easy;
         [Tooltip("難易度「簡単」の出題範囲（小学漢字）")]
         [SerializeField] private TextAsset easyKanjiSet;
-        [Tooltip("難易度「常識」の出題範囲（常用漢字のうち小学校で学ばない漢字）")]
+        [Tooltip("難易度「常識」の出題範囲（小学校で学ばない常用漢字のうち、よく使う半分。KanjiSet_JoyoCommon）")]
         [SerializeField] private TextAsset normalKanjiSet;
-        [Tooltip("難易度「困難」の出題範囲（常用漢字以外）")]
+        [Tooltip("難易度「困難」の出題範囲（小学校で学ばない常用漢字のうち、あまり使わない半分。KanjiSet_JoyoRare）")]
         [SerializeField] private TextAsset hardKanjiSet;
         [Range(2, 4)]
         [SerializeField] private int choiceCount = 3;

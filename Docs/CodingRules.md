@@ -116,6 +116,9 @@ Assets/
     ├─ Art/                  … 画像、フォント、音
     ├─ Data/
     │   ├─ KanjiSets/        … 出題範囲の漢字セット JSON（Tools で生成）
+    │   ├─ KanjiWords/       … 漢字ごとの使用例の熟語 JSON（Tools で生成）
+    │   ├─ Modes/            … モードの定義（QuizModeDefinition）とモードの一覧
+    │   ├─ RealKanji/        … 本物の漢字さがしの問題データ JSON（Tools で生成）
     │   └─ Questions/        … 問題セット JSON（予定）
     ├─ Prefabs/
     │   ├─ Common/           … 全モードで使う UI
