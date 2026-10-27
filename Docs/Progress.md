@@ -17,7 +17,7 @@
 |---|---|---|
 | 共通の土台（MVP、進行管理、結果画面） | 完了 | ■■■■■ |
 | 書き順クイズ | 遊べる。難易度ごとの出題範囲、問題の振り返り、結果発表の演出、級と自己ベスト、振り返りのお手本アニメーション、苦手な漢字の復習、テスト用の難易度切り替えまで実装。ビルド確認が未実施 | ■■■■□ |
-| 本物の漢字さがし | 仕様を決めた（GameSpec.md 2.1）。次は偽物のデータを作る（9章） | ■□□□□ |
+| 本物の漢字さがし | 仕様を決め（GameSpec.md 2.1）、偽物・読み・熟語のデータを作った。次はゲームの組み立て（9章） | ■■□□□ |
 | 四字熟語づくり | 未着手 | □□□□□ |
 | 画像で名前当て | 未着手 | □□□□□ |
 | 返信文クイズ | 後回し（正しい返信文を作るのが難しいため、ほかのモードを先に作る） | □□□□□ |
@@ -124,8 +124,9 @@
 
 - [x] 遊び方と偽物の漢字の作り方を決める（GameSpec.md 2.1）
 - [x] IDS（漢字の部品の組み合わせのデータ）を選ぶ（BabelStone IDS。自由に使え、クレジット不要）
-- [ ] 偽物の候補を作る Python（`Tools/`）と JSON
-- [ ] 読み（KANJIDIC2）と使用例の熟語（JMdict）のデータ
+- [x] 偽物の候補を作る Python（`Tools/generate_real_kanji_fakes.py`）と JSON（`Data/RealKanji/`。小学 749 字・常用 993 字・常用外 687 字）
+- [x] 本物と偽物の読み（KANJIDIC2）
+- [x] 使用例の熟語（JMdict）のデータ（`Tools/generate_kanji_words.py`、`Data/KanjiWords/`）
 - [ ] 問題データを読む共通部品（`IQuestionRepository`）
 - [ ] 借りた部品を外枠に合わせて組み立て、線で描く仕組み
 - [ ] Model・View・Presenter（振り返りを含む）
@@ -178,20 +179,17 @@
 | [#6](https://github.com/NEKOMARU23/Knaji-Quiz/pull/6) | 結果発表の演出（1問ずつ ○・×、正解数のルーレット）、効果音の仕組み（AudioManager、シングルトンの基礎クラス） | 2026-10-26 |
 | [#7](https://github.com/NEKOMARU23/Knaji-Quiz/pull/7) | 結果画面の演出（ハンコ・級・花丸・自己ベスト）、苦手な漢字の復習、振り返りのお手本、プリントの背景と切り替え | 2026-10-27 |
 | [#8](https://github.com/NEKOMARU23/Knaji-Quiz/pull/8) | 全モード共通のシーンのひな形（シーンテンプレートと共通プレハブ）、モードの定義、中断メニューと音量、キーボード操作 | 2026-10-27 |
-| [#9](https://github.com/NEKOMARU23/Knaji-Quiz/pull/9) | 返信文クイズを後回しにし、本物の漢字さがしの仕様（4択、偽物の作り方、使う IDS）を決めた | （レビュー中） |
+| [#9](https://github.com/NEKOMARU23/Knaji-Quiz/pull/9) | 返信文クイズを後回しにし、本物の漢字さがしの仕様（4択、偽物の作り方、使う IDS）を決めた | 2026-10-27 |
 
 ---
 
 ## 9. 次にやること
 
-1. **本物の漢字さがし（RealKanji）の偽物のデータを作る**。仕様は GameSpec.md 2.1（2026-10-27 に決定）
-   - IDS は BabelStone IDS に決めた（2026-10-27。GameSpec.md 2.1）
-   - `Tools/` の Python で、部首を残して部首以外の部分を入れ替えた偽物の候補を作り、IDS で実在しないものだけを JSON にする。読み（KANJIDIC2）と熟語（JMdict）も JSON にする
-2. 本物の漢字さがしを作る。シーンはテンプレート「漢字クイズのモード」から作り、モードの定義（`Data/Modes/`）を足す。漢字は4つとも LineRenderer で完成形を描き、借りた部品は外枠に合わせて縮める・伸ばす
-3. 日本語の意味と例文を足す（ウィクショナリーか AI で作ったデータ）
-4. 仮の効果音（`Art/Audio/SE/`）と画像（`Art/UI/` のハンコ・花丸・プリントの背景・机）を正式な素材に差し替える（フリー素材を使うならクレジットとライセンスを確認する）
-5. 書き順クイズのビルド版（Windows）での確認
-6. 2つ目のモードができたら、タイトル画面とモード選択画面を作る（テスト用の難易度切り替えは外す）。タイトルのロゴを筆で書く演出（`StrokeAnimationView` を使う）と、漢字帳もこのときに作る
+1. **本物の漢字さがし（RealKanji）を作る**。データは 2026-10-27 に作った（偽物と読み：`Data/RealKanji/`、熟語：`Data/KanjiWords/`。GameSpec.md 2.1）。JSON は `IQuestionRepository` 経由で読む。シーンはテンプレート「漢字クイズのモード」から作り、モードの定義（`Data/Modes/`）を足す。漢字は4つとも LineRenderer で完成形を描き、借りた部品は外枠に合わせて縮める・伸ばす
+2. 日本語の意味と例文を足す（ウィクショナリーか AI で作ったデータ）
+3. 仮の効果音（`Art/Audio/SE/`）と画像（`Art/UI/` のハンコ・花丸・プリントの背景・机）を正式な素材に差し替える（フリー素材を使うならクレジットとライセンスを確認する）
+4. 書き順クイズのビルド版（Windows）での確認
+5. 2つ目のモードができたら、タイトル画面とモード選択画面を作る（テスト用の難易度切り替えは外す）。タイトルのロゴを筆で書く演出（`StrokeAnimationView` を使う）と、漢字帳もこのときに作る
 
 ---
 
@@ -201,6 +199,8 @@
 - 未追跡の `Assets/TechC/KanjiQuiz/Scripts/Core/GameContext.cs` と `Core.meta` は、削除済みのファイルがエディタのタブから復活したもの。コミットせず、削除してよい。
 - エディタで Play すると TMP フォントアセット（`KleeOne-Regular SDF.asset`）に差分が出る。コミット前に消す。
 - シーン `StrokeOrder` の難易度は Easy で保存する。テストでは F1 の切り替えボタンを使う。
-- PR #8（全モード共通の部品）はマージ済み。本物の漢字さがしの仕様は `docs/kono/real-kanji-spec` ブランチで決め、GameSpec.md 2.1 に書いた。
+- 本物の漢字さがしの仕様は PR #9 で決めた（GameSpec.md 2.1）。偽物と熟語のデータは `feature/kono/real-kanji-fake-data` ブランチで作った。
+- 熟語のデータを作り直すときは、JMdict（`JMdict_e.gz`）をダウンロードし、`python -I Tools/generate_kanji_words.py` に渡す（数秒で終わる）。
+- 偽物のデータを作り直すときは、BabelStone IDS（`IDS.TXT`）と KANJIDIC2（`kanjidic2.xml.gz`）をダウンロードし、`python -I Tools/generate_real_kanji_fakes.py` に渡す（使い方はスクリプトの先頭）。スクリプトを動かすと1分ほどかかる（ゲーム中には動かさない。ゲームはできあがった JSON を読むだけ）。偽物の見た目は、ゲームで組み立てて確かめる。
 - 新しいモードのシーンの作り方は `Docs/GameSpec.md` 4.6。モード名・問題数・保存のキーはモードの定義（`QuizModeDefinition`）に書く。
 - 返信文クイズは後回し（2章のメモ）。`IQuestionRepository`（問題を JSON から読む共通部品）は、JSON の問題データが必要になったモードで作る。
