@@ -17,10 +17,18 @@
     BabelStone IDS で Unicode の漢字すべての部品の組み合わせと照らし合わせ、実在しないものだけを偽物にする。
     偽物の読みは、借りた部品の音読みにする。
 
-JSON に入れるのは、部首のグループの id と、部品を借りる漢字・グループの id だけ。
-座標はゲームが SVG から組み立て、借りた部分を元の部分の外枠に合わせて縮める・伸ばす。
+部品を置く枠（place_part）:
+    本物の部首以外の部分の外枠を基本にする。ただし外枠は部首の線と重なる場所まで広がっていることがある
+    （楯の「盾」の左はらいが木へんの下まで伸びているなど）。本物は形でよけているが、借りた部品を外枠いっぱいに
+    広げると部首とぶつかる。そこで、部首の側から枠を少しずつ狭め、部首と部品の線の重なりが本物と同じくらいに
+    なる枠を探す。どこまで狭めても重なる候補は使わない。
+
+JSON に入れるのは、部首のグループの id と、部品を借りる漢字・グループの id と、部品を置く枠（box）だけ。
+座標はゲームが SVG から組み立て、借りた部分を box に合わせて縮める・伸ばす。
 groups が空のときは、部品を借りる漢字の画をすべて使う（漢字1字をまるごと借りる）。
 差分を見やすくするため、1問を1行に書く。
+
+必要なパッケージ: Pillow、numpy（線の重なりを調べるのに使う）
 """
 import gzip
 import json
@@ -30,6 +38,9 @@ import re
 import sys
 import unicodedata
 import xml.etree.ElementTree as ET
+
+import numpy
+from PIL import Image, ImageDraw
 
 KVG = "{http://kanjivg.tagaini.net}"
 SVG = "{http://www.w3.org/2000/svg}"
@@ -49,6 +60,33 @@ MIN_FAKES = 3
 
 # 借りた部分と元の部分の縦横比の違いの上限。これを超えると、縮める・伸ばすと字形が崩れる
 MAX_ASPECT_RATIO = 1.5
+
+# ---- 部品を置く枠（place_part） ----
+# 線の太さ（KanjiVG の座標で）。ゲームの KanjiGlyphRenderer の太さ 0.2（字の1辺 3）に合わせる
+STROKE_WIDTH = 0.2 / 3 * 109
+# 外枠の幅・高さの下限（KanjiVG の座標で）。ゲームの FakeKanjiComposer.MinExtent（0.3）に合わせる
+MIN_EXTENT = 0.3 / 3 * 109
+# 借りた部品の線が、部首の線（本物の部品が触れているところを除く）とこれ以上重なれば「ぶつかっている」とする
+# （面積。KanjiVG の座標で）。本物の部品も部首に重なっている字（省の「少」など）があるので、その場所は除いて比べる
+OVERLAP_TOLERANCE = 8.0
+# 部首以外の部分の外枠の幅・高さの下限（KanjiVG の座標で）。これより小さいと、借りた部品がつぶれて読めない（太の点など）
+MIN_REST_SIZE = 20.0
+# 部品を置く枠の、1画あたりの面積の下限（KanjiVG の座標で）。小さな枠に画数の多い部品を入れると線が詰まって読めない
+# （加の「口」の大きさ、32×43 なら5画まで）
+MIN_AREA_PER_STROKE = 250.0
+# 枠を狭める1回の量と上限（枠の幅・高さに対する割合）
+SHRINK_STEP = 0.04
+MAX_SHRINK = 0.32
+# 部首の位置ごとに、狭める辺（l: 左、r: 右、t: 上、b: 下）。部首のある側の辺を動かす
+SHRINK_SIDES = {
+    "left": "l",
+    "right": "r",
+    "top": "t",
+    "bottom": "b",
+    "nyo": "lb",
+    "tare": "lt",
+    "kamae": "lrtb",
+}
 
 # 部首の位置と、IDS での組み立て方。囲い・垂れ・繞は IDS の書き方が字によって違うのでまとめて扱う
 LAYOUTS = {
@@ -299,6 +337,142 @@ def stroke_count(parts):
     return sum(len(p.paths) for p in parts)
 
 
+def sample_path(d):
+    """パスを点の列にする。曲線はゲームの StrokePathParser と同じく 30 分割する"""
+    tokens = PATH_TOKEN.findall(d)
+    points = []
+    x = y = 0.0
+    start = (0.0, 0.0)
+    last_control = None
+    cmd = None
+    i = 0
+
+    def bezier(p0, p1, p2, p3):
+        for k in range(1, 31):
+            u = k / 30
+            a, b, c, e = (1 - u) ** 3, 3 * (1 - u) ** 2 * u, 3 * (1 - u) * u * u, u ** 3
+            points.append((a * p0[0] + b * p1[0] + c * p2[0] + e * p3[0], a * p0[1] + b * p1[1] + c * p2[1] + e * p3[1]))
+
+    while i < len(tokens):
+        if tokens[i].isalpha():
+            cmd = tokens[i]
+            i += 1
+            if cmd in "Zz":
+                points.append(start)
+                x, y = start
+                continue
+        upper = cmd.upper()
+        n = PATH_ARGS[upper]
+        args = [float(t) for t in tokens[i:i + n]]
+        i += n
+        ox, oy = (x, y) if cmd.islower() else (0.0, 0.0)
+        if upper == "M":
+            x, y = args[0] + ox, args[1] + oy
+            start = (x, y)
+            points.append((x, y))
+            cmd = "l" if cmd.islower() else "L"
+        elif upper == "L":
+            x, y = args[0] + ox, args[1] + oy
+            points.append((x, y))
+        elif upper == "H":
+            x = args[0] + ox
+            points.append((x, y))
+        elif upper == "V":
+            y = args[0] + oy
+            points.append((x, y))
+        elif upper == "C":
+            p1, p2, p3 = (args[0] + ox, args[1] + oy), (args[2] + ox, args[3] + oy), (args[4] + ox, args[5] + oy)
+            bezier((x, y), p1, p2, p3)
+            last_control = p2
+            x, y = p3
+        elif upper == "S":
+            p1 = (2 * x - last_control[0], 2 * y - last_control[1]) if last_control else (x, y)
+            p2, p3 = (args[0] + ox, args[1] + oy), (args[2] + ox, args[3] + oy)
+            bezier((x, y), p1, p2, p3)
+            last_control = p2
+            x, y = p3
+        if upper not in "CS":
+            last_control = None
+    return points
+
+
+def sampled(paths):
+    return [sample_path(p.get("d")) for p in paths]
+
+
+def box_of(strokes):
+    """画をすべて囲む枠 (x, y, 幅, 高さ)。幅・高さが MIN_EXTENT より小さければ、中心を変えずに広げる"""
+    xs = [p[0] for s in strokes for p in s]
+    ys = [p[1] for s in strokes for p in s]
+    cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+    w, h = max(max(xs) - min(xs), MIN_EXTENT), max(max(ys) - min(ys), MIN_EXTENT)
+    return cx - w / 2, cy - h / 2, w, h
+
+
+def fit(strokes, source, target):
+    """画を source の枠から target の枠へ、縦横それぞれの比率で写す（ゲームの FakeKanjiComposer と同じ）"""
+    sx, sy, sw, sh = source
+    tx, ty, tw, th = target
+    return [[(tx + (x - sx) / sw * tw, ty + (y - sy) / sh * th) for x, y in s] for s in strokes]
+
+
+def stroke_mask(strokes, scale=2):
+    """線を太さつきで描いた白黒の画像（numpy の真偽値の配列）。字の外に少しはみ出しても描けるように余白をとる"""
+    margin = 10
+    size = (109 + margin * 2) * scale
+    image = Image.new("1", (size, size), 0)
+    draw = ImageDraw.Draw(image)
+    width = max(1, round(STROKE_WIDTH * scale))
+    for stroke in strokes:
+        points = [((x + margin) * scale, (y + margin) * scale) for x, y in stroke]
+        draw.line(points if len(points) > 1 else points * 2, fill=1, width=width, joint="curve")
+        for px, py in (points[0], points[-1]):
+            draw.ellipse([px - width / 2, py - width / 2, px + width / 2, py + width / 2], fill=1)
+    return numpy.array(image, dtype=bool)
+
+
+def overlap_area(mask_a, mask_b, scale=2):
+    """2つの線の画像が重なる面積（KanjiVG の座標で）"""
+    return float((mask_a & mask_b).sum()) / (scale * scale)
+
+
+def shrink(box, sides, amount):
+    """枠の、指定した辺を内側へ amount（幅・高さに対する割合）だけ動かす"""
+    x, y, w, h = box
+    dx, dy = w * amount, h * amount
+    if "l" in sides:
+        x, w = x + dx, w - dx
+    if "r" in sides:
+        w -= dx
+    if "t" in sides:
+        y, h = y + dy, h - dy
+    if "b" in sides:
+        h -= dy
+    return x, y, w, h
+
+
+def place_part(radical_mask, part_strokes, rest_box, position):
+    """
+    借りた部品を置く枠を探す。本物の残りの部分の外枠から始め、部首の側から少しずつ狭める
+    部品の線が部首の線（radical_mask。本物の部品が触れているところは除いたもの）にほぼ重ならなくなった枠を返す。見つからなければ None
+    """
+    source = box_of(part_strokes)
+    source_aspect = source[2] / source[3]
+    steps = round(MAX_SHRINK / SHRINK_STEP)
+    for k in range(steps + 1):
+        box = shrink(rest_box, SHRINK_SIDES[position], k * SHRINK_STEP)
+        box_aspect = box[2] / box[3]
+        # 狭めすぎて部品がつぶれるなら、それ以上は狭めない
+        if max(box_aspect, source_aspect) / min(box_aspect, source_aspect) > MAX_ASPECT_RATIO:
+            return None
+        if len(part_strokes) * MIN_AREA_PER_STROKE > box[2] * box[3]:
+            return None
+        fitted = fit(part_strokes, source, box)
+        if overlap_area(radical_mask, stroke_mask(fitted)) <= OVERLAP_TOLERANCE:
+            return box
+    return None
+
+
 def aspect(paths):
     x0, y0, x1, y1 = bbox(paths)
     return max(x1 - x0, 1.0) / max(y1 - y0, 1.0)
@@ -404,24 +578,47 @@ def make_question(shape, level, shapes, kanji_level, components, ids, readings):
         # 元の部分より画が多すぎると、縮めたときに線が詰まって読めなくなる
         if len(paths) > max(target_strokes * 2, target_strokes + 4):
             continue
-        candidates[part] = {
+        candidates[part] = ({
             "part": part,
             "donor": donor,
             "groups": groups,
             "reading": fake_reading(readings, part, donor),
-        }
+        }, paths)
 
     if len(candidates) < MIN_FAKES:
         return None, "偽物を3つ作れない"
-    fakes = list(candidates.values())
-    random.Random(ord(shape.ch)).shuffle(fakes)
+    shuffled = list(candidates.values())
+    random.Random(ord(shape.ch)).shuffle(shuffled)
+
+    rest_strokes = sampled(rest_paths)
+    xs = [p[0] for s in rest_strokes for p in s]
+    ys = [p[1] for s in rest_strokes for p in s]
+    if max(xs) - min(xs) < MIN_REST_SIZE or max(ys) - min(ys) < MIN_REST_SIZE:
+        return None, "部首以外の部分が小さすぎる"
+
+    # 部首とぶつからない枠が見つかった候補だけを、MAX_FAKES 個まで使う
+    # 本物の部品が触れている部首の線は、偽物の部品が触れてもよい
+    radical_mask = stroke_mask(sampled([p for part in radicals for p in part.paths])) & ~stroke_mask(rest_strokes)
+    rest_box = box_of(rest_strokes)
+    fakes = []
+    for fake, paths in shuffled:
+        box = place_part(radical_mask, sampled(paths), rest_box, position)
+        if box is None:
+            continue
+        fake["box"] = [round(v, 2) for v in box]
+        fakes.append(fake)
+        if len(fakes) >= MAX_FAKES:
+            break
+
+    if len(fakes) < MIN_FAKES:
+        return None, "部首とぶつからない偽物を3つ作れない"
     return {
         "kanji": shape.ch,
         "reading": reading,
         "radical": radicals[0].element or "",
         "position": position,
         "radicalGroups": [p.id for p in radicals],
-        "fakes": fakes[:MAX_FAKES],
+        "fakes": fakes,
     }, None
 
 
