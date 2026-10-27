@@ -134,7 +134,11 @@ classDiagram
 | `QuizSession<TQuestion>` | 問題リスト、現在位置、回答履歴、スコア | Model |
 | `AnswerRecord` / `AnswerState` | 1問分の回答（未回答・正解・不正解、選んだ番号） | Model |
 | `IChoiceQuestion` | 選択式の問題（選択肢の数と正解の番号）。選択肢の並びは問題を作るときに確定させる | Model |
-| `IQuestionRepository<TQuestion>` | 問題データの読み込み口（**未実装**。返信文クイズで作る） | Model |
+| `IQuestionRepository<TEntry>` / `LocalQuestionRepository<TEntry>` | 問題データの読み込み口と、同梱の問題セットの JSON（`{ "id", "questions": [...] }`）から読む実装。`TEntry` は JSON の問題1件の型（本物の漢字さがしは `RealKanjiEntry`） | Model |
+| `KanjiWordDictionary` / `KanjiWord` | 漢字ごとの使用例（熟語）の辞書。`Data/KanjiWords` の JSON をまとめて読む | Model |
+| `IKanjiStrokeSource` / `IKanjiSvgSource` / `StreamingAssetsKanjiStrokeSource` | KanjiVG の SVG の読み込み口。画のパスデータだけか、部品のグループつき（`KanjiSvgStroke`）かの2通り。書き順クイズと本物の漢字さがしで使う | Model |
+| `KanjiSvgParser` / `KanjiSvgStroke` / `StrokePathParser` / `StrokeData` | SVG から画のパスデータと、その画が入っている部品のグループ（g 要素の id）を取り出し、座標の列に変換する | Model |
+| `KanjiGlyphRenderer` | 漢字1字を画の線（LineRenderer）でまとめて描く。フォントにない字（偽物）も描ける | View |
 | `Difficulty` / `DifficultyExtensions` | 難易度と、その表示名（簡単・常識・困難） | Model |
 | `KanjiSet` | 出題範囲の漢字の集まり。JSON から読む。サロゲートペアの漢字も1文字として扱う | Model |
 | `ShuffleUtility` | シャッフル処理を1か所にまとめる | Model |
@@ -168,7 +172,7 @@ classDiagram
 | モード | Presenter | 固有の View | 固有の Model |
 |---|---|---|---|
 | 書き順クイズ | `StrokeOrderPresenter`, `StrokeOrderReviewPresenter`（描画は `StrokeOrderChoiceDrawer` で共通化） | `StrokeOrderView`, `CumulativeStrokeRenderer`（書き順の描画と枠）, `StrokeAnimationView`（振り返りのお手本） | `StrokeOrderQuestion`, `StrokeOrderQuestionFactory`, `WrongOrderGenerator`, `StreamingAssetsKanjiStrokeSource`, `KanjiSvgParser`, `StrokePathParser` |
-| 本物の漢字さがし | `RealKanjiPresenter` | `KanjiChoiceView` | `RealKanjiQuestion` |
+| 本物の漢字さがし | `RealKanjiPresenter`, `RealKanjiReviewPresenter`（描画は `RealKanjiChoiceDrawer` で共通化） | `RealKanjiView`, `RealKanjiChoiceContentView`（選択肢の字・読み・振り返りの説明） | `RealKanjiEntry`, `RealKanjiQuestion`, `RealKanjiChoice`, `RealKanjiQuestionFactory`, `FakeKanjiComposer`（部品を入れ替えて偽物を組み立てる） |
 | 返信文クイズ | `ReplyMessagePresenter` | `MessageBubbleView`, `TextChoiceView` | `ReplyMessageQuestion` |
 | 四字熟語づくり | `FourCharIdiomPresenter` | `IdiomBoardView`（4つの枠と候補） | `FourCharIdiomQuestion` |
 | 画像で名前当て | `ImageNamePresenter` | `QuestionImageView`, `TextChoiceView` | `ImageNameQuestion` |
@@ -251,6 +255,8 @@ flowchart LR
 | データ | 置き場所 | 理由 |
 |---|---|---|
 | 問題セット JSON | `Assets/TechC/KanjiQuiz/Data/Questions/` | TextAsset として EntryPoint から渡す（返信文クイズから使う予定） |
+| 本物の漢字さがしの問題データ | `Assets/TechC/KanjiQuiz/Data/RealKanji/` | 難易度ごとの問題セット JSON。`Tools/generate_real_kanji_fakes.py` で作る。`LocalQuestionRepository<RealKanjiEntry>` で読む |
+| 漢字の使用例（熟語） | `Assets/TechC/KanjiQuiz/Data/KanjiWords/` | 漢字セットごとの JSON。`Tools/generate_kanji_words.py` で JMdict から作る。`KanjiWordDictionary` で読む |
 | 漢字セット JSON（出題範囲） | `Assets/TechC/KanjiQuiz/Data/KanjiSets/` | TextAsset として EntryPoint から渡す。`Tools/generate_kanji_sets.py` で KANJIDIC2 から作る |
 | フォント | `Assets/TechC/KanjiQuiz/Art/Fonts/KleeOne/` | Klee One と TMP フォントアセット（Dynamic）、ライセンス文 |
 | KanjiVG の SVG | `Assets/StreamingAssets/KanjiVG/` | ビルド後も読めるようにする。UnityWebRequest で読む |
@@ -273,7 +279,7 @@ flowchart LR
 - タイトル、モード選択、結果の画面も同じく MVP で作る（`TitlePresenter` など）。
 - シーン間で渡すのは「選んだモード・難易度」と「結果（回答履歴）」だけ。難易度は `QuizLaunchOptions`、結果は `QuizResultStore`（どちらも静的クラス）で受け渡す。
 - 問題の振り返りは、結果画面から各モードのシーンを開き直して行う。各モードの EntryPoint は、`QuizReviewStore` に振り返りが頼まれていれば出題せずに振り返りの Presenter を作る。
-- 実装済みのシーンは `StrokeOrder` と `Result`。どちらも Build Profiles のシーンリストに登録している。
+- 実装済みのシーンは `StrokeOrder`、`RealKanji`、`Result`。どれも Build Profiles のシーンリストに登録している。
 - 画面の詳細は [ScreenDesign.md](ScreenDesign.md) を参照。
 
 ---
@@ -338,7 +344,7 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | `TechC.KanjiQuiz.Editor` | エディタ拡張（必要になったら） |
 | `TechC.KanjiQuiz.Tests` | EditMode テスト |
 
-テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-26 時点で 136 件）。主な対象は次のとおり。
+テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-27 時点で 157 件）。主な対象は次のとおり。
 
 | 対象 | テストクラス |
 |---|---|
@@ -347,8 +353,11 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | 振り返り | `ChoiceQuizReviewPresenterTests`, `QuizReviewStoreTests` |
 | 結果画面（結果発表の演出、効果音、級、花丸、自己ベスト） | `ResultPresenterTests`, `QuizResultTests`, `QuizResultStoreTests`, `BestRecordTests`, `KanjiRankTests` |
 | 漢字セットと難易度の表示名 | `KanjiSetTests` |
-| 書き順クイズの Model | `WrongOrderGeneratorTests`, `StrokeOrderQuestionFactoryTests`, `KanjiSvgParserTests`, `StrokePathParserTests` |
+| KanjiVG の SVG の読み込み（部品のグループを含む） | `KanjiSvgParserTests`, `StrokePathParserTests` |
+| 問題データと熟語の JSON の読み込み | `QuestionDataTests` |
+| 書き順クイズの Model | `WrongOrderGeneratorTests`, `StrokeOrderQuestionFactoryTests` |
 | 書き順クイズの Presenter（苦手の印、振り返りのお手本） | `StrokeOrderPresenterTests` |
+| 本物の漢字さがし（偽物の組み立て、問題づくり、出題と振り返りの表示） | `FakeKanjiComposerTests`, `RealKanjiQuestionFactoryTests`, `RealKanjiPresenterTests` |
 | 苦手な問題 | `WeakQuestionListTests` |
 | 中断メニュー、キー操作を止める仕組み | `PauseMenuPresenterTests`, `InputGateTests` |
 | モードの定義（書き順クイズのアセットの値も確かめる） | `QuizModeDefinitionTests` |
@@ -397,6 +406,6 @@ Presenter をテストできるように、View は Presenter からインター
 1. ~~R3 を導入する。~~（完了）
 2. ~~共通部分を作る。~~（完了）
 3. ~~書き順クイズを MVP に載せ替え、レビューで見つかった不具合を直す。~~（完了）
-4. ほかの4モードを1つずつ追加する。
+4. ほかの4モードを1つずつ追加する。（本物の漢字さがしは完了。残りは3モード）
 5. タイトル、モード選択、結果の画面を作る。
 6. 余裕があれば VContainer を導入する。

@@ -5,7 +5,7 @@
 | プロダクト名 | KanjiQuiz |
 | エンジン | Unity 6000.4.3f1（URP） |
 | 最終更新 | 2026-10-27 |
-| ステータス | 開発中（書き順クイズが遊べる。本物の漢字さがしは仕様を決めた。ほかの3モードは未着手） |
+| ステータス | 開発中（書き順クイズと本物の漢字さがしが遊べる。ほかの3モードは未着手） |
 | 開発体制 | 1人（就職活動用のポートフォリオ作品） |
 | 完成目標 | 2027年1月 |
 | 対象端末 | PC（Windows）。余裕があればスマートフォン |
@@ -39,7 +39,7 @@
 | モード | 概要 | 状況 |
 |---|---|---|
 | 書き順クイズ | 正しい書き順の図を選択肢から選ぶ | 遊べる（3章） |
-| 本物の漢字さがし | 偽物の漢字の中から、実在する漢字を当てる | 仕様を決めた。次に作る（2.1） |
+| 本物の漢字さがし | 偽物の漢字の中から、実在する漢字を当てる | 遊べる（2.1） |
 | 返信文クイズ | 状況に合った返信の文を考える | 後回し（2.1） |
 | 四字熟語づくり | 漢字を組み合わせて四字熟語を作る | 未着手（2.1） |
 | 画像で名前当て | 画像を見て、その名称を漢字で当てる | 未着手（2.1） |
@@ -63,11 +63,11 @@
 
 ### 2.1 ゲームモード（構想）
 
-書き順クイズ以外の4モードの概要。詳細は各モードの実装前に詰める。
+書き順クイズ以外の4モードの概要。詳細は各モードの実装前に詰める（本物の漢字さがしは決めて実装した）。
 
 **本物の漢字さがし**
 
-2026-10-27 に仕様を決めた（未実装）。
+2026-10-27 に仕様を決め、実装した（シーンは `RealKanji.unity`）。
 
 *遊び方*
 
@@ -77,9 +77,12 @@
   - 偽物：借りてきた部品の音読み。漢字は音を表す部品で読みが決まることが多い（清・晴・精＝セイ）ので、それらしく見える。例：「氵＋寺」→「ジ」。
 - 難易度は書き順クイズと同じく**出題範囲**で変える（簡単＝小学漢字、常識＝常用漢字、困難＝常用漢字以外。5.2）。
 - 問題数（5・7・7問）、級、自己ベスト、苦手な漢字の復習、制限時間なしは、書き順クイズと同じ（3.6〜3.8）。苦手な漢字は本物の漢字で覚える。
-- 振り返りでは、本物の読み・意味・使用例を出す。偽物には、どの部品の組み合わせかを出す（例：「氵＋舎（捨の右側）」）。
-  - 最初は使用例として熟語を2〜3個（例：海 → 海岸（かいがん）、海外（かいがい））を出す。熟語は JMdict（EDRDG、CC BY-SA 4.0）から自動で取る。
-  - KANJIDIC2 には英語の意味しかないので、日本語の意味と例文は、あとから日本語版ウィクショナリーか AI で作ったデータで足す。
+  - 保存のキーは `BestRecord_RealKanji_<難易度>` と `WeakQuestions_RealKanji_<難易度>`。
+- 振り返りでは、問題文の代わりに本物の読みと使用例を出す（例：「本物は「海」（カイ）／使用例：海外（かいがい）、北海道（ほっかいどう）、海上（かいじょう）」）。
+  - 各選択肢の字の右に説明を出す。本物は「本物」、偽物はどの部品の組み合わせか（例：「氵＋舎（捨の右側）」。漢字1字をまるごと借りたときは「氵＋寺」）。
+  - 使用例は熟語を3つまで。熟語は JMdict（EDRDG、CC BY-SA 4.0）から自動で取る（下の「使用例の熟語のデータ」）。
+  - KANJIDIC2 には英語の意味しかないので、日本語の意味と例文は、あとから日本語版ウィクショナリーか AI で作ったデータで足す（未実装）。
+- 正解の位置は問題を作るときにランダムに決める。選び方とキー操作（1〜4、Enter など）は書き順クイズと同じ（4.5）。
 
 *偽物の作り方*
 
@@ -137,9 +140,25 @@
 
 - 偽物の候補は `Tools/` の Python で**事前に作り**、JSON にする。ゲームでは、その中から毎回3つを選ぶ。
   - JSON に入れるのは、本物の漢字、部品を借りる漢字、借りる部品の id、偽物の読み。座標はゲームで SVG から組み立てる。
-  - JSON は `IQuestionRepository` 経由で読む（このモードで作る）。
-- 4つとも、書き順クイズと同じく KanjiVG の SVG の線（LineRenderer）で、完成形だけを描く。本物だけフォントで出すと、見た目の違いで見抜けてしまうため。
-- 問題は `RealKanjiQuestion`（選択肢ごとの画のデータ、読み、正解の番号）。進行と判定は `ChoiceQuizPresenter` を使う。
+  - JSON は `IQuestionRepository`（`LocalQuestionRepository`）経由で読む。
+- 4つとも、書き順クイズと同じく KanjiVG の SVG の線（LineRenderer、`KanjiGlyphRenderer`）で、完成形だけを描く。本物だけフォントで出すと、見た目の違いで見抜けてしまうため。
+  - 偽物は、本物の SVG の部首のグループの画に、部品を借りる漢字の SVG のグループの画を足して作る（`FakeKanjiComposer`）。借りた部品は、本物の部首以外の部分の外枠に合わせて、縦横それぞれの比率で縮める・伸ばす。
+  - 偽物の候補から3つを選ぶとき、部品を借りる漢字の SVG がないなどで組み立てられないものは飛ばし、次の候補を使う。3つ作れなければ、その漢字は出題しない。
+- 問題は `RealKanjiQuestion`（選択肢ごとの画のデータ、読み、説明、正解の番号）。進行と判定は `ChoiceQuizPresenter` を使う。
+
+*画面*（`RealKanji.unity`。シーンのひな形から作った。共通の部品は 4章と同じ）
+
+| オブジェクト | コンポーネント | 役割 |
+|---|---|---|
+| GameManager | RealKanjiEntryPoint | 問題を作り、Model・View・Presenter をつなぐ。難易度ごとの問題データ、熟語のデータ、選択肢の数（4）、モードの定義（Data/Modes/Mode_RealKanji）もここ |
+| Canvas/ModeContent | ChoiceListView / RealKanjiView | 選択肢（RealKanjiChoice プレハブ）を Container に並べる。選択肢の字と読み、苦手の印、振り返りの読みと使用例を出す |
+| ModeContent/QuestionText | TextMeshPro | 「本物の漢字はどれ？」。振り返りでは隠す。子の WeakMark は苦手な漢字のときに出す「苦手」のハンコ |
+| ModeContent/Container | GridLayoutGroup | 選択肢を 2×2 に並べる（1つ 700×300） |
+| ReviewPanel/AnswerInfoText | TextMeshPro | 振り返りで、問題文の場所に本物の読みと使用例を出す |
+| DebugDifficultySwitcher | DebugDifficultySwitcher | テスト用の難易度切り替え（F1、書き順クイズと同じ） |
+
+- 問題を切り替えるときは、問題文と選択肢（QuestionText、Container）がスライドする。
+- **RealKanjiChoice プレハブ**（`Prefabs/Modes/RealKanji/`）：行のどこを押しても選べる選択肢（ChoiceItemView）。Content の下に RealKanjiChoiceContentView、Body（字の Glyph と読みの ReadingText）、振り返りの説明（DescriptionText）。字は 1辺 210px ほど。ふだんは字と読みを真ん中に置き、振り返りで説明を出すときだけ左へずらす。
 - 偽物は KanjiVG から作ったものなので、KanjiVG のクレジットに含まれる。JMdict のクレジットも足す。BabelStone IDS はクレジット不要だが、お礼としてクレジット画面に載せる。
 
 **返信文クイズ**
@@ -533,6 +552,12 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 | AudioManager / IAudioPlayer | View・共通 | 効果音 |
 | WeakQuestionList / IWeakQuestionRepository / PlayerPrefsWeakQuestionRepository | Model | 苦手な問題のリストと保存先。優先して出す問題の並べ方も決める |
 | SceneTransitionView / ISceneTransition / SceneLoader | View・共通 | プリントを回収して次を配るようにシーンを切り替える |
+| IKanjiStrokeSource / IKanjiSvgSource / StreamingAssetsKanjiStrokeSource | Model | StreamingAssets から KanjiVG の SVG を読み込む（画のパスデータだけか、部品のグループつきか） |
+| KanjiSvgParser / KanjiSvgStroke / StrokePathParser | Model | SVG から画のパスデータと部品のグループを取り出し、座標の列に変換する |
+| StrokeData | Model | 1画分の座標の列 |
+| KanjiGlyphRenderer | View | 漢字1字を画の線（LineRenderer）でまとめて描く。フォントにない字も描ける |
+| IQuestionRepository / LocalQuestionRepository | Model | 問題データの読み込み口と、同梱の問題セットの JSON から読む実装 |
+| KanjiWordDictionary / KanjiWord | Model | 漢字ごとの使用例（熟語）の辞書（Data/KanjiWords） |
 
 **書き順クイズ**（`Scripts/Modes/StrokeOrder`、名前空間 `TechC.KanjiQuiz.Modes.StrokeOrder`）
 
@@ -541,14 +566,23 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 | StrokeOrderQuestion | Model | 1問分のデータ（漢字、画のデータ、選択肢ごとの書き順、正解の番号） |
 | StrokeOrderQuestionFactory | Model | 漢字のリストから問題を作る。作れない漢字は除外する |
 | WrongOrderGenerator | Model | 重複しない不正解の書き順を作る |
-| StreamingAssetsKanjiStrokeSource | Model | StreamingAssets から SVG を読み込む |
-| KanjiSvgParser / StrokePathParser | Model | SVG から画のパスデータを取り出し、座標の列に変換する |
-| StrokeData | Model | 1画分の座標の列 |
 | StrokeOrderPresenter | Presenter | 選択肢ごとの書き順の図を描かせる |
 | StrokeOrderView / CumulativeStrokeRenderer | View | 書き順を1画ずつ積み上げて描画する |
 | StrokeAnimationView | View | 振り返りのお手本。正しい書き順で1画ずつ筆で書くアニメーション |
 | StrokeOrderReviewPresenter | Presenter | 振り返りで書き順の図とお手本を描かせる |
 | StrokeOrderEntryPoint | 組み立て役 | 問題を作り、Model・View・Presenter をつなぐ |
+
+**本物の漢字さがし**（`Scripts/Modes/RealKanji`、名前空間 `TechC.KanjiQuiz.Modes.RealKanji`）
+
+| クラス | 種類 | 役割 |
+|---|---|---|
+| RealKanjiEntry / RealKanjiFakeEntry | Model | 問題データ1件（Data/RealKanji の JSON の questions の要素）と、偽物の候補1つ |
+| RealKanjiQuestion / RealKanjiChoice | Model | 1問分のデータ（本物の漢字・読み・使用例、選択肢ごとの画・読み・説明、正解の番号） |
+| RealKanjiQuestionFactory | Model | 問題データから問題を作る。偽物の候補から毎回選び、作れない漢字は除外する |
+| FakeKanjiComposer | Model | 部首の画を残し、借りた部品を元の部分の外枠に合わせて縮める・伸ばして、偽物の字を組み立てる |
+| RealKanjiPresenter / RealKanjiReviewPresenter | Presenter | 選択肢の字と読みを描かせる。振り返りでは説明と、本物の読み・使用例も出させる（描画は `RealKanjiChoiceDrawer` で共通化） |
+| RealKanjiView / RealKanjiChoiceContentView | View | 選択肢の中身（線で描いた字、読み、振り返りの説明）、苦手の印、振り返りの本物の読みと使用例 |
+| RealKanjiEntryPoint | 組み立て役 | 問題を作り、Model・View・Presenter をつなぐ |
 
 ---
 
@@ -569,7 +603,9 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 - [x] 結果発表の演出、級、自己ベスト、全問正解の花丸
 - [x] 振り返りのお手本アニメーション
 - [x] 苦手な漢字の復習、学校のプリントのような背景、プリントを配るシーン切り替え
-- [ ] 書き順クイズ以外のゲームモード
+- [x] 本物の漢字さがし（2.1）
+- [ ] 残りの3モード（四字熟語づくり、画像で名前当て、返信文クイズ）
+- [ ] 本物の漢字さがしの振り返りに出す、日本語の意味と例文
 - [ ] 問題作成モード
 - [ ] 問題のオンライン公開・一覧・プレイ
 - [ ] アカウント（ログイン）の仕組み
