@@ -51,8 +51,9 @@ SOURCES = [
     "BabelStone IDS (Andrew West)",
 ]
 
-# 難易度ごとの漢字セット。部品はその難易度と、それより下の難易度の漢字から借りる
-LEVELS = ["Elementary", "Joyo", "Hyogai"]
+# 難易度ごとの漢字セット（簡単・常識・困難）。部品はその難易度と、それより下の難易度の漢字から借りる
+# Hyogai（常用漢字以外。人名用漢字が多い）はどの難易度にも使わないが、人名漢字のモードのために作っておく
+LEVELS = ["Elementary", "JoyoCommon", "JoyoRare", "Hyogai"]
 
 # 1つの漢字について残す偽物の候補の数（ゲームでは、この中から毎回3つを選ぶ）
 MAX_FAKES = 12
