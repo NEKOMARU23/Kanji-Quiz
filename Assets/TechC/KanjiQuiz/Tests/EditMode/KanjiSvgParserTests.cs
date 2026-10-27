@@ -29,6 +29,47 @@ namespace TechC.KanjiQuiz.Tests
             Assert.AreEqual("M12.5,82.5c3,0.75,6,0.5,9,0.25", strokes[1]);
         }
 
+        // 「海」の SVG を短くしたもの。部首の「氵」と、右の「毎」（その中に部品がある）に分かれている
+        private const string PartsSvg = @"<svg xmlns=""http://www.w3.org/2000/svg"">
+<g id=""kvg:StrokePaths_06d77"">
+<g id=""kvg:06d77"" kvg:element=""海"">
+	<g id=""kvg:06d77-g1"" kvg:element=""氵"" kvg:position=""left"" kvg:radical=""general"">
+		<path id=""kvg:06d77-s1"" d=""M1,1""/>
+	</g>
+	<g id=""kvg:06d77-g2"" kvg:element=""毎"" kvg:position=""right"">
+		<g id=""kvg:06d77-g3"" kvg:position=""top""/>
+		<g id=""kvg:06d77-g4"" kvg:element=""毋"">
+			<path id=""kvg:06d77-s2"" d=""M2,2""/>
+		</g>
+		<path id=""kvg:06d77-s3"" d=""M3,3""/>
+	</g>
+</g>
+</g>
+</svg>";
+
+        [Test]
+        public void 画ごとに入っている部品のグループを取り出す()
+        {
+            var strokes = KanjiSvgParser.ExtractStrokes(PartsSvg);
+
+            Assert.AreEqual(3, strokes.Count);
+            CollectionAssert.AreEqual(new[] { "kvg:StrokePaths_06d77", "kvg:06d77", "kvg:06d77-g1" }, strokes[0].GroupIds);
+            CollectionAssert.AreEqual(new[] { "kvg:StrokePaths_06d77", "kvg:06d77", "kvg:06d77-g2", "kvg:06d77-g4" }, strokes[1].GroupIds);
+            // 中身のない <g/> は閉じタグがないので、そのあとの画のグループに混ざらない
+            CollectionAssert.AreEqual(new[] { "kvg:StrokePaths_06d77", "kvg:06d77", "kvg:06d77-g2" }, strokes[2].GroupIds);
+            Assert.AreEqual("M3,3", strokes[2].PathData);
+        }
+
+        [Test]
+        public void 指定したグループに入っている画かどうかを調べられる()
+        {
+            var strokes = KanjiSvgParser.ExtractStrokes(PartsSvg);
+            var radical = new[] { "kvg:06d77-g1" };
+
+            Assert.IsTrue(strokes[0].IsInAnyGroup(radical));
+            Assert.IsFalse(strokes[1].IsInAnyGroup(radical));
+        }
+
         [Test]
         public void 画のpath要素がないときは空になる()
         {
