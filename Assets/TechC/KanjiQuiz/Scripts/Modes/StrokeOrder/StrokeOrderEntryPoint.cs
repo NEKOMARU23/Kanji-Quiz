@@ -14,8 +14,8 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
     /// </summary>
     public class StrokeOrderEntryPoint : MonoBehaviour
     {
-        /// <summary>結果画面に表示するモードの名前</summary>
-        public const string ModeName = "書き順クイズ";
+        [Tooltip("このモードの設定（名前、シーン、難易度ごとの問題数）。Data/Modes/Mode_StrokeOrder")]
+        [SerializeField] private QuizModeDefinition mode;
 
         [Header("--- View ---")]
         [SerializeField] private QuizFrameView frameView;
@@ -46,6 +46,11 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
 
         private void Start()
         {
+            if (mode == null)
+            {
+                Debug.LogError("[StrokeOrderEntryPoint] モードの定義（mode）が設定されていません。Data/Modes/Mode_StrokeOrder を設定してください。");
+                return;
+            }
             InitializeAsync(destroyCancellationToken).Forget();
         }
 
@@ -80,11 +85,11 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
 
             // 前に間違えた漢字を優先して出す
             weakList = weakRepository.Load(RecordKey);
-            var candidates = weakList.OrderCandidates(kanjiSet.Kanji, StrokeOrderRule.WeakQuestionCount(difficulty));
+            var candidates = weakList.OrderCandidates(kanjiSet.Kanji, mode.WeakQuestionCount(difficulty));
             List<StrokeOrderQuestion> questions;
             try
             {
-                questions = await factory.CreateFromOrderedAsync(candidates, difficulty, choiceCount, StrokeOrderRule.QuestionCount(difficulty), ct);
+                questions = await factory.CreateFromOrderedAsync(candidates, difficulty, choiceCount, mode.QuestionCount(difficulty), ct);
             }
             catch (OperationCanceledException)
             {
@@ -106,10 +111,10 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
         }
 
         /// <summary>画面と結果に表示する名前（例：書き順クイズ（簡単））</summary>
-        private string Title => $"{ModeName}（{difficulty.ToDisplayName()}）";
+        private string Title => mode.Title(difficulty);
 
-        /// <summary>自己ベストと苦手な漢字を保存するときのキー。難易度ごとに分ける（例：StrokeOrder_Easy）</summary>
-        private string RecordKey => $"{SceneNames.StrokeOrder}_{difficulty}";
+        /// <summary>自己ベストと苦手な漢字を保存するときのキー（例：StrokeOrder_Easy）</summary>
+        private string RecordKey => mode.RecordKey(difficulty);
 
         private TextAsset GetKanjiSetAsset(Difficulty value)
         {
@@ -124,7 +129,7 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
         private void StartReview(IReadOnlyList<StrokeOrderQuestion> questions, IReadOnlyList<AnswerRecord> answers, int startIndex)
         {
             // 振り返りの難易度は、そのプレイの結果の名前から引き継ぐ
-            frameView.SetTitle(QuizResultStore.Last != null ? QuizResultStore.Last.ModeName : ModeName);
+            frameView.SetTitle(QuizResultStore.Last != null ? QuizResultStore.Last.ModeName : mode.DisplayName);
 
             reviewPresenter = new StrokeOrderReviewPresenter(
                 questions, answers, startIndex, frameView, choiceListView, reviewView, strokeOrderView, sceneLoader, audioPlayer);
@@ -135,7 +140,7 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
         {
             QuizReviewStore.Set(session.Questions, session.Answers);
             var result = QuizResult.FromSession(
-                Title, SceneNames.StrokeOrder, session, q => q.Kanji, SceneNames.StrokeOrder, difficulty, RecordKey);
+                Title, mode.SceneName, session, q => q.Kanji, mode.SceneName, difficulty, RecordKey);
             QuizResultStore.Set(result);
 
             // 間違えた漢字を苦手に加え、正解した漢字を外す
