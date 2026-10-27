@@ -67,6 +67,8 @@
 - 調整したい数値は SerializeField か定数にする。コードに直接数字を書かない。
 - `Random` は `UnityEngine.Random` に統一する。シャッフルは `ShuffleUtility` を使う。
 - シングルトンにする MonoBehaviour は `SingletonMonoBehaviour<T>` を継承する。Awake・OnDestroy の代わりに `OnAwake`・`OnRelease` を上書きする。Presenter からはインターフェース（`IAudioPlayer` など）経由で使い、`Instance` を直接参照するのは EntryPoint だけにする。
+- キーボードの入力は、その操作を持つ View が `Keyboard.current` で受け取る。中断メニューを開いている間などに止まるよう、`InputGate.IsBlocked` を確かめる。EventSystem の決定・移動・キャンセルは使わない（外してある）。
+- 新しいモードのシーンはシーンテンプレート「漢字クイズのモード」から作り、Canvas は Screen Space - Camera にする（GameSpec.md 4.6）。モード名・問題数・保存のキーはモードの定義（`QuizModeDefinition`）に書き、EntryPoint に直接書かない。
 - イベントは R3 の Observable で受け渡す（View の入力、Model の値の変化）。全体で共有するイベントの管理クラスは、複数の画面で同じイベントを受け取る必要が出たときに作る。
 - 非同期処理は UniTask で書き、`CancellationToken` を必ず受け取る。
 - `async void` は使わない。投げっぱなしにする場合は `UniTaskVoid` と `.Forget()` を使う。

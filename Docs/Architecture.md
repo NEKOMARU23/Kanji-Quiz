@@ -140,7 +140,12 @@ classDiagram
 | `ShuffleUtility` | シャッフル処理を1か所にまとめる | Model |
 | `QuizPresenterBase<TQuestion>` | 次へ・前へ・結果への遷移など全モード共通の進行 | Presenter |
 | `ChoiceQuizPresenter<TQuestion>` | 「N 個から1つ選ぶ」モード共通の判定 | Presenter |
-| `QuizFrameView` | ヘッダー、進行バー、次へ・前へボタン | View |
+| `QuizFrameView` | ヘッダー、進行バー、次へ・前へボタン、問題を切り替えるときのスライド、Enter・← → のキー操作（`Prefabs/Common/QuizFrame`） | View |
+| `QuizModeDefinition` / `QuizModeCatalog` | モードの設定（ID、名前、シーン、難易度ごとの問題数）と一覧。ScriptableObject（`Data/Modes/`）。名前・保存のキー・優先する苦手な問題の数もここで作る | Model |
+| `PauseMenuView` / `PauseMenuPresenter` / `PauseMenuEntryPoint` | 中断メニュー。組み立て役もプレハブ（`Prefabs/Common/PauseMenu`）に入っているので、置くだけで使える | View・Presenter |
+| `InputGate` | キー操作を一時的に止める（中断メニューを開いている間、シーンの切り替えの途中） | 共通 |
+| `CanvasCameraBinder` | プレハブの Screen Space - Camera の Canvas に、起動時に `Camera.main` を設定する | View |
+| `IVolumeRepository` / `PlayerPrefsVolumeRepository` | 効果音の音量の保存先 | Model |
 | `ChoiceListView` / `ChoiceItemView` | 選択肢の並びと1つ分の選択肢。中身はモードごとの View が `ChoiceItemView.ContentRoot` の下に描く | View |
 | `ISceneLoader` / `SceneLoader` / `SceneNames` | シーン遷移。Presenter からはインターフェース経由で使う | 共通 |
 | `QuizResult` / `QuizResultStore` | プレイの結果と、結果をシーン間で渡す置き場所 | 共通 |
@@ -162,7 +167,7 @@ classDiagram
 
 | モード | Presenter | 固有の View | 固有の Model |
 |---|---|---|---|
-| 書き順クイズ | `StrokeOrderPresenter`, `StrokeOrderReviewPresenter`（描画は `StrokeOrderChoiceDrawer` で共通化） | `StrokeOrderView`, `CumulativeStrokeRenderer`（書き順の描画と枠）, `StrokeAnimationView`（振り返りのお手本） | `StrokeOrderQuestion`, `StrokeOrderQuestionFactory`, `StrokeOrderRule`, `WrongOrderGenerator`, `StreamingAssetsKanjiStrokeSource`, `KanjiSvgParser`, `StrokePathParser` |
+| 書き順クイズ | `StrokeOrderPresenter`, `StrokeOrderReviewPresenter`（描画は `StrokeOrderChoiceDrawer` で共通化） | `StrokeOrderView`, `CumulativeStrokeRenderer`（書き順の描画と枠）, `StrokeAnimationView`（振り返りのお手本） | `StrokeOrderQuestion`, `StrokeOrderQuestionFactory`, `WrongOrderGenerator`, `StreamingAssetsKanjiStrokeSource`, `KanjiSvgParser`, `StrokePathParser` |
 | 本物の漢字さがし | `RealKanjiPresenter` | `KanjiChoiceView` | `RealKanjiQuestion` |
 | 返信文クイズ | `ReplyMessagePresenter` | `MessageBubbleView`, `TextChoiceView` | `ReplyMessageQuestion` |
 | 四字熟語づくり | `FourCharIdiomPresenter` | `IdiomBoardView`（4つの枠と候補） | `FourCharIdiomQuestion` |
@@ -294,7 +299,9 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
     // 難易度（QuizLaunchOptions があれば優先）に合った出題範囲から、ランダムに問題を作る
     var kanjiSet = KanjiSet.FromJson(GetKanjiSetAsset(difficulty).text);
     var factory = new StrokeOrderQuestionFactory(new StreamingAssetsKanjiStrokeSource());
-    var list = await factory.CreateRandomAsync(kanjiSet.Kanji, difficulty, choiceCount, StrokeOrderRule.QuestionCount(difficulty), ct);
+    // 前に間違えた漢字（苦手な漢字）を先頭に並べてから問題を作る。問題数はモードの定義から読む
+    var candidates = weakList.OrderCandidates(kanjiSet.Kanji, mode.WeakQuestionCount(difficulty));
+    var list = await factory.CreateFromOrderedAsync(candidates, difficulty, choiceCount, mode.QuestionCount(difficulty), ct);
 
     session = new QuizSession<StrokeOrderQuestion>(list);
     presenter = new StrokeOrderPresenter(session, frameView, choiceListView, strokeOrderView);
@@ -331,7 +338,7 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | `TechC.KanjiQuiz.Editor` | エディタ拡張（必要になったら） |
 | `TechC.KanjiQuiz.Tests` | EditMode テスト |
 
-テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-26 時点で 127 件）。主な対象は次のとおり。
+テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-26 時点で 136 件）。主な対象は次のとおり。
 
 | 対象 | テストクラス |
 |---|---|
@@ -343,6 +350,8 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | 書き順クイズの Model | `WrongOrderGeneratorTests`, `StrokeOrderQuestionFactoryTests`, `KanjiSvgParserTests`, `StrokePathParserTests` |
 | 書き順クイズの Presenter（苦手の印、振り返りのお手本） | `StrokeOrderPresenterTests` |
 | 苦手な問題 | `WeakQuestionListTests` |
+| 中断メニュー、キー操作を止める仕組み | `PauseMenuPresenterTests`, `InputGateTests` |
+| モードの定義（書き順クイズのアセットの値も確かめる） | `QuizModeDefinitionTests` |
 | シャッフル | `ShuffleUtilityTests` |
 
 - View はテスト用の偽物（`Tests/EditMode/Fakes/`）に差し替える。

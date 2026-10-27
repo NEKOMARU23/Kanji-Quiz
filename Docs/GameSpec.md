@@ -147,7 +147,8 @@
    - 演出の速さ（1問ごとの間隔、ルーレットの長さなど）は `ResultView` の Inspector で調整する。
 7. 結果画面の [問題を振り返る] で、問題を振り返れる（3.5）。
 8. 結果には級（3.6）と自己ベスト（3.7）を表示する。
-9. シーンを切り替えるときは、前の画面がプリントのように上へ回収され、入れ替わりに次の画面のプリントが下から配られる（4.3）。
+9. プレイ中は右上の [メニュー] か Esc で中断メニューを開ける（4.4）。キーボードでも遊べる（4.5）。
+10. シーンを切り替えるときは、前の画面がプリントのように上へ回収され、入れ替わりに次の画面のプリントが下から配られる（4.3）。
 
 ### 3.1 問題の表示
 
@@ -249,21 +250,23 @@
 
 | オブジェクト | コンポーネント | 役割 |
 |---|---|---|
-| GameManager | StrokeOrderEntryPoint | 問題を作り、Model・View・Presenter をつなぐ。出題設定もここ |
-| Canvas | QuizFrameView | [次へ]・[前へ] ボタンと進行表示 |
+| GameManager | StrokeOrderEntryPoint | 問題を作り、Model・View・Presenter をつなぐ。出題設定とモードの定義（Data/Modes/Mode_StrokeOrder）もここ |
+| Canvas/QuizFrame | QuizFrameView | ヘッダー、進行バー、[次へ]・[前へ]、操作キーの案内（Prefabs/Common/QuizFrame プレハブ）。スライドさせる対象（Container、QuestionText、KanjiText）はシーン側で設定 |
 | Canvas | ChoiceListView | 選択肢（ProblemDisplay プレハブ）を Container の下に並べる |
 | Canvas | StrokeOrderView | 選択肢に書き順の図を描かせる |
 | ReviewPanel | QuizReviewView | 振り返りのときだけ表示する。「振り返り：正解／不正解」と [結果に戻る] ボタン |
 | ReviewPanel/ModelAnimation | StrokeAnimationView | 振り返りのお手本（正しい書き順を筆で書くアニメーション）。横の ModelLabel は「正しい書き順」の見出し |
 | AudioManager | AudioManager / AudioSource ×2 | 効果音を鳴らす（Prefabs/Common/AudioManager プレハブ） |
 | SceneTransition | SceneTransitionView / Canvas（Overlay）/ AudioSource | プリントを回収して次を配るようにシーンを切り替える（Prefabs/Common/SceneTransition プレハブ） |
-| Canvas/Background | Image | 学校のプリントのような背景。Canvas の一番後ろに置く |
+| Canvas/Background | Image | 学校のプリントのような背景。Canvas の一番後ろに置く（Prefabs/Common/PrintBackground プレハブ） |
+| PauseMenu | PauseMenuView / PauseMenuEntryPoint / Canvas（Camera、sortingOrder 20） | 中断メニュー（Prefabs/Common/PauseMenu プレハブ）。右上の [メニュー] ボタンも含む |
 | KanjiText/WeakMark | Image / TextMeshPro | 苦手な漢字のときに出す「苦手」のハンコ。漢字と一緒にスライドするよう KanjiText の子にしている |
 | DebugDifficultySwitcher | DebugDifficultySwitcher / CanvasGroup | テスト用の難易度切り替えボタン。F1 で表示（エディタと開発ビルドのみ） |
 | Container | VerticalLayoutGroup | 選択肢を並べる親 |
 | ToggleGroup | ToggleGroup | 選択肢を1つだけ選べるようにする |
-| Header | ModeTitle / ProgressText | モード名と「1 / 3 問」の進行表示 |
-| ProgressBar | Image（Filled） | 進行バー |
+| QuizFrame/Header | ModeTitle / ProgressText | モード名と「1 / 3 問」の進行表示 |
+| QuizFrame/ProgressBar | Image（Filled） | 進行バー |
+| QuizFrame/KeyHint | TextMeshPro | 操作キーの案内（左下） |
 | QuestionText / KanjiText | TextMeshPro | 問題文と、出題する漢字 |
 
 **Result シーン**
@@ -278,7 +281,7 @@
 | SkipArea | Image（透明）/ Button | 画面全体を覆う透明なボタン。演出中だけ有効にし、クリックで演出を飛ばす。Canvas の一番後ろに置く |
 | AudioManager | AudioManager / AudioSource ×2 | 効果音を鳴らす（Prefabs/Common/AudioManager プレハブ）。シーンを切り替えても残る |
 | SceneTransition | SceneTransitionView / Canvas（Overlay）/ AudioSource | プリントを回収して次を配るようにシーンを切り替える。シーンを切り替えても残る |
-| Canvas/Background | Image | 学校のプリントのような背景。SkipArea より後ろに置く |
+| Canvas/Background | Image | 学校のプリントのような背景。SkipArea より後ろに置く（Prefabs/Common/PrintBackground プレハブ） |
 
 **効果音**
 
@@ -327,6 +330,40 @@
 - SceneTransition プレハブがないシーンでは、演出なしですぐに切り替える。
 
 ---
+
+### 4.4 中断メニュー
+
+- 右上の [メニュー] ボタンか Esc で開き、もう一度 Esc か [続ける] で閉じる。
+- [最初からやり直す] で、今のシーンを読み込み直す（難易度はそのまま）。
+- 効果音の音量をつまみで変えられる。すぐに反映し、PlayerPrefs（`Volume_Se`）に保存する。AudioManager が起動したときに読み込む。
+- 開いている間は、後ろの画面のキー操作を止める（`InputGate`）。シーンの切り替えの途中は開かない。
+- 書き順の線（LineRenderer）より手前に出すため、専用の Canvas（Screen Space - Camera、sortingOrder 20）に置く。カメラは `CanvasCameraBinder` が起動時に設定するので、プレハブを置くだけで使える。
+- [やめる]（モード選択・タイトルへ戻る）は、それらの画面ができてから足す。
+
+### 4.5 キーボード操作
+
+| キー | 操作 | 担当 |
+|---|---|---|
+| 1〜6（テンキーも可） | 選択肢を選ぶ。選択肢の行のチェックボックスの下に番号を出す | `ChoiceListView` |
+| Enter / スペース / → | [次へ] | `QuizFrameView` |
+| ← | [前へ] | `QuizFrameView` |
+| Esc | 中断メニューを開く・閉じる | `PauseMenuView` |
+| Enter / スペース | 結果発表の演出を飛ばす | `ResultView` |
+
+- ボタンが表示されていて押せるときだけ反応する。
+- 中断メニューを開いている間とシーンの切り替えの途中は、`InputGate` で止める。
+- EventSystem（InputSystemUIInputModule）の決定・移動・キャンセルの操作は外している。各 View が自分でキーを受け取るので、二重に反応しないようにするため。
+
+### 4.6 シーンのひな形（新しいモードのシーンの作り方）
+
+1. File > New Scene で「漢字クイズのモード」テンプレート（`Scenes/Templates/QuizScene.scenetemplate`）を選ぶ。
+2. 共通の部品がそろったシーンができる：カメラ、EventSystem（決定・移動・キャンセルを外したもの）、AudioManager、SceneTransition、PauseMenu、Canvas（Screen Space - Camera）の下に Background・QuizFrame・ModeContent・ReviewPanel。
+3. ModeContent の下にモードごとの UI を置き、GameManager にモードの EntryPoint を付ける。
+4. QuizFrame の transitionTargets に、問題を切り替えるときにスライドさせるものを設定する。
+5. `Data/Modes/` にモードの定義（Create > KanjiQuiz > モードの定義）を作り、`ModeCatalog` に加える。シーンを Build Profiles に登録する。
+
+- 共通の部品はプレハブのままなので、プレハブを直せば全モードに反映される。
+- テンプレートの元のシーンは `Scenes/Templates/QuizTemplate.unity`。共通の部品を増やしたら、こちらも直す。
 
 ## 5. 漢字データ
 
@@ -413,7 +450,11 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 | Difficulty | Model | 難易度 |
 | ShuffleUtility | Model | シャッフル処理 |
 | QuizPresenterBase / ChoiceQuizPresenter | Presenter | 全モード共通の進行と、選択式モード共通の判定 |
-| QuizFrameView / ChoiceListView / ChoiceItemView | View | 次へ・前へボタン、問題を切り替えるときのスライド、選択肢の並び |
+| QuizFrameView / ChoiceListView / ChoiceItemView | View | 次へ・前へボタン、問題を切り替えるときのスライド、キーボード操作、選択肢の並び |
+| QuizModeDefinition / QuizModeCatalog | Model（ScriptableObject） | モードの設定（名前、シーン、難易度ごとの問題数、保存のキー）と、モードの一覧 |
+| PauseMenuView / PauseMenuPresenter / PauseMenuEntryPoint | View・Presenter | 中断メニュー |
+| InputGate / CanvasCameraBinder | 共通 | キー操作を止める仕組み、プレハブの Canvas にカメラを設定する |
+| IVolumeRepository / PlayerPrefsVolumeRepository | Model | 音量の設定の保存先 |
 | KanjiRank | Model | 正解率と難易度から級を決める |
 | IBestRecordRepository / PlayerPrefsBestRecordRepository / BestRecordUpdate | Model | 自己ベストの保存先と、1回のプレイで更新したかどうか |
 | AudioManager / IAudioPlayer | View・共通 | 効果音 |
@@ -445,7 +486,9 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 - [x] 結果画面（スコア・正誤一覧、もう一度）
 - [x] 出題する漢字と進行状況の表示
 - [ ] 結果画面の [モード選択へ]・[タイトルへ]（それぞれの画面ができてから）
-- [ ] 中断メニュー
+- [x] 中断メニュー（続ける、最初からやり直す、効果音の音量）
+- [x] キーボード操作
+- [x] シーンのひな形（シーンテンプレート）とモードの定義
 - [ ] ゲーム内での難易度選択（今は F1 のテスト用ボタンか Inspector で切り替える）
 - [ ] タイトル画面・モード選択画面などのシーン遷移
 - [x] 難易度ごとの出題範囲とランダムな出題
