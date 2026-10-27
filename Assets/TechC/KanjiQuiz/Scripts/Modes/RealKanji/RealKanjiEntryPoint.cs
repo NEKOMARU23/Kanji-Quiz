@@ -29,11 +29,11 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
         [SerializeField] private Difficulty difficulty = Difficulty.Easy;
         [Tooltip("難易度「簡単」の問題データ（Data/RealKanji/RealKanji_Elementary）")]
         [SerializeField] private TextAsset easyQuestions;
-        [Tooltip("難易度「常識」の問題データ（Data/RealKanji/RealKanji_Joyo）")]
+        [Tooltip("難易度「常識」の問題データ（Data/RealKanji/RealKanji_JoyoCommon）")]
         [SerializeField] private TextAsset normalQuestions;
-        [Tooltip("難易度「困難」の問題データ（Data/RealKanji/RealKanji_Hyogai）")]
+        [Tooltip("難易度「困難」の問題データ（Data/RealKanji/RealKanji_JoyoRare）")]
         [SerializeField] private TextAsset hardQuestions;
-        [Tooltip("振り返りで出す使用例（Data/KanjiWords の3つ）")]
+        [Tooltip("振り返りで出す使用例（Data/KanjiWords の Elementary・JoyoCommon・JoyoRare）")]
         [SerializeField] private TextAsset[] wordAssets;
         [Range(2, 4)]
         [SerializeField] private int choiceCount = 4;
