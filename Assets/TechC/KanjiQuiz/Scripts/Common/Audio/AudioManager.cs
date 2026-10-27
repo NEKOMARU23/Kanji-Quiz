@@ -23,13 +23,22 @@ namespace TechC.KanjiQuiz.Common
         [SerializeField] private AudioSource loopSource;
         [SerializeField] private SeEntry[] seEntries;
 
+        private float seVolume = 1f;
+        private float loopEntryVolume = 1f;
+
+        protected override void OnAwake()
+        {
+            // 中断メニューで設定した音量を読み込む
+            SetSeVolume(new PlayerPrefsVolumeRepository().LoadSeVolume());
+        }
+
         public void PlaySe(SeType type)
         {
             // Play を止めたときやアプリの終了時は、AudioSource が呼んだ側より先に破棄されていることがある
             if (seSource == null) return;
             if (!TryGetEntry(type, out var entry)) return;
 
-            seSource.PlayOneShot(entry.clip, entry.volume);
+            seSource.PlayOneShot(entry.clip, entry.volume * seVolume);
         }
 
         public void PlayLoop(SeType type)
@@ -39,7 +48,8 @@ namespace TechC.KanjiQuiz.Common
 
             loopSource.Stop();
             loopSource.clip = entry.clip;
-            loopSource.volume = entry.volume;
+            loopEntryVolume = entry.volume;
+            loopSource.volume = loopEntryVolume * seVolume;
             loopSource.loop = true;
             loopSource.Play();
         }
@@ -48,6 +58,13 @@ namespace TechC.KanjiQuiz.Common
         {
             if (loopSource == null) return;
             loopSource.Stop();
+        }
+
+        public void SetSeVolume(float volume)
+        {
+            seVolume = Mathf.Clamp01(volume);
+            // 鳴っているループの音量もすぐに変える
+            if (loopSource != null) loopSource.volume = loopEntryVolume * seVolume;
         }
 
         private bool TryGetEntry(SeType type, out SeEntry entry)

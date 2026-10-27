@@ -13,5 +13,8 @@ namespace TechC.KanjiQuiz.Common
 
         /// <summary>ループ中の効果音を止める</summary>
         void StopLoop();
+
+        /// <summary>効果音の音量（0〜1）を設定する。種類ごとの音量にかけ合わせる</summary>
+        void SetSeVolume(float volume);
     }
 }
