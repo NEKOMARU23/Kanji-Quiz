@@ -39,9 +39,9 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - 問題データは JSON。`IQuestionRepository` 経由で読む（同梱の JSON は `LocalQuestionRepository<TEntry>`。`TEntry` は問題1件の [Serializable] な型）。
 - 非同期は UniTask。問題ごとに `CancellationTokenSource` を作り直す。`async void` 禁止。
 
-## 現在の状態（2026-10-27 時点）
+## 現在の状態（2026-10-28 時点）
 
-- **遊べるのは書き順クイズと本物の漢字さがし**。ほかの3モード、タイトル画面、モード選択画面は未着手。次にやることは `Docs/Progress.md` の9章（**次はタイトル画面とモード選択画面**。見た目と流れをユーザーに確認するところから始める）。返信文クイズは後回し（正しい返信文を作るのが難しいため）。
+- **遊べるのは書き順クイズと本物の漢字さがし**。ほかの3モード、タイトル画面、モード選択画面は未着手。次にやることは `Docs/Progress.md` の9章（**次はタイトル画面とモード選択画面**。最初にユーザーに確認することと作り方の要点は Progress.md 9章にまとめてある。PR #11 までマージ済みなので、最新の main から新しいブランチを切って始める）。返信文クイズは後回し（正しい返信文を作るのが難しいため）。
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
   - KanjiVG の SVG を読む部品（`KanjiSvgParser`, `StrokePathParser`, `StrokeData`, `StreamingAssetsKanjiStrokeSource`）と、字を線で描く `KanjiGlyphRenderer`、熟語の辞書 `KanjiWordDictionary` も Common にある。
   - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、159 件）。
@@ -55,7 +55,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - 本物の漢字さがしは `Assets/TechC/KanjiQuiz/Scripts/Modes/RealKanji/`（仕様は `Docs/GameSpec.md` 2.1）。
   - 本物1つと、同じ部首を残して部首以外を入れ替えた偽物3つの4択。2×2 に並べ、字の下に読みを出す。難易度は書き順クイズと同じく出題範囲で変える。
   - 問題データは `Data/RealKanji/`（`Tools/generate_real_kanji_fakes.py`）、振り返りに出す熟語は `Data/KanjiWords/`（`Tools/generate_kanji_words.py`、JMdict から）の JSON。どちらも手で編集しない。
-  - 偽物は `FakeKanjiComposer` が、本物の SVG の部首のグループの画に、借りた部品の画を外枠に合わせて足して作る。4つとも `KanjiGlyphRenderer` で線で描く（本物だけフォントにすると見抜けるため）。
+  - 偽物は `FakeKanjiComposer` が、本物の SVG の部首のグループの画に、借りた部品の画を問題データの `box`（部品を置く枠）に合わせて足して作る。`box` は Python が、部首と部品の線が重ならないように求めたもの（`Docs/BugFixes.md` 1章）。4つとも `KanjiGlyphRenderer` で線で描く（本物だけフォントにすると見抜けるため）。
   - シーンは `RealKanji.unity`（ひな形から作った）、組み立て役は `GameManager` の `RealKanjiEntryPoint`、選択肢は `Prefabs/Modes/RealKanji/RealKanjiChoice`、モードの定義は `Mode_RealKanji`。保存のキーは `BestRecord_RealKanji_<難易度>`・`WeakQuestions_RealKanji_<難易度>`（Play で確かめたあとは消す）。
 - シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `StrokeOrder.unity`、`RealKanji.unity` と `Result.unity`（全モード共通の結果画面）。
   - 全問回答すると `QuizResultStore` に結果、`QuizReviewStore` に問題と回答を置いて Result へ移る。
