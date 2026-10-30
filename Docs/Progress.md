@@ -2,7 +2,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 最終更新 | 2026-10-27 |
+| 最終更新 | 2026-10-28 |
 | 完成目標 | 2027年1月 |
 | 現在のフェーズ | フェーズ1（ゲームモード5種） |
 | 関連 | [GameSpec.md](GameSpec.md) / [Architecture.md](Architecture.md) / [ScreenDesign.md](ScreenDesign.md) |
@@ -191,13 +191,25 @@
 | [#8](https://github.com/NEKOMARU23/Knaji-Quiz/pull/8) | 全モード共通のシーンのひな形（シーンテンプレートと共通プレハブ）、モードの定義、中断メニューと音量、キーボード操作 | 2026-10-27 |
 | [#9](https://github.com/NEKOMARU23/Knaji-Quiz/pull/9) | 返信文クイズを後回しにし、本物の漢字さがしの仕様（4択、偽物の作り方、使う IDS）を決めた | 2026-10-27 |
 | [#10](https://github.com/NEKOMARU23/Knaji-Quiz/pull/10) | 本物の漢字さがしの偽物・読みの問題データと、使用例の熟語のデータを作るスクリプト | 2026-10-27 |
-| [#11](https://github.com/NEKOMARU23/Knaji-Quiz/pull/11) | 本物の漢字さがしのゲーム、偽物の部首と部品が重なる不具合の修正、出題範囲を常用漢字だけに見直し | （レビュー中） |
+| [#11](https://github.com/NEKOMARU23/Knaji-Quiz/pull/11) | 本物の漢字さがしのゲーム、偽物の部首と部品が重なる不具合の修正、出題範囲を常用漢字だけに見直し | 2026-10-27 |
+| [#12](https://github.com/NEKOMARU23/Knaji-Quiz/pull/12) | PR #11 のマージの反映、次のタイトル画面とモード選択画面の進め方、引き継ぎメモ | （レビュー中） |
 
 ---
 
 ## 9. 次にやること
 
-1. **タイトル画面とモード選択画面を作る**（2つ目のモードの本物の漢字さがしができたため）。見た目と流れをユーザーに確認するところから始める。モードの一覧は `QuizModeCatalog`（`Data/Modes/ModeCatalog`）から読み、難易度は `QuizLaunchOptions.Difficulty` で渡す。できたらテスト用の難易度切り替え（`DebugDifficultySwitcher`）を外し、中断メニューに [やめる]、結果画面に [モード選択へ]・[タイトルへ] を足す。タイトルのロゴを筆で書く演出（`StrokeAnimationView` を使う）と、漢字帳（`KanjiWordDictionary` の熟語も使える）もこのときに作る
+1. **タイトル画面とモード選択画面を作る**（2つ目のモードの本物の漢字さがしができたため）。
+   - **最初にユーザーに確認すること**（AskUserQuestion で選択肢を出す）
+     - 画面の流れ：タイトル → モード選択 → 各モード → 結果、でよいか（ScreenDesign.md 2章の案）。タイトルにメニュー（はじめる・設定・漢字帳・クレジット・おわる）をどこまで置くか
+     - モード選択の見た目：モードのカードの並べ方（ScreenDesign.md 3.2 の案）、カードに出すもの（説明、難易度ごとの自己ベストや級など）、難易度の選び方（カードの下に3つのボタン、など）
+     - まだ作っていない3モード（四字熟語づくり・画像で名前当て・返信文クイズ）と人名漢字のモードを、カードとして「準備中」で出すか、出さないか
+     - タイトルのロゴを筆で書く演出（`StrokeAnimationView` を使う）を今回作るか。漢字帳（正解した漢字のコレクション、`KanjiWordDictionary` の熟語も使える）を今回作るか、あとにするか
+   - **作り方の要点**
+     - 画面は `Scripts/Screens/Title/`・`Scripts/Screens/ModeSelect/` に MVP で作る（結果画面 `Screens/Result` と同じ形。組み立て役は `<画面>EntryPoint`）。シーンは `Scenes/Title.unity`・`Scenes/ModeSelect.unity`。`SceneNames` に名前を足し、Build Profiles のシーンリストの先頭を Title にする
+     - Canvas は Screen Space - Camera にし、AudioManager・SceneTransition・PrintBackground のプレハブを置く（シーンのひな形はモード用なので、そのまま使えない部品は外す）
+     - モードの一覧は `QuizModeCatalog`（`Data/Modes/ModeCatalog`）から読む。モードの名前・説明・シーン名・難易度を選べるかは `QuizModeDefinition` にある。選んだ難易度は `QuizLaunchOptions.Difficulty` に入れてから、モードのシーンを `SceneLoader` で開く
+     - 自己ベストをカードに出すなら `PlayerPrefsBestRecordRepository` と `QuizModeDefinition.RecordKey(難易度)` で読む
+   - **できたらやること**：テスト用の難易度切り替え（`DebugDifficultySwitcher`、両モードのシーンにある）を外す。中断メニューに [やめる]（モード選択へ）、結果画面に [モード選択へ]・[タイトルへ] を足す。Presenter の EditMode テストを書く。ScreenDesign.md・GameSpec.md・Architecture.md を更新する
 2. 本物の漢字さがしの振り返りに、日本語の意味と例文を足す（ウィクショナリーか AI で作ったデータ）
 3. 仮の効果音（`Art/Audio/SE/`）と画像（`Art/UI/` のハンコ・花丸・プリントの背景・机）を正式な素材に差し替える（フリー素材を使うならクレジットとライセンスを確認する）
 4. 書き順クイズと本物の漢字さがしのビルド版（Windows）での確認
@@ -211,8 +223,13 @@
 - 未追跡の `Assets/TechC/KanjiQuiz/Scripts/Core/GameContext.cs` と `Core.meta` は、削除済みのファイルがエディタのタブから復活したもの。コミットせず、削除してよい。
 - エディタで Play すると TMP フォントアセット（`KleeOne-Regular SDF.asset`）に差分が出る。コミット前に消す。
 - シーン `StrokeOrder` と `RealKanji` の難易度は Easy で保存する。テストでは F1 の切り替えボタンを使う。
-- 本物の漢字さがしの仕様は PR #9 で決めた（GameSpec.md 2.1）。偽物と熟語のデータは PR #10、ゲームは `feature/kono/real-kanji-game` ブランチで作った。
-- 本物の漢字さがしを Play で確かめたあとは、`BestRecord_RealKanji_<難易度>` と `WeakQuestions_RealKanji_<難易度>` を `PlayerPrefs.DeleteKey` で消す。
+- 本物の漢字さがしの仕様は PR #9 で決めた（GameSpec.md 2.1）。偽物と熟語のデータは PR #10、ゲーム・重なりの不具合の修正・出題範囲の見直しは PR #11（2026-10-27 マージ済み）。
+- 次の作業は、最新の main から新しいブランチを切って始める（例：`git checkout -b feature/kono/title-mode-select origin/main`。作業ツリーが変わらない形で切ると、Unity の「シーンが外で変更された」ダイアログが出にくい）。
+- 漢字セットの名前は 2026-10-27 に変えた：`Elementary`（簡単）・`JoyoCommon`（常識）・`JoyoRare`（困難）・`Hyogai`（どの難易度にも使わない。人名漢字のモード用）。以前の `Joyo` はもうない。
+- データを作り直す順番：①`Tools/generate_kanji_sets.py`（漢字セット）→ ②`Tools/generate_kanji_words.py`（熟語）→ ③`Tools/generate_real_kanji_fakes.py`（偽物）。②と③は①の漢字セットを読む。元データ（KANJIDIC2・JMdict・BabelStone IDS）はリポジトリに入れていないので、使い方はスクリプトの先頭を見てダウンロードする。
+- 偽物の見た目の確かめ方（BugFixes.md 1.4）：部首を黒、借りた部品を青で、本物1字と偽物7つを1行に描いた画像を、部首ごとに作って見る。そのスクリプトはリポジトリに入れていない（必要になったら `Tools/` に作る）。
+- Play で確かめたあとは、`BestRecord_<モード>_<難易度>` と `WeakQuestions_<モード>_<難易度>`（モードは StrokeOrder・RealKanji、難易度は Easy・Normal・Hard）を `PlayerPrefs.DeleteKey` で消す。
+- 不具合を直したら、`Docs/BugFixes.md` に「症状 → 原因 → 調べ方 → 直し方 → 結果 → 学んだこと」で書く（就活で説明するため）。
 - `RealKanji.unity` はシーンのひな形から作り、選択肢は `Prefabs/Modes/RealKanji/RealKanjiChoice`（`ProblemDisplay` を元にしたプレハブ）。「苦手」のハンコとテスト用の難易度切り替えは `StrokeOrder.unity` から写した。
 - 熟語のデータを作り直すときは、JMdict（`JMdict_e.gz`）をダウンロードし、`python -I Tools/generate_kanji_words.py` に渡す（数秒で終わる）。
 - 偽物のデータを作り直すときは、BabelStone IDS（`IDS.TXT`）と KANJIDIC2（`kanjidic2.xml.gz`）をダウンロードし、`python -I Tools/generate_real_kanji_fakes.py` に渡す（使い方はスクリプトの先頭）。スクリプトを動かすと9分ほどかかる（部首と部品の重なりを調べるため。ゲーム中には動かさない。ゲームはできあがった JSON を読むだけ）。Pillow と numpy が必要。偽物の見た目は、部首ごとに見本を画像にして確かめる（2026-10-27 に全 266 種類の部首を確認した）。
