@@ -192,6 +192,7 @@
 | [#9](https://github.com/NEKOMARU23/Knaji-Quiz/pull/9) | 返信文クイズを後回しにし、本物の漢字さがしの仕様（4択、偽物の作り方、使う IDS）を決めた | 2026-10-27 |
 | [#10](https://github.com/NEKOMARU23/Knaji-Quiz/pull/10) | 本物の漢字さがしの偽物・読みの問題データと、使用例の熟語のデータを作るスクリプト | 2026-10-27 |
 | [#11](https://github.com/NEKOMARU23/Knaji-Quiz/pull/11) | 本物の漢字さがしのゲーム、偽物の部首と部品が重なる不具合の修正、出題範囲を常用漢字だけに見直し | 2026-10-27 |
+| [#12](https://github.com/NEKOMARU23/Knaji-Quiz/pull/12) | PR #11 のマージの反映、次のタイトル画面とモード選択画面の進め方、引き継ぎメモ | （レビュー中） |
 
 ---
 
