@@ -23,7 +23,11 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [TearDown]
-        public void TearDown() => presenter.Dispose();
+        public void TearDown()
+        {
+            presenter.Dispose();
+            TitleLaunchOptions.OpenModeSelect = false;
+        }
 
         [Test]
         public void 保存した音量をつまみに反映する()
@@ -62,6 +66,17 @@ namespace TechC.KanjiQuiz.Tests
 
             Assert.IsFalse(view.IsShown);
             CollectionAssert.AreEqual(new[] { "StrokeOrder" }, sceneLoader.LoadedScenes);
+        }
+
+        [Test]
+        public void やめるとメニューを閉じてモード選択から始まるタイトルのシーンを読み込む()
+        {
+            view.ClickOpen();
+            view.ClickQuit();
+
+            Assert.IsFalse(view.IsShown);
+            Assert.IsTrue(TitleLaunchOptions.OpenModeSelect);
+            CollectionAssert.AreEqual(new[] { SceneNames.Title }, sceneLoader.LoadedScenes);
         }
 
         [Test]

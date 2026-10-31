@@ -1,5 +1,5 @@
 """
-仮の画像（ハンコの○と×、級のハンコの枠、花丸、プリントの背景、机、プリントの影）を作る。
+仮の画像（ハンコの○と×、級のハンコの枠、花丸、プリントの背景、机、プリントの影、黒板のチョークの丸と級の枠）を作る。
 
 正式な素材に差し替えるまでの仮の画像。Pillow と NumPy を使う。
 出力先: Assets/TechC/KanjiQuiz/Art/UI/
@@ -212,6 +212,37 @@ def sheet_shadow(size=128, border=48):
     save(to_rgba(alpha * 0.55, (0, 0, 0)), "fx_sheet_shadow.png", size)
 
 
+def chalk_circle(width=512, height=256):
+    """黒板で選んだものを囲むチョークの丸（白。Image の色で黄色にする）"""
+    rng = np.random.default_rng(5)
+    w, h = width * SUPERSAMPLE, height * SUPERSAMPLE
+    mask = Image.new("L", (w, h), 0)
+    draw = ImageDraw.Draw(mask)
+    line = int(h * 0.05)
+    # 少しずらして2周なぞったように描く
+    draw.ellipse((w * 0.03, h * 0.08, w * 0.97, h * 0.92), outline=255, width=line)
+    draw.arc((w * 0.05, h * 0.04, w * 0.99, h * 0.88), start=200, end=330, fill=255, width=int(line * 0.8))
+    alpha = rough_edge(mask, rng, h * 0.004)
+    alpha = grain_alpha(alpha, rng, 0.55)
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    path = OUTPUT_DIR / "fx_chalk_circle.png"
+    to_rgba(alpha, (255, 255, 255)).resize((width, height), Image.LANCZOS).save(path)
+    print(f"wrote {path}")
+
+
+def chalk_stamp_frame(size=256):
+    """黒板に書く級の枠（白。Image の色でピンクのチョークにする）"""
+    rng = np.random.default_rng(6)
+    s = size * SUPERSAMPLE
+    mask = Image.new("L", (s, s), 0)
+    draw = ImageDraw.Draw(mask)
+    margin = s * 0.06
+    draw.rounded_rectangle((margin, margin, s - margin, s - margin), radius=s * 0.1, outline=255, width=int(s * 0.06))
+    alpha = rough_edge(mask, rng, s * 0.004)
+    alpha = grain_alpha(alpha, rng, 0.55)
+    save(to_rgba(alpha, (255, 255, 255)), "frame_chalk_stamp.png", size)
+
+
 if __name__ == "__main__":
     stamp_circle()
     stamp_cross()
@@ -220,3 +251,5 @@ if __name__ == "__main__":
     school_print()
     desk()
     sheet_shadow()
+    chalk_circle()
+    chalk_stamp_frame()

@@ -17,6 +17,12 @@ namespace TechC.KanjiQuiz.Screens.Result
         /// <summary>[問題を振り返る] が押されたとき</summary>
         Observable<Unit> OnReviewClicked { get; }
 
+        /// <summary>[モード選択へ] が押されたとき</summary>
+        Observable<Unit> OnModeSelectClicked { get; }
+
+        /// <summary>[タイトルへ] が押されたとき</summary>
+        Observable<Unit> OnTitleClicked { get; }
+
         /// <summary>問題ごとの結果がクリックされたとき。値は問題の番号（0 始まり）</summary>
         Observable<int> OnItemClicked { get; }
 

@@ -17,6 +17,8 @@ namespace TechC.KanjiQuiz.Common
         [SerializeField] private GameObject panel;
         [SerializeField] private Button resumeButton;
         [SerializeField] private Button restartButton;
+        [Tooltip("[やめる]（モード選択へ戻る）")]
+        [SerializeField] private Button quitButton;
         [SerializeField] private Slider seVolumeSlider;
 
         private readonly Subject<Unit> onMenuKeyPressed = new Subject<Unit>();
@@ -26,6 +28,7 @@ namespace TechC.KanjiQuiz.Common
         public Observable<Unit> OnMenuKeyPressed => onMenuKeyPressed;
         public Observable<Unit> OnResumeClicked => resumeButton.OnClickAsObservable();
         public Observable<Unit> OnRestartClicked => restartButton.OnClickAsObservable();
+        public Observable<Unit> OnQuitClicked => quitButton.OnClickAsObservable();
         // OnValueChangedAsObservable は購読したときに今の値も流すので、変わったときだけ流す onValueChanged を使う
         public Observable<float> OnSeVolumeChanged => seVolumeSlider.onValueChanged.AsObservable(destroyCancellationToken);
 

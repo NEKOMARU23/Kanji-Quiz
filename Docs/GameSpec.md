@@ -4,7 +4,7 @@
 |---|---|
 | プロダクト名 | KanjiQuiz |
 | エンジン | Unity 6000.4.3f1（URP） |
-| 最終更新 | 2026-10-27 |
+| 最終更新 | 2026-10-30 |
 | ステータス | 開発中（書き順クイズと本物の漢字さがしが遊べる。ほかの3モードは未着手） |
 | 開発体制 | 1人（就職活動用のポートフォリオ作品） |
 | 完成目標 | 2027年1月 |
@@ -275,7 +275,7 @@
 
 ### 3.2 難易度
 
-難易度は Inspector の `StrokeOrderEntryPoint` の `difficulty` で設定する。`QuizLaunchOptions.Difficulty` が設定されていれば、そちらを優先する（モード選択画面ができたら、そこで設定する予定）。
+難易度はモード選択画面の黒板で選び、`QuizLaunchOptions.Difficulty` で受け取る。設定されていなければ Inspector の `StrokeOrderEntryPoint` の `difficulty` を使う（シーンを直接 Play したとき）。
 テスト用に、F1 キーで画面左下に難易度の切り替えボタンを表示でき、押した難易度で最初からやり直せる（エディタと開発ビルドでだけ使える）。
 難易度によって、出題範囲・問題数・不正解の作り方が変わる。
 
@@ -354,7 +354,24 @@
 ## 4. 画面構成（現状）
 
 今後の画面設計は [ScreenDesign.md](ScreenDesign.md) を参照。
-シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `StrokeOrder.unity`（書き順クイズ）と `Result.unity`（結果画面、全モード共通）の2つ。
+シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `Title.unity`（タイトルとモード選択）、`StrokeOrder.unity`（書き順クイズ）、`RealKanji.unity`（本物の漢字さがし）、`Result.unity`（結果画面、全モード共通）。Build Profiles のシーンリストの先頭は Title。
+
+**Title シーン**（タイトル → モード選択（時間割）→ 難易度選択（黒板）を1つのシーンで切り替える。ScreenDesign.md 3.1〜3.3）
+
+| オブジェクト | コンポーネント | 役割 |
+|---|---|---|
+| TitleEntryPoint | TitleEntryPoint | モードの一覧（Data/Modes/ModeCatalog）と保存した記録から時間割を作り、Presenter をつなぐ |
+| Canvas | TitleView / ModeSelectView | タイトル画面（TitleRoot）とモード選択画面（ModeSelectRoot）の表示 |
+| Canvas/Wall・Wainscot | Image | 教室の壁と腰板 |
+| TitleRoot | （子に LogoText、StartButton、QuitButton、CreditText） | 仮のタイトル画面。見た目とロゴの演出はあとで決める |
+| ModeSelectRoot/TimetablePaper | Image / VerticalLayoutGroup（RowContainer） | 時間割表。行は TimetableRow プレハブ、4時間目のあとに LunchBreak プレハブ |
+| ModeSelectRoot/Board | Image（Inner、Tray） | 黒板。SmallBoardArea と LargeBoardArea の間で大きさを変える。中身は SmallContent（時間割の横）と LargeContent（画面いっぱい、列は DifficultyColumn プレハブ） |
+| ModeSelectRoot/AttendButton | Button | [この授業を受ける] |
+| AudioManager / SceneTransition / EventSystem | | 結果画面と同じ（Result.unity から作った） |
+
+- プレハブは `Prefabs/Screens/Title/` の TimetableRow・LunchBreak・DifficultyColumn。
+- 時間割に並べるモードは `QuizModeCatalog` の順。まだ作っていないモードの定義（四字熟語づくり・画像で名前当て・返信文クイズ・人名漢字のモード）は `isAvailable` を外してあり、「自習（○○ 準備中）」と出す。
+- 黒板のチョークの丸と級の枠は `Tools/generate_placeholder_ui.py` で作った仮の画像（`fx_chalk_circle`、`frame_chalk_stamp`）。
 基準解像度は 1920×1080（Canvas Scaler：Scale With Screen Size、Match 0.5）。文字はすべて Klee One（4.2）で表示する。
 
 **StrokeOrder シーン**
@@ -385,7 +402,7 @@
 | オブジェクト | コンポーネント | 役割 |
 |---|---|---|
 | ResultEntryPoint | ResultEntryPoint | 直前のプレイの結果を受け取り、Presenter をつなぐ |
-| Canvas | ResultView | モード名、正解数、問題ごとの正誤（ResultItem プレハブ、クリックで振り返り）、[もう一度]・[問題を振り返る] ボタン、結果発表の演出 |
+| Canvas | ResultView | モード名、正解数、問題ごとの正誤（ResultItem プレハブ、クリックで振り返り）、[もう一度]・[問題を振り返る]・[モード選択へ]・[タイトルへ] ボタン、結果発表の演出 |
 | Hanamaru | Image（Filled、Radial 360） | 全問正解の花丸。塗りつぶしの割合を増やして書いているように見せる |
 | RankStamp / RankText | Image / TextMeshPro | 級のハンコ（枠の画像と、中の文字） |
 | BestRecordText / NewRecordBadge | TextMeshPro | 自己ベストと「自己ベスト更新！」 |
@@ -449,7 +466,7 @@
 - 効果音の音量をつまみで変えられる。すぐに反映し、PlayerPrefs（`Volume_Se`）に保存する。AudioManager が起動したときに読み込む。
 - 開いている間は、後ろの画面のキー操作を止める（`InputGate`）。シーンの切り替えの途中は開かない。
 - 書き順の線（LineRenderer）より手前に出すため、専用の Canvas（Screen Space - Camera、sortingOrder 20）に置く。カメラは `CanvasCameraBinder` が起動時に設定するので、プレハブを置くだけで使える。
-- [やめる]（モード選択・タイトルへ戻る）は、それらの画面ができてから足す。
+- [やめる（時間割へ）] で、Title シーンを開いてモード選択（時間割）に戻る（`TitleLaunchOptions.OpenModeSelect`）。
 
 ### 4.5 キーボード操作
 
@@ -569,17 +586,29 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 | PauseMenuView / PauseMenuPresenter / PauseMenuEntryPoint | View・Presenter | 中断メニュー |
 | InputGate / CanvasCameraBinder | 共通 | キー操作を止める仕組み、プレハブの Canvas にカメラを設定する |
 | IVolumeRepository / PlayerPrefsVolumeRepository | Model | 音量の設定の保存先 |
-| KanjiRank | Model | 正解率と難易度から級を決める |
+| KanjiRank | Model | 正解率と難易度から級を決める。次の級まであと何問かも求める |
 | IBestRecordRepository / PlayerPrefsBestRecordRepository / BestRecordUpdate | Model | 自己ベストの保存先と、1回のプレイで更新したかどうか |
 | AudioManager / IAudioPlayer | View・共通 | 効果音 |
 | WeakQuestionList / IWeakQuestionRepository / PlayerPrefsWeakQuestionRepository | Model | 苦手な問題のリストと保存先。優先して出す問題の並べ方も決める |
 | SceneTransitionView / ISceneTransition / SceneLoader | View・共通 | プリントを回収して次を配るようにシーンを切り替える |
+| TitleLaunchOptions / IApplicationQuitter / ApplicationQuitter | 共通 | Title シーンをモード選択から開くかどうか、アプリを終わらせる |
 | IKanjiStrokeSource / IKanjiSvgSource / StreamingAssetsKanjiStrokeSource | Model | StreamingAssets から KanjiVG の SVG を読み込む（画のパスデータだけか、部品のグループつきか） |
 | KanjiSvgParser / KanjiSvgStroke / StrokePathParser | Model | SVG から画のパスデータと部品のグループを取り出し、座標の列に変換する |
 | StrokeData | Model | 1画分の座標の列 |
 | KanjiGlyphRenderer | View | 漢字1字を画の線（LineRenderer）でまとめて描く。フォントにない字も描ける |
 | IQuestionRepository / LocalQuestionRepository | Model | 問題データの読み込み口と、同梱の問題セットの JSON から読む実装 |
 | KanjiWordDictionary / KanjiWord | Model | 漢字ごとの使用例（熟語）の辞書（Data/KanjiWords） |
+
+**タイトルとモード選択**（`Scripts/Screens/Title`、名前空間 `TechC.KanjiQuiz.Screens.Title`）
+
+| クラス | 種類 | 役割 |
+|---|---|---|
+| DifficultyRecord | Model | 黒板に書く1つの難易度の記録（自己ベスト、級、次の目標のひとこと、苦手な問題） |
+| ModeSummary | Model | 時間割の1行（時限、遊べるか、一番上の級）と難易度ごとの記録。モードの一覧と保存先から作る |
+| TitlePresenter | Presenter | タイトル画面の [はじめる]・[おわる] と、モード選択との切り替え |
+| ModeSelectPresenter | Presenter | 時間割でモードを選び、黒板で難易度を選んで、そのモードのシーンを開く |
+| TitleView / ModeSelectView / TimetableRowView / DifficultyColumnView | View | タイトル画面、時間割と黒板、時間割の1行、黒板の1列 |
+| TitleEntryPoint | 組み立て役 | 記録を読み、Model・View・Presenter をつなぐ |
 
 **書き順クイズ**（`Scripts/Modes/StrokeOrder`、名前空間 `TechC.KanjiQuiz.Modes.StrokeOrder`）
 
@@ -614,12 +643,13 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 
 - [x] 結果画面（スコア・正誤一覧、もう一度）
 - [x] 出題する漢字と進行状況の表示
-- [ ] 結果画面の [モード選択へ]・[タイトルへ]（それぞれの画面ができてから）
+- [x] 結果画面の [モード選択へ]・[タイトルへ]
 - [x] 中断メニュー（続ける、最初からやり直す、効果音の音量）
 - [x] キーボード操作
 - [x] シーンのひな形（シーンテンプレート）とモードの定義
-- [ ] ゲーム内での難易度選択（今は F1 のテスト用ボタンか Inspector で切り替える）
-- [ ] タイトル画面・モード選択画面などのシーン遷移
+- [x] ゲーム内での難易度選択（モード選択画面の黒板。F1 のテスト用ボタンも残している）
+- [x] タイトル画面・モード選択画面とシーン遷移（タイトル画面の見た目とロゴの演出は仮）
+- [ ] タイトルの設定・漢字帳・クレジット
 - [x] 難易度ごとの出題範囲とランダムな出題
 - [x] 結果画面からの問題の振り返り
 - [x] 結果発表の演出、級、自己ベスト、全問正解の花丸

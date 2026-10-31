@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 |---|---|
 | 状態 | 確定（実装に合わせて更新する） |
-| 最終更新 | 2026-10-24 |
+| 最終更新 | 2026-10-30 |
 | 関連 | [GameSpec.md](GameSpec.md) / [ScreenDesign.md](ScreenDesign.md) / [CodingRules.md](CodingRules.md) |
 
 ---
@@ -145,7 +145,7 @@ classDiagram
 | `QuizPresenterBase<TQuestion>` | 次へ・前へ・結果への遷移など全モード共通の進行 | Presenter |
 | `ChoiceQuizPresenter<TQuestion>` | 「N 個から1つ選ぶ」モード共通の判定 | Presenter |
 | `QuizFrameView` | ヘッダー、進行バー、次へ・前へボタン、問題を切り替えるときのスライド、Enter・← → のキー操作（`Prefabs/Common/QuizFrame`） | View |
-| `QuizModeDefinition` / `QuizModeCatalog` | モードの設定（ID、名前、シーン、難易度ごとの問題数）と一覧。ScriptableObject（`Data/Modes/`）。名前・保存のキー・優先する苦手な問題の数もここで作る | Model |
+| `QuizModeDefinition` / `QuizModeCatalog` | モードの設定（ID、名前、説明、シーン、遊べるか、難易度ごとの問題数と出題範囲の説明）と一覧。ScriptableObject（`Data/Modes/`）。名前・保存のキー・優先する苦手な問題の数もここで作る | Model |
 | `PauseMenuView` / `PauseMenuPresenter` / `PauseMenuEntryPoint` | 中断メニュー。組み立て役もプレハブ（`Prefabs/Common/PauseMenu`）に入っているので、置くだけで使える | View・Presenter |
 | `InputGate` | キー操作を一時的に止める（中断メニューを開いている間、シーンの切り替えの途中） | 共通 |
 | `CanvasCameraBinder` | プレハブの Screen Space - Camera の Canvas に、起動時に `Camera.main` を設定する | View |
@@ -159,12 +159,14 @@ classDiagram
 | `ChoiceMark` | 振り返りのときに選択肢につける印（正解・選んだ不正解） | View |
 | `SingletonMonoBehaviour<T>` | シーンに1つだけ置く MonoBehaviour の基礎クラス。2つ目は消す。シーンをまたいで残すかを Inspector で選べる | 共通 |
 | `AudioManager` / `IAudioPlayer` / `SeType` | 効果音を鳴らす（`SingletonMonoBehaviour` を継承）。Presenter は `IAudioPlayer` 経由で使い、AudioManager がなければ `NullAudioPlayer` を渡す | 共通 |
-| `KanjiRank` | 正解率と難易度から級（10級〜初段）を決める | Model |
+| `KanjiRank` | 正解率と難易度から級（10級〜初段）を決める。級の高さ（難易度をまたいで比べる）と、次の級まであと何問かも求める | Model |
 | `IBestRecordRepository` / `PlayerPrefsBestRecordRepository` / `BestRecordUpdate` | 自己ベストの保存先と、1回のプレイで更新したかどうか。`QuizResult.UpdateBestRecord` が1回だけ調べて保存する | Model |
 | `WeakQuestionList` / `IWeakQuestionRepository` / `PlayerPrefsWeakQuestionRepository` | 苦手な問題（間違えた問題）のリストと保存先。`OrderCandidates` で苦手な問題を先頭に並べる。問題は文字列で表すので、ほかのモードでも使える | Model |
 | `SceneTransitionView` / `ISceneTransition` | プリントを回収して次を配るようにシーンを切り替える（`SingletonMonoBehaviour` を継承）。`SceneLoader` に渡すと演出つきになる。カメラの映像をテクスチャに描いて使うので、各シーンの Canvas は Screen Space - Camera にする | View |
 | `ResultItemView` | 結果画面の、問題1つ分の行（○・× のハンコ） | View |
-| `QuizLaunchOptions` | プレイ画面を開くときの設定（難易度）。モード選択画面が設定する予定 | 共通 |
+| `QuizLaunchOptions` | プレイ画面を開くときの設定（難易度）。モード選択画面が設定する | 共通 |
+| `TitleLaunchOptions` | Title シーンを開くときの設定（最初からモード選択を出すか）。中断メニューの [やめる] と結果画面の [モード選択へ] が設定する | 共通 |
+| `IApplicationQuitter` / `ApplicationQuitter` | アプリを終わらせる（エディタでは Play を止める） | 共通 |
 | `DebugDifficultySwitcher` | テスト用の難易度切り替え。F1 で表示（`Scripts/DebugTools`、エディタと開発ビルドのみ） | 開発用 |
 
 ### 3.2 モードごとの部分
@@ -181,7 +183,20 @@ classDiagram
 - 前の問題に戻ったときは、`AnswerRecord` から以前の選択を復元する。選択肢の並びは問題データに固定されているので、戻っても変わらない。
 - 四字熟語づくりだけは回答方法が違うので、`QuizPresenterBase` を直接継承する。
 
-### 3.3 1問の流れ
+### 3.3 タイトルとモード選択
+
+`Scripts/Screens/Title/`（名前空間 `TechC.KanjiQuiz.Screens.Title`）。タイトル・時間割・黒板を1つのシーンで切り替える。
+
+| クラス | 役割 | 種類 |
+|---|---|---|
+| `DifficultyRecord` | 1つの難易度の記録（自己ベスト、級、次の目標のひとこと、苦手な問題） | Model |
+| `ModeSummary` | 時間割の1行と黒板の内容。`ModeSummary.Load` がモードの一覧と保存先（自己ベスト・苦手な問題）から作る | Model |
+| `TitlePresenter` | タイトル画面。[はじめる] でモード選択を開き、[← タイトルへ] で戻る | Presenter |
+| `ModeSelectPresenter` | 時間割の選択、黒板の開閉、難易度の選択、`QuizLaunchOptions` に難易度を入れてモードのシーンを開く | Presenter |
+| `ITitleView` / `IModeSelectView` と、その実装 `TitleView` / `ModeSelectView`（行は `TimetableRowView`、黒板の列は `DifficultyColumnView`） | 表示とキー操作 | View |
+| `TitleEntryPoint` | 組み立て役 | 組み立て役 |
+
+### 3.4 1問の流れ
 
 ```mermaid
 sequenceDiagram
@@ -204,7 +219,7 @@ sequenceDiagram
     end
 ```
 
-### 3.4 不正解の選択肢の生成ルール（全モード共通）
+### 3.5 不正解の選択肢の生成ルール（全モード共通）
 
 - 不正解の選択肢は、**正解とも、ほかの不正解とも重複しない**ことを保証する。
 - 条件を満たす不正解が作れない問題（1画の漢字など）は、問題リストを作る段階で除外する。
@@ -270,16 +285,15 @@ flowchart LR
 
 | シーン | 内容 |
 |---|---|
-| `Title` | タイトル画面 |
-| `ModeSelect` | モードと難易度の選択 |
+| `Title` | タイトル画面、モード選択（時間割）、難易度選択（黒板）。1つのシーンの中で切り替える |
 | `StrokeOrder` / `RealKanji` / `ReplyMessage` / `FourCharIdiom` / `ImageName` | 各モードのプレイ画面 |
 | `Result` | 結果画面（全モード共通） |
 
 - モードごとにシーンを分ける。1人で開発するので、モード同士の干渉を減らすことを優先する。
 - タイトル、モード選択、結果の画面も同じく MVP で作る（`TitlePresenter` など）。
-- シーン間で渡すのは「選んだモード・難易度」と「結果（回答履歴）」だけ。難易度は `QuizLaunchOptions`、結果は `QuizResultStore`（どちらも静的クラス）で受け渡す。
+- シーン間で渡すのは「選んだモード・難易度」と「結果（回答履歴）」だけ。難易度は `QuizLaunchOptions`、結果は `QuizResultStore`（どちらも静的クラス）で受け渡す。ほかのシーンから「モード選択へ」戻るときは `TitleLaunchOptions.OpenModeSelect` を立てて Title を開く。
 - 問題の振り返りは、結果画面から各モードのシーンを開き直して行う。各モードの EntryPoint は、`QuizReviewStore` に振り返りが頼まれていれば出題せずに振り返りの Presenter を作る。
-- 実装済みのシーンは `StrokeOrder`、`RealKanji`、`Result`。どれも Build Profiles のシーンリストに登録している。
+- 実装済みのシーンは `Title`、`StrokeOrder`、`RealKanji`、`Result`。どれも Build Profiles のシーンリストに登録し、先頭は `Title`。
 - 画面の詳細は [ScreenDesign.md](ScreenDesign.md) を参照。
 
 ---
@@ -344,7 +358,7 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | `TechC.KanjiQuiz.Editor` | エディタ拡張（必要になったら） |
 | `TechC.KanjiQuiz.Tests` | EditMode テスト |
 
-テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-27 時点で 159 件）。主な対象は次のとおり。
+テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-30 時点で 195 件）。主な対象は次のとおり。
 
 | 対象 | テストクラス |
 |---|---|
@@ -359,6 +373,7 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | 書き順クイズの Presenter（苦手の印、振り返りのお手本） | `StrokeOrderPresenterTests` |
 | 本物の漢字さがし（偽物の組み立て、問題づくり、出題と振り返りの表示） | `FakeKanjiComposerTests`, `RealKanjiQuestionFactoryTests`, `RealKanjiPresenterTests` |
 | 苦手な問題 | `WeakQuestionListTests` |
+| タイトルとモード選択（記録のまとめ、時間割と黒板の操作） | `ModeSummaryTests`, `ModeSelectPresenterTests`, `TitlePresenterTests` |
 | 中断メニュー、キー操作を止める仕組み | `PauseMenuPresenterTests`, `InputGateTests` |
 | モードの定義（書き順クイズのアセットの値も確かめる） | `QuizModeDefinitionTests` |
 | シャッフル | `ShuffleUtilityTests` |
@@ -407,5 +422,5 @@ Presenter をテストできるように、View は Presenter からインター
 2. ~~共通部分を作る。~~（完了）
 3. ~~書き順クイズを MVP に載せ替え、レビューで見つかった不具合を直す。~~（完了）
 4. ほかの4モードを1つずつ追加する。（本物の漢字さがしは完了。残りは3モード）
-5. タイトル、モード選択、結果の画面を作る。
+5. ~~タイトル、モード選択、結果の画面を作る。~~（完了。タイトル画面の見た目は仮）
 6. 余裕があれば VContainer を導入する。

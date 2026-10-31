@@ -24,6 +24,10 @@ namespace TechC.KanjiQuiz.Screens.Result
         [SerializeField] private Button retryButton;
         [Tooltip("[問題を振り返る] ボタン")]
         [SerializeField] private Button reviewButton;
+        [Tooltip("[モード選択へ] ボタン")]
+        [SerializeField] private Button modeSelectButton;
+        [Tooltip("[タイトルへ] ボタン")]
+        [SerializeField] private Button titleButton;
         [Tooltip("「問題を押すと振り返れます」の案内。不要なら空でよい")]
         [SerializeField] private TMP_Text reviewHintText;
         [Tooltip("演出中のクリックを受け取る、画面全体を覆う透明なボタン")]
@@ -72,6 +76,8 @@ namespace TechC.KanjiQuiz.Screens.Result
 
         public Observable<Unit> OnRetryClicked => retryButton.OnClickAsObservable();
         public Observable<Unit> OnReviewClicked => reviewButton.OnClickAsObservable();
+        public Observable<Unit> OnModeSelectClicked => modeSelectButton.OnClickAsObservable();
+        public Observable<Unit> OnTitleClicked => titleButton.OnClickAsObservable();
         public Observable<int> OnItemClicked => onItemClicked;
         public Observable<Unit> OnSkipRequested => skipButton.OnClickAsObservable();
 
@@ -221,6 +227,8 @@ namespace TechC.KanjiQuiz.Screens.Result
             isMenuVisible = visible;
             retryButton.gameObject.SetActive(visible);
             reviewButton.gameObject.SetActive(visible);
+            modeSelectButton.gameObject.SetActive(visible);
+            titleButton.gameObject.SetActive(visible);
             skipButton.gameObject.SetActive(!visible);
             RefreshReviewHint();
             RefreshItemInteractable();

@@ -12,12 +12,14 @@ namespace TechC.KanjiQuiz.Tests
         private readonly Subject<Unit> onMenuKeyPressed = new Subject<Unit>();
         private readonly Subject<Unit> onResumeClicked = new Subject<Unit>();
         private readonly Subject<Unit> onRestartClicked = new Subject<Unit>();
+        private readonly Subject<Unit> onQuitClicked = new Subject<Unit>();
         private readonly Subject<float> onSeVolumeChanged = new Subject<float>();
 
         public Observable<Unit> OnOpenClicked => onOpenClicked;
         public Observable<Unit> OnMenuKeyPressed => onMenuKeyPressed;
         public Observable<Unit> OnResumeClicked => onResumeClicked;
         public Observable<Unit> OnRestartClicked => onRestartClicked;
+        public Observable<Unit> OnQuitClicked => onQuitClicked;
         public Observable<float> OnSeVolumeChanged => onSeVolumeChanged;
 
         public bool IsShown { get; private set; }
@@ -31,6 +33,7 @@ namespace TechC.KanjiQuiz.Tests
         public void PressMenuKey() => onMenuKeyPressed.OnNext(Unit.Default);
         public void ClickResume() => onResumeClicked.OnNext(Unit.Default);
         public void ClickRestart() => onRestartClicked.OnNext(Unit.Default);
+        public void ClickQuit() => onQuitClicked.OnNext(Unit.Default);
         public void MoveVolume(float volume) => onSeVolumeChanged.OnNext(volume);
     }
 }
