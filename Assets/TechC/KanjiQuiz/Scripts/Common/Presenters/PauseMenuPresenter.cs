@@ -6,7 +6,7 @@ namespace TechC.KanjiQuiz.Common
 {
     /// <summary>
     /// 中断メニューの Presenter
-    /// [メニュー] ボタンか Esc で開き、続ける・最初からやり直す・やめる（モード選択へ）・効果音の音量の変更を受け付ける
+    /// [メニュー] ボタンか Esc で開き、続ける・最初からやり直す・やめる（モード選択へ）・効果音の音量・ひらがなで表示の切り替えを受け付ける
     /// </summary>
     public sealed class PauseMenuPresenter : IDisposable
     {
@@ -16,6 +16,7 @@ namespace TechC.KanjiQuiz.Common
         private readonly IVolumeRepository volumeRepository;
         private readonly string restartSceneName;
         private readonly string quitSceneName;
+        private readonly DisplaySettings displaySettings;
         private readonly CompositeDisposable disposables = new CompositeDisposable();
 
         /// <summary>メニューを開いているかどうか</summary>
@@ -23,13 +24,15 @@ namespace TechC.KanjiQuiz.Common
 
         /// <param name="restartSceneName">[最初からやり直す] で読み込むシーンの名前</param>
         /// <param name="quitSceneName">[やめる] で読み込むシーンの名前（モード選択のあるシーン）</param>
+        /// <param name="displaySettings">表示の設定（ひらがなで表示）。null なら切り替えを使わない</param>
         public PauseMenuPresenter(
             IPauseMenuView view,
             ISceneLoader sceneLoader,
             IAudioPlayer audioPlayer,
             IVolumeRepository volumeRepository,
             string restartSceneName,
-            string quitSceneName = SceneNames.Title)
+            string quitSceneName = SceneNames.Title,
+            DisplaySettings displaySettings = null)
         {
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.sceneLoader = sceneLoader ?? throw new ArgumentNullException(nameof(sceneLoader));
@@ -37,6 +40,7 @@ namespace TechC.KanjiQuiz.Common
             this.volumeRepository = volumeRepository ?? throw new ArgumentNullException(nameof(volumeRepository));
             this.restartSceneName = restartSceneName ?? throw new ArgumentNullException(nameof(restartSceneName));
             this.quitSceneName = quitSceneName ?? throw new ArgumentNullException(nameof(quitSceneName));
+            this.displaySettings = displaySettings;
         }
 
         /// <summary>
@@ -45,6 +49,13 @@ namespace TechC.KanjiQuiz.Common
         public void Initialize()
         {
             view.SetSeVolume(volumeRepository.LoadSeVolume());
+            if (displaySettings != null)
+            {
+                view.SetHiragana(displaySettings.UseHiragana.CurrentValue);
+                view.OnHiraganaChanged
+                    .Subscribe(this, static (value, self) => self.displaySettings.SetUseHiragana(value))
+                    .AddTo(disposables);
+            }
 
             view.OnOpenClicked
                 .Subscribe(this, static (_, self) => self.Open())

@@ -21,6 +21,11 @@ namespace TechC.KanjiQuiz.Tests
         public Observable<Unit> OnRestartClicked => onRestartClicked;
         public Observable<Unit> OnQuitClicked => onQuitClicked;
         public Observable<float> OnSeVolumeChanged => onSeVolumeChanged;
+        public Observable<bool> OnHiraganaChanged => onHiraganaChanged;
+        private readonly Subject<bool> onHiraganaChanged = new Subject<bool>();
+        public bool? HiraganaShown { get; private set; }
+        public void SetHiragana(bool useHiragana) => HiraganaShown = useHiragana;
+        public void ToggleHiragana(bool value) => onHiraganaChanged.OnNext(value);
 
         public bool IsShown { get; private set; }
         public float SliderVolume { get; private set; } = -1f;
