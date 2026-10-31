@@ -58,6 +58,12 @@ namespace TechC.KanjiQuiz.Tests
             StartLabel = startLabel;
         }
 
-        public void ShowTimetable() => IsBoardShown = false;
+        public bool LastShownFromTitle { get; private set; }
+
+        public void ShowTimetable(bool fromTitle)
+        {
+            IsBoardShown = false;
+            LastShownFromTitle = fromTitle;
+        }
     }
 }

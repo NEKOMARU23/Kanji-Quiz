@@ -13,7 +13,9 @@ namespace TechC.KanjiQuiz.Screens.Title
 {
     /// <summary>
     /// モード選択画面（教室の時間割表と黒板）の表示
-    /// 時間割でモードを選ぶと右の黒板に内容を書き、[この授業を受ける] で黒板を画面いっぱいに広げて難易度の列を書く
+    /// 時間割でモードを選ぶと右の黒板に内容をチョークで書き、[この授業を受ける] で黒板を画面いっぱいに広げて難易度の列を書く
+    /// 黒板はタイトル画面と使い回す。タイトルから来たときは、黒板がタイトルの大きさから縮み、時間割表が貼られる
+    /// 演出はクリックか Enter・スペースで飛ばせる
     /// </summary>
     public class ModeSelectView : MonoBehaviour, IModeSelectView
     {
@@ -31,14 +33,30 @@ namespace TechC.KanjiQuiz.Screens.Title
         [Min(1)] [SerializeField] private int lunchBreakAfter = 4;
 
         [Header("--- 黒板 ---")]
-        [Tooltip("黒板（枠を含む）。小さい場所と画面いっぱいの場所の間で動かす")]
+        [Tooltip("黒板（枠を含む）。タイトルの場所・時間割の横・画面いっぱいの間で動かす。モード選択画面を隠しても見えるように root の外に置く")]
         [SerializeField] private RectTransform board;
+        [Tooltip("タイトル画面のときの黒板の位置と大きさ（黒板と同じ大きさの親に置いた空のオブジェクト）")]
+        [SerializeField] private RectTransform titleBoardArea;
         [Tooltip("時間割の横に置くときの黒板の位置と大きさ（黒板と同じ親に置いた空のオブジェクト）")]
         [SerializeField] private RectTransform smallBoardArea;
         [Tooltip("画面いっぱいに広げたときの黒板の位置と大きさ")]
         [SerializeField] private RectTransform largeBoardArea;
         [Tooltip("黒板を広げる・戻すのにかける秒数")]
         [Min(0f)] [SerializeField] private float boardMoveSeconds = 0.35f;
+
+        [Header("--- タイトルから来たときの演出 ---")]
+        [Tooltip("黒板がタイトルの大きさから時間割の横の大きさへ縮む秒数")]
+        [Min(0f)] [SerializeField] private float boardShrinkSeconds = 0.65f;
+        [Tooltip("黒板が縮み始めてから、時間割表が貼られ始めるまでの秒数")]
+        [Min(0f)] [SerializeField] private float timetableDelay = 0.45f;
+        [Tooltip("時間割表が画面の外から貼られるまでの秒数")]
+        [Min(0.01f)] [SerializeField] private float timetableSeconds = 0.6f;
+        [Tooltip("時間割表が動き始める位置（貼る位置からのずれ）")]
+        [SerializeField] private Vector2 timetableStartOffset = new Vector2(-1150f, 0f);
+        [Tooltip("時間割表が動き始めるときの傾き（度）")]
+        [SerializeField] private float timetableStartAngle = 8f;
+        [Tooltip("[この授業を受ける] がはずむように出る秒数")]
+        [Min(0.01f)] [SerializeField] private float attendPopSeconds = 0.35f;
 
         [Header("--- 黒板（時間割の横） ---")]
         [SerializeField] private GameObject smallContent;
@@ -48,6 +66,8 @@ namespace TechC.KanjiQuiz.Screens.Title
         [Tooltip("難易度ごとの級（例：簡単 5級　常識 6級　困難 ―）")]
         [SerializeField] private TMP_Text ranksText;
         [SerializeField] private Button attendButton;
+        [Tooltip("時間割の横の黒板の字（時限・名前・説明・級）をチョークで書く")]
+        [SerializeField] private ChalkTextWriter chalkWriter;
         [Tooltip("準備中のモードを選んだときに説明の代わりに出す文")]
         [TextArea] [SerializeField] private string unavailableMessage = "この授業は準備中です。\nできあがるまで、もう少し待ってください。";
         [SerializeField] private Color rankColor = new Color(0.95f, 0.66f, 0.63f, 1f);
@@ -75,7 +95,15 @@ namespace TechC.KanjiQuiz.Screens.Title
         private readonly Subject<Unit> backToTimetableKeyPressed = new Subject<Unit>();
         private readonly CompositeDisposable columnSubscriptions = new CompositeDisposable();
         private CancellationTokenSource boardMoveCts;
+        private CancellationTokenSource writeCts;
+        private RectTransform timetableRect;
+        private Vector2 timetablePosition;
+        private Quaternion timetableRotation;
         private bool isBoardOpen;
+        private bool isTransitioning;
+        private bool skipRequested;
+        private bool isAttendRevealed;
+        private bool canAttend;
 
         public Observable<int> OnModeClicked => modeClicked;
         public Observable<int> OnModeMoved => modeMoved;
@@ -97,11 +125,28 @@ namespace TechC.KanjiQuiz.Screens.Title
             startKeyPressed.AddTo(this);
             backToTimetableKeyPressed.AddTo(this);
             columnSubscriptions.AddTo(this);
+
+            timetableRect = (RectTransform)timetablePaper.transform;
+            timetablePosition = timetableRect.anchoredPosition;
+            timetableRotation = timetableRect.localRotation;
         }
 
         private void Update()
         {
             if (!root.activeInHierarchy || InputGate.IsBlocked) return;
+
+            // 演出中のクリック・Enter・スペースは、演出を飛ばすのに使う
+            if (isTransitioning)
+            {
+                if (SkipInput.WasPressedThisFrame()) skipRequested = true;
+                return;
+            }
+            if (chalkWriter != null && chalkWriter.IsWriting && SkipInput.WasPressedThisFrame())
+            {
+                CompleteWriting();
+                return;
+            }
+
             var keyboard = Keyboard.current;
             if (keyboard == null) return;
 
@@ -128,11 +173,24 @@ namespace TechC.KanjiQuiz.Screens.Title
         private void OnDestroy()
         {
             CancelBoardMove();
+            CancelWriting();
         }
 
         public void SetVisible(bool visible)
         {
             root.SetActive(visible);
+            if (visible) return;
+
+            // タイトルに戻るときは、黒板をタイトルの大きさに戻して中身を消す
+            CancelBoardMove();
+            CancelWriting();
+            isTransitioning = false;
+            isBoardOpen = false;
+            isAttendRevealed = false;
+            smallContent.SetActive(false);
+            largeContent.SetActive(false);
+            if (chalkWriter != null) chalkWriter.Clear();
+            SnapBoard(titleBoardArea);
         }
 
         public void SetTimetable(IReadOnlyList<ModeSummary> modes)
@@ -160,12 +218,17 @@ namespace TechC.KanjiQuiz.Screens.Title
             nameText.text = mode.Definition.DisplayName;
             descriptionText.text = mode.IsAvailable ? mode.Definition.Description : unavailableMessage;
             ranksText.text = mode.IsAvailable ? FormatRanks(mode) : string.Empty;
+            this.canAttend = canAttend;
             attendButton.interactable = canAttend;
-            attendButton.gameObject.SetActive(canAttend);
+            attendButton.gameObject.SetActive(canAttend && isAttendRevealed);
+
+            // タイトルからの演出中は、演出が終わってから書く
+            if (!isTransitioning) StartWriting();
         }
 
         public void ShowDifficultyBoard(ModeSummary mode)
         {
+            CompleteWriting();
             isBoardOpen = true;
             boardPeriodText.text = $"{mode.Period}時間目";
             boardNameText.text = mode.Definition.DisplayName;
@@ -186,14 +249,32 @@ namespace TechC.KanjiQuiz.Screens.Title
             startLabel.text = startLabelText;
         }
 
-        public void ShowTimetable()
+        public void ShowTimetable(bool fromTitle)
         {
+            bool wasBoardOpen = isBoardOpen;
             isBoardOpen = false;
             largeContent.SetActive(false);
             startButton.interactable = false;
             timetablePaper.SetActive(true);
             backToTitleButton.gameObject.SetActive(true);
-            MoveBoardAsync(smallBoardArea, smallContent).Forget();
+
+            if (fromTitle)
+            {
+                TransitionFromTitleAsync().Forget();
+            }
+            else if (wasBoardOpen)
+            {
+                MoveBoardAsync(smallBoardArea, smallContent).Forget();
+            }
+            else
+            {
+                // タイトルを飛ばして開いたとき（結果画面の [モード選択へ] など）は、演出せずに置く
+                CancelBoardMove();
+                SnapBoard(smallBoardArea);
+                ResetTimetablePose();
+                smallContent.SetActive(true);
+                isAttendRevealed = true;
+            }
         }
 
         private void SetColumns(IReadOnlyList<DifficultyRecord> records)
@@ -237,7 +318,129 @@ namespace TechC.KanjiQuiz.Screens.Title
             board.anchoredPosition = target.anchoredPosition;
             board.sizeDelta = target.sizeDelta;
             contentToShow.SetActive(true);
-            if (contentToShow == smallContent) attendButton.gameObject.SetActive(attendButton.interactable);
+            if (contentToShow == smallContent) attendButton.gameObject.SetActive(canAttend && isAttendRevealed);
+        }
+
+        /// <summary>
+        /// タイトルから来たときの演出：黒板が縮み、時間割表が貼られ、黒板の字をチョークで書いて、[この授業を受ける] を出す
+        /// </summary>
+        private async UniTaskVoid TransitionFromTitleAsync()
+        {
+            CancelBoardMove();
+            boardMoveCts = new CancellationTokenSource();
+            var ct = boardMoveCts.Token;
+
+            isTransitioning = true;
+            skipRequested = false;
+            isAttendRevealed = false;
+            attendButton.gameObject.SetActive(false);
+            smallContent.SetActive(true);
+            if (chalkWriter != null) chalkWriter.Clear();
+
+            Vector2 fromPosition = titleBoardArea.anchoredPosition;
+            Vector2 fromSize = titleBoardArea.sizeDelta;
+            float total = Mathf.Max(boardShrinkSeconds, timetableDelay + timetableSeconds);
+            float elapsed = 0f;
+            while (elapsed < total && !skipRequested)
+            {
+                float boardT = boardShrinkSeconds > 0f ? Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / boardShrinkSeconds)) : 1f;
+                board.anchoredPosition = Vector2.Lerp(fromPosition, smallBoardArea.anchoredPosition, boardT);
+                board.sizeDelta = Vector2.Lerp(fromSize, smallBoardArea.sizeDelta, boardT);
+                SetTimetablePose(Mathf.Clamp01((elapsed - timetableDelay) / timetableSeconds));
+
+                if (await UniTask.Yield(PlayerLoopTiming.Update, ct).SuppressCancellationThrow()) return;
+                elapsed += Time.unscaledDeltaTime;
+            }
+
+            SnapBoard(smallBoardArea);
+            ResetTimetablePose();
+            isTransitioning = false;
+
+            if (skipRequested)
+            {
+                // 飛ばしたときは字もすぐに全部出す
+                if (chalkWriter != null) chalkWriter.Complete();
+                RevealAttend(animate: false);
+                return;
+            }
+
+            StartWriting();
+            if (chalkWriter != null)
+            {
+                await UniTask.WaitWhile(() => chalkWriter.IsWriting, cancellationToken: ct).SuppressCancellationThrow();
+                if (ct.IsCancellationRequested) return;
+            }
+            RevealAttend(animate: true);
+        }
+
+        /// <summary>時間割表を、画面の外（t = 0）から貼る位置（t = 1）までの途中に置く。最後に少し行き過ぎて戻る</summary>
+        private void SetTimetablePose(float t)
+        {
+            timetablePaper.SetActive(t > 0f || timetableDelay <= 0f);
+            float eased = 1f - Mathf.Pow(1f - t, 3f);
+            float overshoot = Mathf.Sin(t * Mathf.PI) * 0.03f;
+            timetableRect.anchoredPosition = Vector2.LerpUnclamped(timetablePosition + timetableStartOffset, timetablePosition, eased + overshoot);
+            timetableRect.localRotation = Quaternion.Slerp(Quaternion.Euler(0f, 0f, timetableStartAngle), timetableRotation, eased);
+        }
+
+        private void ResetTimetablePose()
+        {
+            timetablePaper.SetActive(true);
+            timetableRect.anchoredPosition = timetablePosition;
+            timetableRect.localRotation = timetableRotation;
+        }
+
+        private void SnapBoard(RectTransform target)
+        {
+            board.anchoredPosition = target.anchoredPosition;
+            board.sizeDelta = target.sizeDelta;
+        }
+
+        /// <summary>[この授業を受ける] を出す（演出のあとは、はずむように出す）</summary>
+        private void RevealAttend(bool animate)
+        {
+            isAttendRevealed = true;
+            attendButton.gameObject.SetActive(canAttend);
+            if (animate && canAttend) PopAsync((RectTransform)attendButton.transform, destroyCancellationToken).Forget();
+        }
+
+        private async UniTaskVoid PopAsync(RectTransform target, CancellationToken ct)
+        {
+            float elapsed = 0f;
+            while (elapsed < attendPopSeconds)
+            {
+                float t = elapsed / attendPopSeconds;
+                float scale = t < 0.7f ? Mathf.Lerp(0.6f, 1.08f, t / 0.7f) : Mathf.Lerp(1.08f, 1f, (t - 0.7f) / 0.3f);
+                target.localScale = Vector3.one * scale;
+                if (await UniTask.Yield(PlayerLoopTiming.Update, ct).SuppressCancellationThrow()) return;
+                elapsed += Time.unscaledDeltaTime;
+            }
+            target.localScale = Vector3.one;
+        }
+
+        /// <summary>時間割の横の黒板の字を、チョークで書き直す</summary>
+        private void StartWriting()
+        {
+            if (chalkWriter == null) return;
+
+            CancelWriting();
+            writeCts = new CancellationTokenSource();
+            chalkWriter.WriteAsync(writeCts.Token).SuppressCancellationThrow().Forget();
+        }
+
+        /// <summary>書いている途中の字をすぐに全部出す</summary>
+        private void CompleteWriting()
+        {
+            CancelWriting();
+            if (chalkWriter != null) chalkWriter.Complete();
+        }
+
+        private void CancelWriting()
+        {
+            if (writeCts == null) return;
+            writeCts.Cancel();
+            writeCts.Dispose();
+            writeCts = null;
         }
 
         private void CancelBoardMove()

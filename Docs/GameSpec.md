@@ -4,7 +4,7 @@
 |---|---|
 | プロダクト名 | KanjiQuiz |
 | エンジン | Unity 6000.4.3f1（URP） |
-| 最終更新 | 2026-10-30 |
+| 最終更新 | 2026-10-31 |
 | ステータス | 開発中（書き順クイズと本物の漢字さがしが遊べる。ほかの3モードは未着手） |
 | 開発体制 | 1人（就職活動用のポートフォリオ作品） |
 | 完成目標 | 2027年1月 |
@@ -361,9 +361,13 @@
 | オブジェクト | コンポーネント | 役割 |
 |---|---|---|
 | TitleEntryPoint | TitleEntryPoint | モードの一覧（Data/Modes/ModeCatalog）と保存した記録から時間割を作り、Presenter をつなぐ |
-| Canvas | TitleView / ModeSelectView | タイトル画面（TitleRoot）とモード選択画面（ModeSelectRoot）の表示 |
+| Canvas | TitleView / ModeSelectView | タイトル画面（黒板の中の TitleContent）とモード選択画面（ModeSelectRoot）の表示 |
 | Canvas/Wall・Wainscot | Image | 教室の壁と腰板 |
-| TitleRoot | （子に LogoText、StartButton、QuitButton、CreditText） | 仮のタイトル画面。見た目とロゴの演出はあとで決める |
+| Board | Image（Inner に RectMask2D） | 黒板。タイトル・時間割の横・画面いっぱいの3つの置き場所（TitleBoardArea・SmallBoardArea・LargeBoardArea）の間を動かす。モード選択画面を隠しても見えるように ModeSelectRoot の外に置く |
+| Board/Inner/TitleContent | ChalkStrokeGraphic（Logo）/ TextMeshPro / CanvasGroup | タイトル。Logo はロゴをチョークの線で書く。Magnets は はじめる・設定・漢字帳・クレジット・おわる のマグネット（設定・漢字帳・クレジットは押せない） |
+| Board/Inner/EraseLayer | （子に Eraser） | 黒板消しで消した跡（黒板の色の帯）を置く場所と、黒板消し |
+| Board/Inner/SmallContent | ChalkTextWriter | 時間割の横の黒板の字をチョークで1字ずつ書く。チョークの先は Board/Inner/ChalkTip |
+| CreditText | TextMeshPro | KanjiVG のクレジット（タイトルのときだけ） |
 | ModeSelectRoot/TimetablePaper | Image / VerticalLayoutGroup（RowContainer） | 時間割表。行は TimetableRow プレハブ、4時間目のあとに LunchBreak プレハブ |
 | ModeSelectRoot/Board | Image（Inner、Tray） | 黒板。SmallBoardArea と LargeBoardArea の間で大きさを変える。中身は SmallContent（時間割の横）と LargeContent（画面いっぱい、列は DifficultyColumn プレハブ） |
 | ModeSelectRoot/AttendButton | Button | [この授業を受ける] |
@@ -596,6 +600,9 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 | KanjiSvgParser / KanjiSvgStroke / StrokePathParser | Model | SVG から画のパスデータと部品のグループを取り出し、座標の列に変換する |
 | StrokeData | Model | 1画分の座標の列 |
 | KanjiGlyphRenderer | View | 漢字1字を画の線（LineRenderer）でまとめて描く。フォントにない字も描ける |
+| ChalkStrokeGraphic | View | 漢字の画を UI の線として途中まで描く（黒板のチョークの字）。UI の描画順に従うので、上に重ねた UI で隠せ、マスクで切り取れる |
+| ChalkTextWriter | View | TextMeshPro の字を1字ずつ左から右へ濃くして出し、チョークの先を書いている字へ動かす |
+| SkipInput | View | 演出を飛ばす入力（左クリック、タップ、Enter、スペース） |
 | IQuestionRepository / LocalQuestionRepository | Model | 問題データの読み込み口と、同梱の問題セットの JSON から読む実装 |
 | KanjiWordDictionary / KanjiWord | Model | 漢字ごとの使用例（熟語）の辞書（Data/KanjiWords） |
 
@@ -607,7 +614,7 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 | ModeSummary | Model | 時間割の1行（時限、遊べるか、一番上の級）と難易度ごとの記録。モードの一覧と保存先から作る |
 | TitlePresenter | Presenter | タイトル画面の [はじめる]・[おわる] と、モード選択との切り替え |
 | ModeSelectPresenter | Presenter | 時間割でモードを選び、黒板で難易度を選んで、そのモードのシーンを開く |
-| TitleView / ModeSelectView / TimetableRowView / DifficultyColumnView | View | タイトル画面、時間割と黒板、時間割の1行、黒板の1列 |
+| TitleView / ModeSelectView / TimetableRowView / DifficultyColumnView | View | タイトル画面（ロゴを書く・黒板消しで消す）、時間割と黒板（黒板が縮む・時間割が貼られる・チョークで字を書く）、時間割の1行、黒板の1列 |
 | TitleEntryPoint | 組み立て役 | 記録を読み、Model・View・Presenter をつなぐ |
 
 **書き順クイズ**（`Scripts/Modes/StrokeOrder`、名前空間 `TechC.KanjiQuiz.Modes.StrokeOrder`）
