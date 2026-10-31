@@ -41,6 +41,7 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
         [SerializeField] private int choiceCount = 4;
 
         private readonly IWeakQuestionRepository weakRepository = new PlayerPrefsWeakQuestionRepository();
+        private readonly IKanjiBookRepository kanjiBookRepository = new PlayerPrefsKanjiBookRepository();
         private ISceneLoader sceneLoader;
         private IAudioPlayer audioPlayer;
         private WeakQuestionList weakList;
@@ -171,6 +172,9 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
             // 間違えた漢字を苦手に加え、正解した漢字を外す
             weakList.RecordResult(result);
             weakRepository.Save(RecordKey, weakList);
+
+            // 正解した漢字を漢字帳に集める
+            KanjiBook.Collect(kanjiBookRepository, mode.ModeId, result);
 
             sceneLoader.Load(SceneNames.Result);
         }

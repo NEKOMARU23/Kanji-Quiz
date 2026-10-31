@@ -11,5 +11,8 @@ namespace TechC.KanjiQuiz.Common
 
         /// <summary>リストを保存する</summary>
         void Save(string key, WeakQuestionList list);
+
+        /// <summary>リストを消す（なければ何もしない）</summary>
+        void Delete(string key);
     }
 }
