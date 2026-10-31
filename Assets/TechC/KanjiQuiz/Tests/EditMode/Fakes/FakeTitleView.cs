@@ -13,13 +13,21 @@ namespace TechC.KanjiQuiz.Tests
     {
         public readonly Subject<Unit> StartClicked = new Subject<Unit>();
         public readonly Subject<Unit> QuitClicked = new Subject<Unit>();
+        public readonly Subject<Unit> SettingsClicked = new Subject<Unit>();
+        public readonly Subject<Unit> KanjiBookClicked = new Subject<Unit>();
+        public readonly Subject<Unit> CreditsClicked = new Subject<Unit>();
 
         public Observable<Unit> OnStartClicked => StartClicked;
         public Observable<Unit> OnQuitClicked => QuitClicked;
+        public Observable<Unit> OnSettingsClicked => SettingsClicked;
+        public Observable<Unit> OnKanjiBookClicked => KanjiBookClicked;
+        public Observable<Unit> OnCreditsClicked => CreditsClicked;
 
         public bool IsVisible { get; private set; }
         public int IntroCount { get; private set; }
         public int ExitCount { get; private set; }
+        public int ShowWithoutIntroCount { get; private set; }
+        public TitleMenuItem LastExitPressed { get; private set; }
         public IReadOnlyList<IReadOnlyList<string>> LastLogoStrokePaths { get; private set; }
 
         /// <summary>PlayExitAsync が「飛ばされた」と返すかどうか</summary>
@@ -37,9 +45,17 @@ namespace TechC.KanjiQuiz.Tests
             return HoldIntro ? UniTask.Never(ct) : UniTask.CompletedTask;
         }
 
-        public UniTask<bool> PlayExitAsync(CancellationToken ct)
+        public void ShowWithoutIntro(IReadOnlyList<IReadOnlyList<string>> logoStrokePaths)
+        {
+            IsVisible = true;
+            ShowWithoutIntroCount++;
+            LastLogoStrokePaths = logoStrokePaths;
+        }
+
+        public UniTask<bool> PlayExitAsync(TitleMenuItem pressed, CancellationToken ct)
         {
             ExitCount++;
+            LastExitPressed = pressed;
             return UniTask.FromResult(SkipExit);
         }
     }

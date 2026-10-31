@@ -42,8 +42,9 @@ namespace TechC.KanjiQuiz.Screens.Title
         [SerializeField] private CanvasGroup magnets;
         [SerializeField] private Button startButton;
         [SerializeField] private Button quitButton;
-        [Tooltip("まだ作っていないメニュー（設定・漢字帳・クレジット）。薄く表示して押せないようにする")]
-        [SerializeField] private Button[] unavailableButtons = new Button[0];
+        [SerializeField] private Button settingsButton;
+        [SerializeField] private Button kanjiBookButton;
+        [SerializeField] private Button creditsButton;
         [Tooltip("マグネットが貼られる・外れて落ちる秒数")]
         [Min(0.01f)] [SerializeField] private float magnetSeconds = 0.35f;
         [Tooltip("マグネットが落ちる距離（px）")]
@@ -71,20 +72,20 @@ namespace TechC.KanjiQuiz.Screens.Title
         private readonly List<RectTransform> eraseBands = new List<RectTransform>();
         private RectTransform magnetsRect;
         private Vector2 magnetsPosition;
-        private RectTransform startRect;
         private bool isPlaying;
         private bool skipRequested;
 
         public Observable<Unit> OnStartClicked => startButton.OnClickAsObservable().Merge(startKeyPressed);
         public Observable<Unit> OnQuitClicked => quitButton.OnClickAsObservable();
+        public Observable<Unit> OnSettingsClicked => settingsButton.OnClickAsObservable();
+        public Observable<Unit> OnKanjiBookClicked => kanjiBookButton.OnClickAsObservable();
+        public Observable<Unit> OnCreditsClicked => creditsButton.OnClickAsObservable();
 
         private void Awake()
         {
             startKeyPressed.AddTo(this);
             magnetsRect = (RectTransform)magnets.transform;
             magnetsPosition = magnetsRect.anchoredPosition;
-            startRect = (RectTransform)startButton.transform;
-            foreach (var button in unavailableButtons) button.interactable = false;
             if (eraser != null) eraser.gameObject.SetActive(false);
         }
 
@@ -155,17 +156,27 @@ namespace TechC.KanjiQuiz.Screens.Title
             SetMagnetsShown(true);
         }
 
-        public async UniTask<bool> PlayExitAsync(CancellationToken ct)
+        public void ShowWithoutIntro(IReadOnlyList<IReadOnlyList<string>> logoStrokePaths)
         {
+            SetVisible(true);
+            if (PrepareLogo(logoStrokePaths)) logo.Complete();
+            subtitle.alpha = 1f;
+            magnetsRect.anchoredPosition = magnetsPosition;
+            SetMagnetsShown(true);
+        }
+
+        public async UniTask<bool> PlayExitAsync(TitleMenuItem pressed, CancellationToken ct)
+        {
+            var pressedRect = MenuRect(pressed);
             magnets.interactable = false;
             magnets.blocksRaycasts = false;
             isPlaying = true;
             skipRequested = false;
             try
             {
-                // [はじめる] を押した手応え → マグネットが外れて落ちる
-                await AnimateAsync(0.2f, t => startRect.localScale = Vector3.one * (1f - 0.08f * Mathf.Sin(t * Mathf.PI)), ct);
-                startRect.localScale = Vector3.one;
+                // 押したマグネットの手応え → マグネットが外れて落ちる
+                await AnimateAsync(0.2f, t => pressedRect.localScale = Vector3.one * (1f - 0.08f * Mathf.Sin(t * Mathf.PI)), ct);
+                pressedRect.localScale = Vector3.one;
                 await AnimateAsync(magnetSeconds, t =>
                 {
                     magnets.alpha = 1f - t;
@@ -208,6 +219,19 @@ namespace TechC.KanjiQuiz.Screens.Title
                 }
             }
             return skipRequested;
+        }
+
+        private RectTransform MenuRect(TitleMenuItem item)
+        {
+            var button = item switch
+            {
+                TitleMenuItem.Settings => settingsButton,
+                TitleMenuItem.KanjiBook => kanjiBookButton,
+                TitleMenuItem.Credits => creditsButton,
+                TitleMenuItem.Quit => quitButton,
+                _ => startButton,
+            };
+            return (RectTransform)button.transform;
         }
 
         /// <summary>ロゴの字を並べる。線で書けない（データのない）字があれば、字の形のままのロゴを出す</summary>

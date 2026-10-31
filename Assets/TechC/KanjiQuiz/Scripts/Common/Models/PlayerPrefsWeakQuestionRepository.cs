@@ -23,5 +23,11 @@ namespace TechC.KanjiQuiz.Common
             PlayerPrefs.SetString(KeyPrefix + key, string.Join(Separator.ToString(), list.Items));
             PlayerPrefs.Save();
         }
+
+        public void Delete(string key)
+        {
+            PlayerPrefs.DeleteKey(KeyPrefix + key);
+            PlayerPrefs.Save();
+        }
     }
 }

@@ -14,5 +14,7 @@ namespace TechC.KanjiQuiz.Tests
             lists.TryGetValue(key, out var list) ? new WeakQuestionList(list.Items) : new WeakQuestionList();
 
         public void Save(string key, WeakQuestionList list) => lists[key] = new WeakQuestionList(list.Items);
+
+        public void Delete(string key) => lists.Remove(key);
     }
 }

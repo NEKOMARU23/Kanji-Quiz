@@ -62,6 +62,20 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
+        public void 記録を読み直すと時間割を並べ直して黒板に新しい記録を出す()
+        {
+            CreatePresenter();
+            var reloaded = ModeSummary.Load(new[] { CreateMode("StrokeOrder") }, best, new FakeWeakQuestionRepository());
+
+            presenter.ReloadModes(reloaded);
+            presenter.Open();
+            view.AttendClicked.OnNext(Unit.Default);
+
+            Assert.AreSame(reloaded, view.Timetable);
+            Assert.AreSame(reloaded[0], view.BoardMode);
+        }
+
+        [Test]
         public void 開くと遊べる一番上のモードを選ぶ()
         {
             CreatePresenter();

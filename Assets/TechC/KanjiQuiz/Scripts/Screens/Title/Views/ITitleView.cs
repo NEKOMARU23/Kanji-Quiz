@@ -16,6 +16,15 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <summary>[おわる] が押されたとき</summary>
         Observable<Unit> OnQuitClicked { get; }
 
+        /// <summary>[設定] が押されたとき</summary>
+        Observable<Unit> OnSettingsClicked { get; }
+
+        /// <summary>[漢字帳] が押されたとき</summary>
+        Observable<Unit> OnKanjiBookClicked { get; }
+
+        /// <summary>[クレジット] が押されたとき</summary>
+        Observable<Unit> OnCreditsClicked { get; }
+
         /// <summary>タイトル画面を表示するかどうか</summary>
         void SetVisible(bool visible);
 
@@ -27,9 +36,15 @@ namespace TechC.KanjiQuiz.Screens.Title
         UniTask PlayIntroAsync(IReadOnlyList<IReadOnlyList<string>> logoStrokePaths, CancellationToken ct);
 
         /// <summary>
+        /// ロゴを書き終えてマグネットを貼った状態で、すぐにタイトルを出す（黒板に板書した画面から戻るとき）
+        /// </summary>
+        void ShowWithoutIntro(IReadOnlyList<IReadOnlyList<string>> logoStrokePaths);
+
+        /// <summary>
         /// マグネットを外し、黒板消しでタイトルを消す
         /// </summary>
+        /// <param name="pressed">押されたメニュー（押した手応えを見せる）</param>
         /// <returns>途中で飛ばされたら true（続く演出も飛ばすのに使う）</returns>
-        UniTask<bool> PlayExitAsync(CancellationToken ct);
+        UniTask<bool> PlayExitAsync(TitleMenuItem pressed, CancellationToken ct);
     }
 }

@@ -12,5 +12,8 @@ namespace TechC.KanjiQuiz.Common
 
         /// <summary>最高の正解数を保存する</summary>
         void Save(string key, int bestCorrectCount);
+
+        /// <summary>記録を消す（記録がなければ何もしない）</summary>
+        void Delete(string key);
     }
 }
