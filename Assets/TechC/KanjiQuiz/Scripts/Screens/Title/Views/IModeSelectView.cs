@@ -33,13 +33,13 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <summary>[← 時間割へ] が押されたとき（黒板で Esc を含む）</summary>
         Observable<Unit> OnBackToTimetableClicked { get; }
 
-        /// <summary>モード選択画面を表示するかどうか</summary>
+        /// <summary>モード選択画面を表示するかどうか。隠すときは黒板をタイトルの大きさに戻す</summary>
         void SetVisible(bool visible);
 
         /// <summary>時間割に行を並べる</summary>
         void SetTimetable(IReadOnlyList<ModeSummary> modes);
 
-        /// <summary>時間割の行を選び、右の黒板にそのモードの内容を書く</summary>
+        /// <summary>時間割の行を選び、右の黒板にそのモードの内容をチョークで書く</summary>
         /// <param name="canAttend">[この授業を受ける] を押せるかどうか（準備中なら false）</param>
         void SelectMode(int index, ModeSummary mode, bool canAttend);
 
@@ -50,7 +50,8 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <param name="startLabel">はじめるボタンの文字（例：常識ではじめる）</param>
         void SelectDifficulty(int index, string startLabel);
 
-        /// <summary>黒板を元の大きさに戻し、時間割を見せる</summary>
-        void ShowTimetable();
+        /// <summary>黒板を時間割の横の大きさにして、時間割を見せる</summary>
+        /// <param name="fromTitle">タイトルから来たかどうか。true なら黒板が縮んで時間割表が貼られる演出をする</param>
+        void ShowTimetable(bool fromTitle);
     }
 }
