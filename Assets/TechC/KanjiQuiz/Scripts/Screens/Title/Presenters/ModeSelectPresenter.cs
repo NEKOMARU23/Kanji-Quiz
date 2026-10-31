@@ -11,7 +11,7 @@ namespace TechC.KanjiQuiz.Screens.Title
     /// </summary>
     public sealed class ModeSelectPresenter : IDisposable
     {
-        private readonly IReadOnlyList<ModeSummary> modes;
+        private IReadOnlyList<ModeSummary> modes;
         private readonly IModeSelectView view;
         private readonly ISceneLoader sceneLoader;
         private readonly IAudioPlayer audioPlayer;
@@ -59,6 +59,17 @@ namespace TechC.KanjiQuiz.Screens.Title
             view.OnDifficultyMoved.Subscribe(this, static (d, self) => self.MoveDifficulty(d)).AddTo(disposables);
             view.OnStartClicked.Subscribe(this, static (_, self) => self.Start()).AddTo(disposables);
             view.OnBackToTimetableClicked.Subscribe(this, static (_, self) => self.CloseBoard()).AddTo(disposables);
+        }
+
+        /// <summary>
+        /// 時間割を並べ直す（記録を消したあとなど、記録を読み直したとき）
+        /// </summary>
+        /// <param name="modes">時間割に並べるモード（ModeSummary.Load で作る）</param>
+        public void ReloadModes(IReadOnlyList<ModeSummary> modes)
+        {
+            this.modes = modes ?? throw new ArgumentNullException(nameof(modes));
+            modeIndex = 0;
+            view.SetTimetable(modes);
         }
 
         /// <summary>

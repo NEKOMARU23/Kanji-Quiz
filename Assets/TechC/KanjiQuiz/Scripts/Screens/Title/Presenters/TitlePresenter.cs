@@ -10,11 +10,13 @@ namespace TechC.KanjiQuiz.Screens.Title
     /// <summary>
     /// タイトル画面の Presenter
     /// 黒板にロゴを書かせ、[はじめる] で黒板を消させてからモード選択を開く。モード選択の [← タイトルへ] でタイトルに戻る
+    /// メニューから開く画面は、タイトルの上に重ねる（漢字帳・クレジット）か、黒板を消して板書する（設定）。閉じるとロゴを書き直さずにタイトルに戻る
     /// </summary>
     public sealed class TitlePresenter : IDisposable
     {
         private readonly ITitleView view;
         private readonly ModeSelectPresenter modeSelect;
+        private readonly TitleSubScreens subScreens;
         private readonly IApplicationQuitter quitter;
         private readonly IAudioPlayer audioPlayer;
         private readonly IKanjiStrokeSource strokeSource;
@@ -25,22 +27,26 @@ namespace TechC.KanjiQuiz.Screens.Title
         private IReadOnlyList<IReadOnlyList<string>> logoStrokePaths;
         private bool isTitleVisible;
         private bool isBusy;
+        private ITitleSubScreen openSubScreen;
+        private bool isSubScreenOnBoard;
         private bool isDisposed;
 
         /// <summary>タイトルが表示されていて、メニューを押せる状態かどうか</summary>
-        public bool IsMenuReady => isTitleVisible && !isBusy;
+        public bool IsMenuReady => isTitleVisible && !isBusy && openSubScreen == null;
 
         /// <param name="modeSelect">モード選択画面の Presenter（Initialize 済みでなくてよい）</param>
+        /// <param name="subScreens">メニューから開く画面（Initialize 済みでなくてよい）</param>
         /// <param name="audioPlayer">効果音を鳴らす。鳴らさないなら NullAudioPlayer</param>
         /// <param name="strokeSource">ロゴの書き順データの読み込み口</param>
         /// <param name="logoText">黒板に書くロゴの字（例：漢字クイズ）</param>
         /// <param name="openModeSelectFirst">タイトルを飛ばして、最初からモード選択を出すかどうか</param>
         public TitlePresenter(
-            ITitleView view, ModeSelectPresenter modeSelect, IApplicationQuitter quitter, IAudioPlayer audioPlayer,
-            IKanjiStrokeSource strokeSource, string logoText, bool openModeSelectFirst)
+            ITitleView view, ModeSelectPresenter modeSelect, TitleSubScreens subScreens, IApplicationQuitter quitter,
+            IAudioPlayer audioPlayer, IKanjiStrokeSource strokeSource, string logoText, bool openModeSelectFirst)
         {
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.modeSelect = modeSelect ?? throw new ArgumentNullException(nameof(modeSelect));
+            this.subScreens = subScreens ?? throw new ArgumentNullException(nameof(subScreens));
             this.quitter = quitter ?? throw new ArgumentNullException(nameof(quitter));
             this.audioPlayer = audioPlayer ?? throw new ArgumentNullException(nameof(audioPlayer));
             this.strokeSource = strokeSource ?? throw new ArgumentNullException(nameof(strokeSource));
@@ -54,9 +60,19 @@ namespace TechC.KanjiQuiz.Screens.Title
         public void Initialize()
         {
             modeSelect.Initialize();
+            foreach (var screen in subScreens.All())
+            {
+                screen.Initialize();
+                screen.OnClosed.Subscribe(this, static (_, self) => self.OnSubScreenClosed()).AddTo(disposables);
+            }
 
             view.OnStartClicked.Subscribe(this, static (_, self) => self.OpenModeSelectAsync().Forget()).AddTo(disposables);
             view.OnQuitClicked.Subscribe(this, static (_, self) => self.Quit()).AddTo(disposables);
+            view.OnSettingsClicked
+                .Subscribe(this, static (_, self) => self.OpenBoardSubScreenAsync(self.subScreens.Settings, TitleMenuItem.Settings).Forget())
+                .AddTo(disposables);
+            view.OnKanjiBookClicked.Subscribe(this, static (_, self) => self.OpenSubScreen(self.subScreens.KanjiBook)).AddTo(disposables);
+            view.OnCreditsClicked.Subscribe(this, static (_, self) => self.OpenSubScreen(self.subScreens.Credits)).AddTo(disposables);
             modeSelect.OnBackToTitle.Subscribe(this, static (_, self) => self.ShowTitleAsync().Forget()).AddTo(disposables);
 
             if (openModeSelectFirst)
@@ -100,7 +116,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             bool skipped;
             try
             {
-                skipped = await view.PlayExitAsync(ct);
+                skipped = await view.PlayExitAsync(TitleMenuItem.Start, ct);
             }
             catch (OperationCanceledException)
             {
@@ -111,6 +127,51 @@ namespace TechC.KanjiQuiz.Screens.Title
             isBusy = false;
             view.SetVisible(false);
             modeSelect.Open(fromTitle: !skipped);
+        }
+
+        /// <summary>メニューから開く画面を、タイトルの上に開く</summary>
+        private void OpenSubScreen(ITitleSubScreen screen)
+        {
+            if (screen == null || !IsMenuReady) return;
+
+            audioPlayer.PlaySe(SeType.Select);
+            openSubScreen = screen;
+            isSubScreenOnBoard = false;
+            screen.Open();
+        }
+
+        /// <summary>黒板消しでタイトルを消してから、メニューから開く画面を黒板に出す</summary>
+        private async UniTaskVoid OpenBoardSubScreenAsync(ITitleSubScreen screen, TitleMenuItem pressed)
+        {
+            if (screen == null || !IsMenuReady) return;
+
+            var ct = lifetimeCts.Token;
+            isBusy = true;
+            audioPlayer.PlaySe(SeType.Select);
+            try
+            {
+                await view.PlayExitAsync(pressed, ct);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+
+            isBusy = false;
+            view.SetVisible(false);
+            openSubScreen = screen;
+            isSubScreenOnBoard = true;
+            screen.Open();
+        }
+
+        /// <summary>メニューから開いた画面が閉じたら、タイトルに戻る（黒板に出していたなら、書き終えたロゴを出す）</summary>
+        private void OnSubScreenClosed()
+        {
+            if (openSubScreen == null) return;
+
+            openSubScreen = null;
+            if (isSubScreenOnBoard) view.ShowWithoutIntro(logoStrokePaths);
+            isSubScreenOnBoard = false;
         }
 
         private void Quit()
@@ -139,6 +200,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             lifetimeCts.Dispose();
             disposables.Dispose();
             modeSelect.Dispose();
+            foreach (var screen in subScreens.All()) screen.Dispose();
         }
     }
 }
