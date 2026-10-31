@@ -3,7 +3,7 @@ using R3;
 namespace TechC.KanjiQuiz.Common
 {
     /// <summary>
-    /// 中断メニュー（続ける、最初からやり直す、効果音の音量）
+    /// 中断メニュー（続ける、最初からやり直す、やめる、効果音の音量）
     /// </summary>
     public interface IPauseMenuView
     {
@@ -18,6 +18,9 @@ namespace TechC.KanjiQuiz.Common
 
         /// <summary>[最初からやり直す] が押されたとき</summary>
         Observable<Unit> OnRestartClicked { get; }
+
+        /// <summary>[やめる]（モード選択へ）が押されたとき</summary>
+        Observable<Unit> OnQuitClicked { get; }
 
         /// <summary>効果音の音量のつまみが動かされたとき。値は 0〜1</summary>
         Observable<float> OnSeVolumeChanged { get; }
