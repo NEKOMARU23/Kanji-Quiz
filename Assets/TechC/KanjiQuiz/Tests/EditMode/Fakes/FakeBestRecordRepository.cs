@@ -20,5 +20,7 @@ namespace TechC.KanjiQuiz.Tests
             records[key] = bestCorrectCount;
             SaveCount++;
         }
+
+        public void Delete(string key) => records.Remove(key);
     }
 }
