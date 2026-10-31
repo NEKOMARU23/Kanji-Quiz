@@ -78,7 +78,7 @@
   - 偽物：借りてきた部品の音読み。漢字は音を表す部品で読みが決まることが多い（清・晴・精＝セイ）ので、それらしく見える。例：「氵＋寺」→「ジ」。
 - 難易度は書き順クイズと同じく**出題範囲**で変える（簡単＝小学漢字、常識＝小学校で学ばない常用漢字のうちよく使う半分、困難＝あまり使わない半分。5.2）。人名用漢字は入れない。
 - 問題数（5・7・7問）、級、自己ベスト、苦手な漢字の復習、制限時間なしは、書き順クイズと同じ（3.6〜3.8）。苦手な漢字は本物の漢字で覚える。
-  - 保存のキーは `BestRecord_RealKanji_<難易度>` と `WeakQuestions_RealKanji_<難易度>`。
+  - 保存のキーは `BestRecord_RealKanji_<難易度>` と `WeakQuestions_RealKanji_<難易度>`。正解した字は漢字帳（`KanjiBook_RealKanji`）に集める。
 - 振り返りでは、問題文の代わりに本物の読み・使用例・意味・例文を3行で出す（1行目に読みと使用例、2行目に意味、3行目に例文。例文の中の本物の字は朱色）。
   - 例：「本物は「海」（カイ）　使用例：海外（かいがい）、北海道（ほっかいどう）、海上（かいじょう）／意味：地球の上に広がる、しおからい水のあつまり。／例文：夏休みに家族で海へ泳ぎに行った。」
   - 各選択肢の字の右に説明を出す。本物は「本物」、偽物はどの部品の組み合わせか（例：「氵＋舎（捨の右側）」。漢字1字をまるごと借りたときは「氵＋寺」）。
@@ -358,6 +358,7 @@
 ### 3.8 苦手な漢字の復習
 
 - 間違えた漢字を「苦手な漢字」として、難易度ごとに PlayerPrefs に保存する（キーは `WeakQuestions_StrokeOrder_Easy` など、改行区切り）。
+- 正解した漢字は漢字帳に集める。モードごとに PlayerPrefs に保存する（キーは `KanjiBook_StrokeOrder`、漢字をつなげた文字列。難易度では分けない）。
 - 次のプレイでは、苦手な漢字（その難易度の出題範囲にあるもの）を問題数の半分まで優先して出す（簡単は2問、常識・困難は3問）。残りは新しい漢字からランダムに選ぶ。出題順は混ぜる。
 - 苦手な漢字に正解したらリストから外す。もう一度間違えたら一番新しくする。
 - 覚えておくのは 30 字まで。超えたら古いものから外す。
@@ -374,14 +375,17 @@
 
 | オブジェクト | コンポーネント | 役割 |
 |---|---|---|
-| TitleEntryPoint | TitleEntryPoint | モードの一覧（Data/Modes/ModeCatalog）と保存した記録から時間割を作り、Presenter をつなぐ |
-| Canvas | TitleView / ModeSelectView | タイトル画面（黒板の中の TitleContent）とモード選択画面（ModeSelectRoot）の表示 |
+| TitleEntryPoint | TitleEntryPoint | モードの一覧（Data/Modes/ModeCatalog）と保存した記録から時間割を作り、Presenter をつなぐ。漢字帳のデータ（漢字セット・読み（RealKanji の問題データ）・意味と例文・熟語の JSON）もここで設定する |
+| Canvas | TitleView / ModeSelectView / SettingsView / KanjiBookView / CreditsView | タイトル画面（黒板の中の TitleContent）、モード選択画面（ModeSelectRoot）、設定（黒板の中の SettingsContent）、漢字帳（KanjiBookRoot）、クレジット（CreditsRoot）の表示 |
 | Canvas/Wall・Wainscot | Image | 教室の壁と腰板 |
 | Board | Image（Inner に RectMask2D） | 黒板。タイトル・時間割の横・画面いっぱいの3つの置き場所（TitleBoardArea・SmallBoardArea・LargeBoardArea）の間を動かす。モード選択画面を隠しても見えるように ModeSelectRoot の外に置く |
-| Board/Inner/TitleContent | ChalkStrokeGraphic（Logo）/ TextMeshPro / CanvasGroup | タイトル。Logo はロゴをチョークの線で書く。Magnets は はじめる・設定・漢字帳・クレジット・おわる のマグネット（設定・漢字帳・クレジットは押せない） |
+| Board/Inner/TitleContent | ChalkStrokeGraphic（Logo）/ TextMeshPro / CanvasGroup | タイトル。Logo はロゴをチョークの線で書く。Magnets は はじめる・設定・漢字帳・クレジット・おわる のマグネット |
+| Board/Inner/SettingsContent | Slider / Button / TextMeshPro | 設定。効果音の音量（SeVolumeSlider）、ひらがなで表示（しない／する。選んだ方をチョークの丸 Mark で囲む）、記録を消す（EraseButton、確認は EraseConfirm） |
 | Board/Inner/EraseLayer | （子に Eraser） | 黒板消しで消した跡（黒板の色の帯）を置く場所と、黒板消し |
 | Board/Inner/SmallContent | ChalkTextWriter | 時間割の横の黒板の字をチョークで1字ずつ書く。チョークの先は Board/Inner/ChalkTip |
 | CreditText | TextMeshPro | KanjiVG のクレジット（タイトルのときだけ） |
+| KanjiBookRoot | CanvasGroup / Image（机） | 漢字帳。Notebook の下に Tabs（出題範囲のタブ3つ）、LeftPage（SummaryText、Cells（GridLayoutGroup。CellTemplate を起動時に 10×8 個に増やす）、SelectionFrame、ページ送り）、RightPage（EmptyMessage と Detail。Detail は KanjiMasu、StrokeMasu（書き順のお手本の ChalkStrokeGraphic）、読み・意味・例文・使用例、ModeStamps） |
+| CreditsRoot | CanvasGroup / Image | クレジット（掲示板「ありがとう」）。Canvas のいちばん手前に置き、開いている間はタイトルを覆って押せなくする。Board/Cork に見出し（Heading）、おたより6枚（Notes）、[← タイトルへ]（BackButton） |
 | ModeSelectRoot/TimetablePaper | Image / VerticalLayoutGroup（RowContainer） | 時間割表。行は TimetableRow プレハブ、4時間目のあとに LunchBreak プレハブ |
 | ModeSelectRoot/Board | Image（Inner、Tray） | 黒板。SmallBoardArea と LargeBoardArea の間で大きさを変える。中身は SmallContent（時間割の横）と LargeContent（画面いっぱい、列は DifficultyColumn プレハブ） |
 | ModeSelectRoot/AttendButton | Button | [この授業を受ける] |
@@ -389,7 +393,8 @@
 
 - プレハブは `Prefabs/Screens/Title/` の TimetableRow・LunchBreak・DifficultyColumn。
 - 時間割に並べるモードは `QuizModeCatalog` の順。まだ作っていないモードの定義（四字熟語づくり・画像で名前当て・返信文クイズ・人名漢字のモード）は `isAvailable` を外してあり、「自習（○○ 準備中）」と出す。
-- 黒板のチョークの丸と級の枠は `Tools/generate_placeholder_ui.py` で作った仮の画像（`fx_chalk_circle`、`frame_chalk_stamp`）。
+- 黒板のチョークの丸と級の枠、掲示板のコルク、漢字帳のマスと選んだマスの枠は `Tools/generate_placeholder_ui.py` で作った仮の画像（`fx_chalk_circle`、`frame_chalk_stamp`、`bg_cork`、`frame_masu`、`frame_select`）。
+- クレジットのおたよりの文はシーンに直接書いている。使うデータやフォントが増えたら、CreditsRoot/Board/Cork/Notes に紙を足す。
 基準解像度は 1920×1080（Canvas Scaler：Scale With Screen Size、Match 0.5）。文字はすべて Klee One（4.2）で表示する。
 
 **StrokeOrder シーン**
@@ -405,7 +410,7 @@
 | AudioManager | AudioManager / AudioSource ×2 | 効果音を鳴らす（Prefabs/Common/AudioManager プレハブ） |
 | SceneTransition | SceneTransitionView / Canvas（Overlay）/ AudioSource | プリントを回収して次を配るようにシーンを切り替える（Prefabs/Common/SceneTransition プレハブ） |
 | Canvas/Background | Image | 学校のプリントのような背景。Canvas の一番後ろに置く（Prefabs/Common/PrintBackground プレハブ） |
-| PauseMenu | PauseMenuView / PauseMenuEntryPoint / Canvas（Camera、sortingOrder 20） | 中断メニュー（Prefabs/Common/PauseMenu プレハブ）。右上の [メニュー] ボタンも含む |
+| PauseMenu | PauseMenuView / PauseMenuEntryPoint / Canvas（Camera、sortingOrder 20） | 中断メニュー（Prefabs/Common/PauseMenu プレハブ。連絡帳の見た目で、Panel/Sheet の下に Cover・Paper（Lines）・Content）。右上の [メニュー] ボタンも含む |
 | KanjiText/WeakMark | Image / TextMeshPro | 苦手な漢字のときに出す「苦手」のハンコ。漢字と一緒にスライドするよう KanjiText の子にしている |
 | DebugDifficultySwitcher | DebugDifficultySwitcher / CanvasGroup | テスト用の難易度切り替えボタン。F1 で表示（エディタと開発ビルドのみ） |
 | Container | VerticalLayoutGroup | 選択肢を並べる親 |
@@ -479,6 +484,7 @@
 
 ### 4.4 中断メニュー
 
+- 見た目は机の上に開いた連絡帳（ScreenDesign.md 3.7 の S2）。左に「プレイを」（続ける・最初からやり直す・やめる）、右に「せってい」（効果音の音量・ひらがなで表示）。紙には罫線と赤い余白線、右下に先生の「確認」のハンコ。
 - 右上の [メニュー] ボタンか Esc で開き、もう一度 Esc か [続ける] で閉じる。
 - [最初からやり直す] で、今のシーンを読み込み直す（難易度はそのまま）。
 - 効果音の音量をつまみで変えられる。すぐに反映し、PlayerPrefs（`Volume_Se`）に保存する。AudioManager が起動したときに読み込む。
@@ -630,9 +636,15 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 |---|---|---|
 | DifficultyRecord | Model | 黒板に書く1つの難易度の記録（自己ベスト、級、次の目標のひとこと、苦手な問題） |
 | ModeSummary | Model | 時間割の1行（時限、遊べるか、一番上の級）と難易度ごとの記録。モードの一覧と保存先から作る |
-| TitlePresenter | Presenter | タイトル画面の [はじめる]・[おわる] と、モード選択との切り替え |
+| TitlePresenter | Presenter | タイトル画面の [はじめる]・[おわる] と、モード選択との切り替え。メニューから開く画面（ITitleSubScreen）をタイトルの上に開く |
+| SettingsPresenter | Presenter | タイトルから開く設定。効果音の音量・ひらがなで表示・記録を消す（確認してから。消したら OnRecordsErased で知らせ、時間割の記録を読み直す）（ITitleSubScreen） |
+| KanjiBookPresenter | Presenter | 漢字帳。タブ（出題範囲）ごとに集めた字をマス目に書き、選んだ字の読み・意味・例文・使用例・正解したモード・書き順を出す（ITitleSubScreen） |
+| KanjiBook / IKanjiBookRepository / PlayerPrefsKanjiBookRepository | Model | 漢字帳（モードごとに正解した字）と保存先 |
+| KanjiInfo / KanjiReadingDictionary / KanjiBookDetail | Model | 漢字帳に出す字の情報（読み・意味と例文・熟語）と、右のページの内容 |
+| CreditsPresenter | Presenter | クレジット画面を開き、[← タイトルへ] で閉じる（ITitleSubScreen） |
 | ModeSelectPresenter | Presenter | 時間割でモードを選び、黒板で難易度を選んで、そのモードのシーンを開く |
 | TitleView / ModeSelectView / TimetableRowView / DifficultyColumnView | View | タイトル画面（ロゴを書く・黒板消しで消す）、時間割と黒板（黒板が縮む・時間割が貼られる・チョークで字を書く）、時間割の1行、黒板の1列 |
+| SettingsView / KanjiBookView / CreditsView | View | 黒板に板書する設定、机の上の漢字帳（← → でページをめくる）、クレジットの掲示板。どれも Esc でも閉じる |
 | TitleEntryPoint | 組み立て役 | 記録を読み、Model・View・Presenter をつなぐ |
 
 **書き順クイズ**（`Scripts/Modes/StrokeOrder`、名前空間 `TechC.KanjiQuiz.Modes.StrokeOrder`）
@@ -674,7 +686,9 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 - [x] シーンのひな形（シーンテンプレート）とモードの定義
 - [x] ゲーム内での難易度選択（モード選択画面の黒板。F1 のテスト用ボタンも残している）
 - [x] タイトル画面・モード選択画面とシーン遷移（タイトル画面の見た目とロゴの演出は仮）
-- [ ] タイトルの設定・漢字帳・クレジット
+- [x] タイトルのクレジット（掲示板「ありがとう」）
+- [x] タイトルの設定（黒板に板書。効果音の音量、ひらがなで表示、記録を消す）
+- [x] タイトルの漢字帳（正解した字を集めるマス目の漢字練習帳）
 - [x] 難易度ごとの出題範囲とランダムな出題
 - [x] 結果画面からの問題の振り返り
 - [x] 結果発表の演出、級、自己ベスト、全問正解の花丸
@@ -712,7 +726,6 @@ PR #1 のコードレビューで見つかった不具合は、書き順クイ�
 
 - 各ゲームモードの詳細ルール（2.1 の「未定」の項目）
 - 各モードの問題データの作り方（偽物の漢字、四字熟語リスト、画像など）
-- KanjiVG のクレジット表記の場所
 
 **オンライン・問題作成（フェーズ2、実装時に検討）**
 
@@ -736,7 +749,6 @@ PR #1 のコードレビューで見つかった不具合は、書き順クイ�
 - プレイ中の手応え（選択・ページめくりの音、問題を切り替えるときのスライド）（3.0）
 - 振り返りのお手本アニメーション（3.5）
 - 苦手な漢字の復習（3.8）、学校のプリントのような背景と、プリントを回収して次を配るシーン切り替え（4.3）
-- タイトルのロゴを筆で書く演出と、漢字帳（正解した漢字のコレクション）は、タイトル画面を作るときに作る
 
 **決定済み（2026-10-27）**
 

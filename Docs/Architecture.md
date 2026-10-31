@@ -168,6 +168,9 @@ classDiagram
 | `KanjiRank` | 正解率と難易度から級（10級〜初段）を決める。級の高さ（難易度をまたいで比べる）と、次の級まであと何問かも求める | Model |
 | `IBestRecordRepository` / `PlayerPrefsBestRecordRepository` / `BestRecordUpdate` | 自己ベストの保存先と、1回のプレイで更新したかどうか。`QuizResult.UpdateBestRecord` が1回だけ調べて保存する | Model |
 | `WeakQuestionList` / `IWeakQuestionRepository` / `PlayerPrefsWeakQuestionRepository` | 苦手な問題（間違えた問題）のリストと保存先。`OrderCandidates` で苦手な問題を先頭に並べる。問題は文字列で表すので、ほかのモードでも使える | Model |
+| `KanjiBook` / `IKanjiBookRepository` / `PlayerPrefsKanjiBookRepository` | 漢字帳。モードごとに正解した字を持つ。`KanjiBook.Collect` で結果の正解した字（Label）を足して保存する（各モードの組み立て役が結果画面へ移るときに呼ぶ）。キーは `KanjiBook_<モード>` | Model |
+| `KanjiReadingDictionary` | 漢字ごとの読み（本物の漢字さがしの問題データの `reading`） | Model |
+| `QuizRecordEraser` | 保存した記録（自己ベスト・苦手な問題・漢字帳）を、モードの一覧のすべてのモードと難易度について消す（設定の「記録を消す」）。保存先には `Delete` がある | Model |
 | `SceneTransitionView` / `ISceneTransition` | プリントを回収して次を配るようにシーンを切り替える（`SingletonMonoBehaviour` を継承）。`SceneLoader` に渡すと演出つきになる。カメラの映像をテクスチャに描いて使うので、各シーンの Canvas は Screen Space - Camera にする | View |
 | `ResultItemView` | 結果画面の、問題1つ分の行（○・× のハンコ） | View |
 | `QuizLaunchOptions` | プレイ画面を開くときの設定（難易度）。モード選択画面が設定する | 共通 |
@@ -197,9 +200,12 @@ classDiagram
 |---|---|---|
 | `DifficultyRecord` | 1つの難易度の記録（自己ベスト、級、次の目標のひとこと、苦手な問題） | Model |
 | `ModeSummary` | 時間割の1行と黒板の内容。`ModeSummary.Load` がモードの一覧と保存先（自己ベスト・苦手な問題）から作る | Model |
-| `TitlePresenter` | タイトル画面。ロゴの書き順を読んで View に書かせ、[はじめる] で黒板を消させてからモード選択を開く（消すのを飛ばしたら、モード選択の演出も飛ばす）。[← タイトルへ] で戻る | Presenter |
+| `TitlePresenter` | タイトル画面。ロゴの書き順を読んで View に書かせ、[はじめる] で黒板を消させてからモード選択を開く（消すのを飛ばしたら、モード選択の演出も飛ばす）。[← タイトルへ] で戻る。メニューから開く画面（`TitleSubScreens` にまとめた `ITitleSubScreen`）をタイトルの上に開き、開いている間はタイトルのボタンに反応しない | Presenter |
+| `SettingsPresenter` | タイトルから開く設定。効果音の音量（`IVolumeRepository`）、ひらがなで表示（`DisplaySettings`）、記録を消す（確認を出してから `QuizRecordEraser` で消し、`OnRecordsErased` で知らせる。組み立て役がこれを受けて `ModeSelectPresenter.ReloadModes` で時間割を読み直す）（`ITitleSubScreen`） | Presenter |
+| `KanjiBookPresenter` | 漢字帳。タブ（漢字セット）・ページ・選んだ字を持ち、マス目（集めた字／空のマス／範囲の外）と右のページの内容（`KanjiBookDetail`。意味と例文は表示の設定でひらがなにする）を View に渡す。書き順は `IKanjiStrokeSource` で読み、字を選び直したら読み込みを取り消す。漢字帳は開くたびに読み直し、字の情報（`KanjiInfo`）は最初に字を選んだときに1回だけ読む（`ITitleSubScreen`） | Presenter |
+| `CreditsPresenter` | クレジット画面。開いて見せ、[← タイトルへ]（Esc）で閉じて `OnClosed` で知らせる（`ITitleSubScreen`） | Presenter |
 | `ModeSelectPresenter` | 時間割の選択、黒板の開閉、難易度の選択、`QuizLaunchOptions` に難易度を入れてモードのシーンを開く | Presenter |
-| `ITitleView` / `IModeSelectView` と、その実装 `TitleView` / `ModeSelectView`（行は `TimetableRowView`、黒板の列は `DifficultyColumnView`） | 表示とキー操作 | View |
+| `ITitleView` / `IModeSelectView` / `ISettingsView` / `IKanjiBookView` / `ICreditsView` と、その実装 `TitleView` / `ModeSelectView` / `SettingsView` / `KanjiBookView` / `CreditsView`（行は `TimetableRowView`、黒板の列は `DifficultyColumnView`） | 表示とキー操作 | View |
 | `TitleEntryPoint` | 組み立て役 | 組み立て役 |
 
 ### 3.4 1問の流れ
@@ -381,7 +387,7 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | 書き順クイズの Presenter（苦手の印、振り返りのお手本） | `StrokeOrderPresenterTests` |
 | 本物の漢字さがし（偽物の組み立て、問題づくり、出題と振り返りの表示） | `FakeKanjiComposerTests`, `RealKanjiQuestionFactoryTests`, `RealKanjiPresenterTests` |
 | 苦手な問題 | `WeakQuestionListTests` |
-| タイトルとモード選択（記録のまとめ、時間割と黒板の操作） | `ModeSummaryTests`, `ModeSelectPresenterTests`, `TitlePresenterTests` |
+| タイトルとモード選択（記録のまとめ、時間割と黒板の操作） | `ModeSummaryTests`, `ModeSelectPresenterTests`, `TitlePresenterTests`, `SettingsPresenterTests`, `KanjiBookPresenterTests`, `CreditsPresenterTests`, `QuizRecordEraserTests`, `KanjiBookTests` |
 | 中断メニュー、キー操作を止める仕組み | `PauseMenuPresenterTests`, `InputGateTests` |
 | モードの定義（書き順クイズのアセットの値も確かめる） | `QuizModeDefinitionTests` |
 | シャッフル | `ShuffleUtilityTests` |

@@ -39,12 +39,12 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - 問題データは JSON。`IQuestionRepository` 経由で読む（同梱の JSON は `LocalQuestionRepository<TEntry>`。`TEntry` は問題1件の [Serializable] な型）。
 - 非同期は UniTask。問題ごとに `CancellationTokenSource` を作り直す。`async void` 禁止。
 
-## 現在の状態（2026-10-30 時点）
+## 現在の状態（2026-10-31 時点）
 
-- **遊べるのは書き順クイズと本物の漢字さがし**。タイトル（黒板にチョークで書くロゴ）、モード選択（教室の時間割表）、難易度選択（黒板）もできた。ほかの3モードは未着手。次にやることは `Docs/Progress.md` の9章。返信文クイズは後回し（正しい返信文を作るのが難しいため）。
+- **遊べるのは書き順クイズと本物の漢字さがし**。タイトル（黒板にチョークで書くロゴ）、モード選択（教室の時間割表）、難易度選択（黒板）、タイトルのメニューの設定・漢字帳・クレジットもできた。ほかの3モードは未着手。次にやることは `Docs/Progress.md` の9章。返信文クイズは後回し（正しい返信文を作るのが難しいため）。
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
   - KanjiVG の SVG を読む部品（`KanjiSvgParser`, `StrokePathParser`, `StrokeData`, `StreamingAssetsKanjiStrokeSource`）と、字を線で描く `KanjiGlyphRenderer`、熟語の辞書 `KanjiWordDictionary` も Common にある。
-  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、213 件）。
+  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、249 件）。
 - 書き順クイズは `Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`。
   - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。難易度・難易度ごとの漢字セット・選択肢の数・振り返り用の View もここで設定する。
   - 難易度はモード選択画面の黒板で選び、`QuizLaunchOptions.Difficulty` で受け取る（なければ EntryPoint の Inspector の値）。F1 キーで表示されるテスト用ボタン（`Scripts/DebugTools/DebugDifficultySwitcher`、エディタと開発ビルドのみ）で切り替えられる。シーンに保存する難易度は Easy にしておく。
@@ -61,6 +61,9 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - タイトルとモード選択は `Assets/TechC/KanjiQuiz/Scripts/Screens/Title/`（`Title.unity`、組み立て役は `TitleEntryPoint`）。タイトル → 時間割 → 黒板を1つのシーンで切り替える（仕様は `Docs/ScreenDesign.md` 3.1〜3.3）。
   - 時間割は `QuizModeCatalog` の順に並べる。まだ作っていないモード（四字熟語づくり・画像で名前当て・返信文クイズ・人名漢字 `JinmeiKanji`）は、モードの定義の `isAvailable` を外して「自習」と出す。モードを作ったら `isAvailable` を入れる。
   - 中断メニューの [やめる] と結果画面の [モード選択へ] は `TitleLaunchOptions.OpenModeSelect` を立てて Title を開く（時間割から始まる）。
+  - タイトルのメニューから開く画面は `ITitleSubScreen`（`TitleSubScreens` にまとめて `TitlePresenter` に渡す）。設定（`SettingsPresenter`）は黒板消しでタイトルを消して黒板に板書し、漢字帳（`KanjiBookPresenter`、机の上の見開きノート）とクレジット（`CreditsPresenter`、コルクの掲示板）はタイトルの上に重ねる。閉じるとロゴを書き直さずにタイトルに戻る（仕様は `Docs/ScreenDesign.md` 3.7〜3.9）。
+  - 設定の「記録を消す」は `QuizRecordEraser` で自己ベスト・苦手な漢字・漢字帳を消す。ユーザーの記録も消えるので、Play の確認では押さない。
+  - 漢字帳は、各モードの組み立て役が結果画面へ移るときに `KanjiBook.Collect` で正解した字を `KanjiBook_<モード>` に足す。読みは `KanjiReadingDictionary`（RealKanji の問題データ）、意味と例文・熟語は既存の辞書。データは `TitleEntryPoint` で設定する。Play で確かめたあとは `KanjiBook_<モード>` も消す。
   - 黒板（Board）は1枚をタイトル・時間割の横・画面いっぱいで使い回す。ロゴは KanjiVG の書き順で `ChalkStrokeGraphic`（UI の線）に書く。時間割の横の黒板の字は `ChalkTextWriter` で1字ずつ出す。演出はクリックか Enter・スペースで飛ばせる（`SkipInput`）。
 - シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `Title.unity`（シーンリストの先頭）、`StrokeOrder.unity`、`RealKanji.unity` と `Result.unity`（全モード共通の結果画面）。
   - 全問回答すると `QuizResultStore` に結果、`QuizReviewStore` に問題と回答を置いて Result へ移る。
@@ -73,7 +76,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - 背景は学校のプリントのような画像（各 Canvas の Background）。シーンの切り替えは `SceneTransitionView`（`Prefabs/Common/SceneTransition`、プリントを回収して次を配る）で、`new SceneLoader(SceneTransitionView.Instance)` のように EntryPoint で渡す。
 - **新しいモードのシーンは File > New Scene のテンプレート「漢字クイズのモード」から作る**（`Scenes/Templates/`、手順は `Docs/GameSpec.md` 4.6）。共通の部品は `Prefabs/Common/` のプレハブ（QuizFrame、PauseMenu、PrintBackground、AudioManager、SceneTransition）。
 - モード名・シーン名・難易度ごとの問題数・保存のキーは `Data/Modes/` のモードの定義（`QuizModeDefinition`）に書く。書き順クイズは `Mode_StrokeOrder`、本物の漢字さがしは `Mode_RealKanji`（各 EntryPoint の `mode` に設定）。
-- 中断メニュー（Esc か右上の [メニュー]）で、続ける・最初からやり直す・やめる（時間割へ）・効果音の音量・出題の字のほかは ひらがなで表示。音量は PlayerPrefs の `Volume_Se`。キーボード操作は数字キー・Enter・← →・Esc。メニューを開いている間とシーンの切り替え中は `InputGate` でキー操作を止める。
+- 中断メニュー（Esc か右上の [メニュー]、見た目は机の上の連絡帳）で、続ける・最初からやり直す・やめる（時間割へ）・効果音の音量・出題の字のほかは ひらがなで表示。音量は PlayerPrefs の `Volume_Se`。キーボード操作は数字キー・Enter・← →・Esc。メニューを開いている間とシーンの切り替え中は `InputGate` でキー操作を止める。
 - 切り替えはカメラの映像をテクスチャに描いて使うので、**新しいシーンの Canvas は Screen Space - Camera にする**（Overlay の UI はプリントに映らない）。Title・StrokeOrder・RealKanji・Result はどれも Camera にしてある。
 - 効果音は `AudioManager`（`Prefabs/Common/AudioManager`、Title・StrokeOrder・RealKanji・Result のシーンに置いている）。シングルトンは `SingletonMonoBehaviour<T>` を継承して作る。今の効果音と画像は `Tools/generate_placeholder_se.py`・`Tools/generate_placeholder_ui.py` で作った仮のもの。
 - 文字は Klee One の TMP フォントアセット（Dynamic、TMP Settings の既定）で表示する。
