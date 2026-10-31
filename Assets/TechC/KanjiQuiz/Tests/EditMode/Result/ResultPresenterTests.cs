@@ -71,6 +71,64 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
+        public void モード選択へを押すとモード選択から始まるタイトルのシーンを読み込む()
+        {
+            TitleLaunchOptions.OpenModeSelect = false;
+
+            using (var presenter = CreatePresenter(CreateResult()))
+            {
+                presenter.Initialize();
+                view.ClickModeSelect();
+            }
+
+            Assert.IsTrue(TitleLaunchOptions.TakeOpenModeSelect());
+            CollectionAssert.AreEqual(new[] { SceneNames.Title }, sceneLoader.LoadedScenes);
+        }
+
+        [Test]
+        public void タイトルへを押すとタイトルから始まるタイトルのシーンを読み込む()
+        {
+            TitleLaunchOptions.OpenModeSelect = true;
+
+            using (var presenter = CreatePresenter(CreateResult()))
+            {
+                presenter.Initialize();
+                view.ClickTitle();
+            }
+
+            Assert.IsFalse(TitleLaunchOptions.TakeOpenModeSelect());
+            CollectionAssert.AreEqual(new[] { SceneNames.Title }, sceneLoader.LoadedScenes);
+        }
+
+        [Test]
+        public void 結果がなくてもモード選択には戻れる()
+        {
+            using (var presenter = CreatePresenter(null))
+            {
+                presenter.Initialize();
+                view.ClickModeSelect();
+            }
+
+            CollectionAssert.AreEqual(new[] { SceneNames.Title }, sceneLoader.LoadedScenes);
+            TitleLaunchOptions.OpenModeSelect = false;
+        }
+
+        [Test]
+        public void 演出中はモード選択へとタイトルへに反応しない()
+        {
+            view.HoldReveal = true;
+
+            using (var presenter = CreatePresenter(CreateResult(), playReveal: true))
+            {
+                presenter.Initialize();
+                view.ClickModeSelect();
+                view.ClickTitle();
+            }
+
+            Assert.IsEmpty(sceneLoader.LoadedScenes);
+        }
+
+        [Test]
         public void 結果がないときはその旨を表示しボタンに反応しない()
         {
             using (var presenter = CreatePresenter(null))

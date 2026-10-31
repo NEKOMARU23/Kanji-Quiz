@@ -14,11 +14,15 @@ namespace TechC.KanjiQuiz.Tests
     public class FakeResultView : IResultView
     {
         private readonly Subject<Unit> onRetryClicked = new Subject<Unit>();
+        private readonly Subject<Unit> onModeSelectClicked = new Subject<Unit>();
+        private readonly Subject<Unit> onTitleClicked = new Subject<Unit>();
         private readonly Subject<int> onItemClicked = new Subject<int>();
         private readonly Subject<Unit> onReviewClicked = new Subject<Unit>();
         private readonly Subject<Unit> onSkipRequested = new Subject<Unit>();
 
         public Observable<Unit> OnRetryClicked => onRetryClicked;
+        public Observable<Unit> OnModeSelectClicked => onModeSelectClicked;
+        public Observable<Unit> OnTitleClicked => onTitleClicked;
         public Observable<int> OnItemClicked => onItemClicked;
         public Observable<Unit> OnReviewClicked => onReviewClicked;
         public Observable<Unit> OnSkipRequested => onSkipRequested;
@@ -113,6 +117,8 @@ namespace TechC.KanjiQuiz.Tests
         public void SetReviewAvailable(bool available) => IsReviewAvailable = available;
 
         public void ClickRetry() => onRetryClicked.OnNext(Unit.Default);
+        public void ClickModeSelect() => onModeSelectClicked.OnNext(Unit.Default);
+        public void ClickTitle() => onTitleClicked.OnNext(Unit.Default);
         public void ClickItem(int index) => onItemClicked.OnNext(index);
         public void ClickReview() => onReviewClicked.OnNext(Unit.Default);
         public void ClickSkip() => onSkipRequested.OnNext(Unit.Default);

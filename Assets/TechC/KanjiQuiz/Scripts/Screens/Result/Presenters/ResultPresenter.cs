@@ -9,7 +9,7 @@ namespace TechC.KanjiQuiz.Screens.Result
     /// <summary>
     /// 結果画面の Presenter
     /// 結果発表の演出（1問ずつ ○× → 点数のルーレット → 点数 → 級のハンコ → 全問正解なら花丸 → 自己ベスト）を進め、
-    /// 終わったらボタンを出す
+    /// 終わったらボタン（もう一度・問題を振り返る・モード選択へ・タイトルへ）を出す
     /// </summary>
     public sealed class ResultPresenter : IDisposable
     {
@@ -54,6 +54,14 @@ namespace TechC.KanjiQuiz.Screens.Result
         /// </summary>
         public void Initialize()
         {
+            // 結果がなくても、モード選択やタイトルには戻れるようにする
+            view.OnModeSelectClicked
+                .Subscribe(this, static (_, self) => self.GoToTitleScene(openModeSelect: true))
+                .AddTo(disposables);
+            view.OnTitleClicked
+                .Subscribe(this, static (_, self) => self.GoToTitleScene(openModeSelect: false))
+                .AddTo(disposables);
+
             if (result == null)
             {
                 view.ShowNoResult();
@@ -191,6 +199,17 @@ namespace TechC.KanjiQuiz.Screens.Result
 
             QuizReviewStore.Request(index);
             sceneLoader.Load(result.ReviewSceneName);
+        }
+
+        /// <summary>
+        /// Title シーンを開く。openModeSelect なら最初からモード選択（時間割）を出す
+        /// </summary>
+        private void GoToTitleScene(bool openModeSelect)
+        {
+            if (isRevealing) return;
+
+            TitleLaunchOptions.OpenModeSelect = openModeSelect;
+            sceneLoader.Load(SceneNames.Title);
         }
 
         private void CancelReveal()
