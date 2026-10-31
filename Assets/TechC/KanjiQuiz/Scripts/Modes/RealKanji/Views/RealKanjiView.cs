@@ -17,6 +17,8 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
         [SerializeField] private GameObject weakMark;
         [Tooltip("振り返りで、本物の漢字の読みと使用例を出すテキスト。振り返りのときだけ表示される場所に置く")]
         [SerializeField] private TMP_Text answerInfoText;
+        [Tooltip("例文の中の本物の漢字の色")]
+        [SerializeField] private Color highlightColor = new Color(0.78f, 0.29f, 0.19f, 1f);
         [Tooltip("問題文。振り返りでは、同じ場所に読みと使用例を出すので隠す。不要なら空でよい")]
         [SerializeField] private GameObject questionText;
 
@@ -38,21 +40,29 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
             content.Show(choice.Strokes, choice.Reading, showDescription ? choice.Description : null);
         }
 
-        public void ShowAnswerInfo(string kanji, string reading, IReadOnlyList<KanjiWord> words)
+        public void ShowAnswerInfo(string kanji, string reading, string meaning, string example, IReadOnlyList<KanjiWord> words)
         {
             if (questionText != null) questionText.SetActive(false);
             if (answerInfoText == null) return;
 
+            // 1行目：読みと使用例、2行目：意味、3行目：例文（選択肢の上に収まるように3行にする）
             var text = new StringBuilder();
             text.Append($"本物は「{kanji}」（{reading}）");
             if (words.Count > 0)
             {
-                text.Append("\n使用例：");
+                text.Append("　使用例：");
                 for (int i = 0; i < words.Count; i++)
                 {
                     if (i > 0) text.Append("、");
                     text.Append(words[i]);
                 }
+            }
+            if (!string.IsNullOrEmpty(meaning)) text.Append("\n意味：").Append(meaning);
+            if (!string.IsNullOrEmpty(example))
+            {
+                // 例文の中の本物の漢字を強調する
+                string color = ColorUtility.ToHtmlStringRGB(highlightColor);
+                text.Append("\n例文：").Append(example.Replace(kanji, $"<color=#{color}>{kanji}</color>"));
             }
             answerInfoText.text = text.ToString();
         }

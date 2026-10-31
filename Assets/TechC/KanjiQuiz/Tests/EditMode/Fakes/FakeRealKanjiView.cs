@@ -30,8 +30,15 @@ namespace TechC.KanjiQuiz.Tests
             Descriptions[choiceIndex] = showDescription ? choice.Description : null;
         }
 
-        public void ShowAnswerInfo(string kanji, string reading, IReadOnlyList<KanjiWord> words)
+        public string AnswerMeaning { get; private set; }
+        public string AnswerExample { get; private set; }
+        public int AnswerInfoCount { get; private set; }
+
+        public void ShowAnswerInfo(string kanji, string reading, string meaning, string example, IReadOnlyList<KanjiWord> words)
         {
+            AnswerInfoCount++;
+            AnswerMeaning = meaning;
+            AnswerExample = example;
             AnswerKanji = kanji;
             AnswerWords = words;
         }

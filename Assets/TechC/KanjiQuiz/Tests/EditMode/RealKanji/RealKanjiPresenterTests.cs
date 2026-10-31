@@ -8,7 +8,7 @@ namespace TechC.KanjiQuiz.Tests
 {
     public class RealKanjiPresenterTests
     {
-        private static RealKanjiQuestion CreateQuestion(string kanji)
+        private static RealKanjiQuestion CreateQuestion(string kanji, KanjiMeaning meaning = default)
         {
             var strokes = new[] { new StrokeData(new List<Vector3> { Vector3.zero, Vector3.right }) };
             var choices = new[]
@@ -17,7 +17,7 @@ namespace TechC.KanjiQuiz.Tests
                 new RealKanjiChoice(strokes, "ジ", "氵＋寺"),
             };
             var words = new[] { new KanjiWord("海外", "かいがい") };
-            return new RealKanjiQuestion(kanji, "カイ", words, choices, 0);
+            return new RealKanjiQuestion(kanji, "カイ", words, choices, 0, meaning);
         }
 
         [Test]
@@ -64,6 +64,34 @@ namespace TechC.KanjiQuiz.Tests
             Assert.AreEqual("氵＋寺", view.Descriptions[1]);
             Assert.AreEqual("海", view.AnswerKanji);
             Assert.AreEqual("海外", view.AnswerWords[0].Word);
+        }
+
+        [Test]
+        public void 振り返りでは意味と例文を出しひらがなの設定に切り替えるとすぐ出し直す()
+        {
+            var view = new FakeRealKanjiView();
+            var meaning = new KanjiMeaning("しおからい{水|みず}の{広|ひろ}がり。", "{夏休|なつやす}みに海へ{行|い}った。");
+            var questions = new[] { CreateQuestion("海", meaning) };
+            var answers = new[] { AnswerRecord.Create(0, true) };
+            var settings = new DisplaySettings(new FakeDisplaySettingRepository());
+
+            using (var presenter = new RealKanjiReviewPresenter(
+                questions, answers, 0, new FakeQuizFrameView(), new FakeChoiceListView(), new FakeQuizReviewView(), view,
+                new FakeSceneLoader(), null, settings))
+            {
+                presenter.Initialize();
+                Assert.AreEqual("しおからい水の広がり。", view.AnswerMeaning);
+                Assert.AreEqual("夏休みに海へ行った。", view.AnswerExample);
+
+                settings.SetUseHiragana(true);
+                Assert.AreEqual("しおからいみずのひろがり。", view.AnswerMeaning);
+                Assert.AreEqual("なつやすみに海へいった。", view.AnswerExample);
+            }
+
+            // 終わったあとに設定を変えても、出し直さない
+            int count = view.AnswerInfoCount;
+            settings.SetUseHiragana(false);
+            Assert.AreEqual(count, view.AnswerInfoCount);
         }
     }
 }

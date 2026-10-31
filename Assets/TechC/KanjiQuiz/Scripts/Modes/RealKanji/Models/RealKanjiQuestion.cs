@@ -21,6 +21,9 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
         /// <summary>本物の使用例（振り返りで出す）。なければ空</summary>
         public IReadOnlyList<KanjiWord> Words { get; }
 
+        /// <summary>本物の意味と例文（振り返りで出す）。なければ空</summary>
+        public KanjiMeaning Meaning { get; }
+
         /// <summary>選択肢</summary>
         public IReadOnlyList<RealKanjiChoice> Choices => choices;
 
@@ -28,11 +31,14 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
 
         public int CorrectIndex { get; }
 
-        public RealKanjiQuestion(string kanji, string reading, IReadOnlyList<KanjiWord> words, IEnumerable<RealKanjiChoice> choices, int correctIndex)
+        public RealKanjiQuestion(
+            string kanji, string reading, IReadOnlyList<KanjiWord> words, IEnumerable<RealKanjiChoice> choices, int correctIndex,
+            KanjiMeaning meaning = default)
         {
             Kanji = kanji ?? throw new ArgumentNullException(nameof(kanji));
             Reading = reading ?? string.Empty;
             Words = words ?? Array.Empty<KanjiWord>();
+            Meaning = meaning;
             this.choices = new List<RealKanjiChoice>(choices ?? throw new ArgumentNullException(nameof(choices)));
 
             if (correctIndex < 0 || correctIndex >= this.choices.Count)
