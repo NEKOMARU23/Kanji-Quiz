@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 |---|---|
 | 状態 | 確定（実装に合わせて更新する） |
-| 最終更新 | 2026-10-30 |
+| 最終更新 | 2026-10-31 |
 | 関連 | [GameSpec.md](GameSpec.md) / [ScreenDesign.md](ScreenDesign.md) / [CodingRules.md](CodingRules.md) |
 
 ---
@@ -139,6 +139,9 @@ classDiagram
 | `IKanjiStrokeSource` / `IKanjiSvgSource` / `StreamingAssetsKanjiStrokeSource` | KanjiVG の SVG の読み込み口。画のパスデータだけか、部品のグループつき（`KanjiSvgStroke`）かの2通り。書き順クイズと本物の漢字さがしで使う | Model |
 | `KanjiSvgParser` / `KanjiSvgStroke` / `StrokePathParser` / `StrokeData` | SVG から画のパスデータと、その画が入っている部品のグループ（g 要素の id）を取り出し、座標の列に変換する | Model |
 | `KanjiGlyphRenderer` | 漢字1字を画の線（LineRenderer）でまとめて描く。フォントにない字（偽物）も描ける | View |
+| `ChalkStrokeGraphic` | 漢字の画を UI の線（MaskableGraphic）として、何画目のどこまで書いたかに合わせて描く。LineRenderer と違い UI の描画順に従うので、黒板消しの跡などで隠せる | View |
+| `ChalkTextWriter` | TextMeshPro の字を1字ずつチョークで書くように出す（頂点の色で左から右へ濃くし、チョークの先の画像を動かす） | View |
+| `SkipInput` | 演出を飛ばす入力（左クリック、タップ、Enter、スペース）を、演出をしている View が確かめる | View |
 | `Difficulty` / `DifficultyExtensions` | 難易度と、その表示名（簡単・常識・困難） | Model |
 | `KanjiSet` | 出題範囲の漢字の集まり。JSON から読む。サロゲートペアの漢字も1文字として扱う | Model |
 | `ShuffleUtility` | シャッフル処理を1か所にまとめる | Model |
@@ -191,7 +194,7 @@ classDiagram
 |---|---|---|
 | `DifficultyRecord` | 1つの難易度の記録（自己ベスト、級、次の目標のひとこと、苦手な問題） | Model |
 | `ModeSummary` | 時間割の1行と黒板の内容。`ModeSummary.Load` がモードの一覧と保存先（自己ベスト・苦手な問題）から作る | Model |
-| `TitlePresenter` | タイトル画面。[はじめる] でモード選択を開き、[← タイトルへ] で戻る | Presenter |
+| `TitlePresenter` | タイトル画面。ロゴの書き順を読んで View に書かせ、[はじめる] で黒板を消させてからモード選択を開く（消すのを飛ばしたら、モード選択の演出も飛ばす）。[← タイトルへ] で戻る | Presenter |
 | `ModeSelectPresenter` | 時間割の選択、黒板の開閉、難易度の選択、`QuizLaunchOptions` に難易度を入れてモードのシーンを開く | Presenter |
 | `ITitleView` / `IModeSelectView` と、その実装 `TitleView` / `ModeSelectView`（行は `TimetableRowView`、黒板の列は `DifficultyColumnView`） | 表示とキー操作 | View |
 | `TitleEntryPoint` | 組み立て役 | 組み立て役 |
