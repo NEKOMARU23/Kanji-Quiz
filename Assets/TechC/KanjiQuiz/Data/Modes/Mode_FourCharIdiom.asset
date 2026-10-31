@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e18339e6eb8bb8e48aa57c80e80180f7, type: 3}
+  m_Name: Mode_FourCharIdiom
+  m_EditorClassIdentifier: TechC.KanjiQuiz::TechC.KanjiQuiz.Common.QuizModeDefinition
+  modeId: FourCharIdiom
+  displayName: "\u56DB\u5B57\u719F\u8A9E\u3065\u304F\u308A"
+  description: "\u6F22\u5B57\u3092\u7D44\u307F\u5408\u308F\u305B\u3066\u3001\u56DB\u5B57\u719F\u8A9E\u3092\u5B8C\u6210\u3055\u305B\u308B\u3002"
+  sceneName: FourCharIdiom
+  isAvailable: 0
+  hasDifficulty: 1
+  easyQuestionCount: 5
+  normalQuestionCount: 7
+  hardQuestionCount: 7
+  easyRange: "\u5C0F\u5B66\u6F22\u5B57"
+  normalRange: "\u5E38\u7528\u6F22\u5B57\uFF08\u3088\u304F\u4F7F\u3046\uFF09"
+  hardRange: "\u5E38\u7528\u6F22\u5B57\uFF08\u3042\u307E\u308A\u4F7F\u308F\u306A\u3044\uFF09"
