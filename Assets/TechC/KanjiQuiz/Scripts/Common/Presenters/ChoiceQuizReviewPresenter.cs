@@ -84,6 +84,12 @@ namespace TechC.KanjiQuiz.Common
 
             CancelQuestion();
             disposables.Dispose();
+            OnDispose();
+        }
+
+        /// <summary>Dispose のときに、モードごとの後片付けをする（購読の解除など）</summary>
+        protected virtual void OnDispose()
+        {
         }
 
         /// <summary>

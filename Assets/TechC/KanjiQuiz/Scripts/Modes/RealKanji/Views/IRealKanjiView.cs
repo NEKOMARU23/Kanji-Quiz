@@ -19,8 +19,10 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
         void ShowChoice(int choiceIndex, RealKanjiChoice choice, bool showDescription);
 
         /// <summary>
-        /// 振り返りで、本物の漢字の読みと使用例を表示する
+        /// 振り返りで、本物の漢字の読み・意味・例文・使用例を表示する
         /// </summary>
-        void ShowAnswerInfo(string kanji, string reading, IReadOnlyList<KanjiWord> words);
+        /// <param name="meaning">意味（表示する文。なければ空）</param>
+        /// <param name="example">例文（表示する文。なければ空）。本物の漢字を強調して出す</param>
+        void ShowAnswerInfo(string kanji, string reading, string meaning, string example, IReadOnlyList<KanjiWord> words);
     }
 }

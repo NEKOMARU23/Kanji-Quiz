@@ -18,6 +18,7 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
 
         private readonly IKanjiSvgSource svgSource;
         private readonly KanjiWordDictionary wordDictionary;
+        private readonly KanjiMeaningDictionary meaningDictionary;
         private readonly Dictionary<string, RealKanjiEntry> entries = new Dictionary<string, RealKanjiEntry>();
         private readonly List<string> candidates = new List<string>();
 
@@ -26,10 +27,14 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
 
         /// <param name="entries">問題データ</param>
         /// <param name="wordDictionary">振り返りで出す使用例。null なら使用例なし</param>
-        public RealKanjiQuestionFactory(IKanjiSvgSource svgSource, IEnumerable<RealKanjiEntry> entries, KanjiWordDictionary wordDictionary = null)
+        /// <param name="meaningDictionary">振り返りで出す意味と例文。null なら意味と例文なし</param>
+        public RealKanjiQuestionFactory(
+            IKanjiSvgSource svgSource, IEnumerable<RealKanjiEntry> entries, KanjiWordDictionary wordDictionary = null,
+            KanjiMeaningDictionary meaningDictionary = null)
         {
             this.svgSource = svgSource ?? throw new ArgumentNullException(nameof(svgSource));
             this.wordDictionary = wordDictionary;
+            this.meaningDictionary = meaningDictionary;
             if (entries == null) throw new ArgumentNullException(nameof(entries));
 
             foreach (var entry in entries)
@@ -112,7 +117,8 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
             choices.Insert(correctIndex, new RealKanjiChoice(FakeKanjiComposer.ToStrokeData(realStrokes), entry.reading, RealDescription));
 
             var words = wordDictionary != null ? wordDictionary.GetWords(entry.kanji) : Array.Empty<KanjiWord>();
-            return new RealKanjiQuestion(entry.kanji, entry.reading, words, choices, correctIndex);
+            var meaning = meaningDictionary != null ? meaningDictionary.Get(entry.kanji) : default;
+            return new RealKanjiQuestion(entry.kanji, entry.reading, words, choices, correctIndex, meaning);
         }
 
         /// <summary>

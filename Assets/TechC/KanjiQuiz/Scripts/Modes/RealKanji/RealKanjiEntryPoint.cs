@@ -35,6 +35,8 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
         [SerializeField] private TextAsset hardQuestions;
         [Tooltip("振り返りで出す使用例（Data/KanjiWords の Elementary・JoyoCommon・JoyoRare）")]
         [SerializeField] private TextAsset[] wordAssets;
+        [Tooltip("振り返りで出す意味と例文（Data/KanjiMeanings の Elementary・JoyoCommon・JoyoRare）")]
+        [SerializeField] private TextAsset[] meaningAssets;
         [Range(2, 4)]
         [SerializeField] private int choiceCount = 4;
 
@@ -83,7 +85,7 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
             frameView.SetTitle(Title);
 
             var repository = new LocalQuestionRepository<RealKanjiEntry>(GetQuestionAsset(difficulty).text);
-            var factory = new RealKanjiQuestionFactory(new StreamingAssetsKanjiStrokeSource(), repository.LoadAll(), LoadWords());
+            var factory = new RealKanjiQuestionFactory(new StreamingAssetsKanjiStrokeSource(), repository.LoadAll(), LoadWords(), LoadMeanings());
 
             // 前に間違えた漢字を優先して出す
             weakList = weakRepository.Load(RecordKey);
@@ -138,13 +140,24 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
             return KanjiWordDictionary.FromJson(jsons.ToArray());
         }
 
+        private KanjiMeaningDictionary LoadMeanings()
+        {
+            var jsons = new List<string>();
+            foreach (var asset in meaningAssets ?? Array.Empty<TextAsset>())
+            {
+                if (asset != null) jsons.Add(asset.text);
+            }
+            return KanjiMeaningDictionary.FromJson(jsons.ToArray());
+        }
+
         private void StartReview(IReadOnlyList<RealKanjiQuestion> questions, IReadOnlyList<AnswerRecord> answers, int startIndex)
         {
             // 振り返りの難易度は、そのプレイの結果の名前から引き継ぐ
             frameView.SetTitle(QuizResultStore.Last != null ? QuizResultStore.Last.ModeName : mode.DisplayName);
 
             reviewPresenter = new RealKanjiReviewPresenter(
-                questions, answers, startIndex, frameView, choiceListView, reviewView, realKanjiView, sceneLoader, audioPlayer);
+                questions, answers, startIndex, frameView, choiceListView, reviewView, realKanjiView, sceneLoader, audioPlayer,
+                DisplaySettings.Shared);
             reviewPresenter.Initialize();
         }
 

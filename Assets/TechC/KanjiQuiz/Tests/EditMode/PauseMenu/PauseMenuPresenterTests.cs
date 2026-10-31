@@ -80,6 +80,25 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
+        public void ひらがなの設定を表示し切り替えると保存する()
+        {
+            var repository = new FakeDisplaySettingRepository { UseHiragana = true };
+            var settings = new DisplaySettings(repository);
+            var hiraganaView = new FakePauseMenuView();
+            using (var hiraganaPresenter = new PauseMenuPresenter(
+                hiraganaView, sceneLoader, audioPlayer, volumeRepository, "StrokeOrder", SceneNames.Title, settings))
+            {
+                hiraganaPresenter.Initialize();
+                Assert.AreEqual(true, hiraganaView.HiraganaShown);
+
+                hiraganaView.ToggleHiragana(false);
+            }
+
+            Assert.IsFalse(settings.UseHiragana.CurrentValue);
+            Assert.IsFalse(repository.UseHiragana);
+        }
+
+        [Test]
         public void 音量を変えると効果音に反映して保存する()
         {
             view.MoveVolume(0.25f);

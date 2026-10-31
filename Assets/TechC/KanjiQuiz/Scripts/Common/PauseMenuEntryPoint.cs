@@ -24,7 +24,9 @@ namespace TechC.KanjiQuiz.Common
                 new SceneLoader(transition),
                 audioPlayer,
                 new PlayerPrefsVolumeRepository(),
-                gameObject.scene.name);
+                gameObject.scene.name,
+                SceneNames.Title,
+                DisplaySettings.Shared);
             presenter.Initialize();
         }
 
