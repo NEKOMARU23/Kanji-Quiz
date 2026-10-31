@@ -31,6 +31,46 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
+        public void 七問中四問の次は一問多く正解すれば上の級()
+        {
+            Assert.IsTrue(KanjiRank.TryGetNextRank(4, 7, Difficulty.Normal, out int more, out string next));
+            Assert.AreEqual(1, more);
+            Assert.AreEqual("5級", next);
+        }
+
+        [Test]
+        public void 級が上がらない正解数は飛ばして数える()
+        {
+            // 7問中0問（0%）→ 1問（14%）は同じ 8級、2問（28%）で 7級
+            Assert.IsTrue(KanjiRank.TryGetNextRank(0, 7, Difficulty.Normal, out int more, out string next));
+            Assert.AreEqual(2, more);
+            Assert.AreEqual("7級", next);
+        }
+
+        [Test]
+        public void 全問正解なら次の級はない()
+        {
+            Assert.IsFalse(KanjiRank.TryGetNextRank(5, 5, Difficulty.Easy, out _, out string next));
+            Assert.IsNull(next);
+        }
+
+        [Test]
+        public void 級の高さで難易度の違う級を比べられる()
+        {
+            int easyPerfect = KanjiRank.EvaluateLevel(5, 5, Difficulty.Easy);   // 5級
+            int normalHalf = KanjiRank.EvaluateLevel(4, 7, Difficulty.Normal);  // 6級
+            Assert.Greater(easyPerfect, normalHalf);
+            Assert.AreEqual("5級", KanjiRank.NameOf(easyPerfect));
+        }
+
+        [TestCase(Difficulty.Easy, "5級")]
+        [TestCase(Difficulty.Hard, "初段")]
+        public void 難易度ごとの最高の級(Difficulty difficulty, string expected)
+        {
+            Assert.AreEqual(expected, KanjiRank.TopRank(difficulty));
+        }
+
+        [Test]
         public void 正解数が範囲外なら例外を投げる()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => KanjiRank.Evaluate(6, 5, Difficulty.Easy));

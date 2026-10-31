@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace TechC.KanjiQuiz.Common
@@ -19,12 +20,21 @@ namespace TechC.KanjiQuiz.Common
         [SerializeField] private string description;
         [Tooltip("プレイ画面のシーンの名前。Build Profiles のシーンリストに登録しておく")]
         [SerializeField] private string sceneName;
+        [Tooltip("遊べるかどうか。まだ作っていないモードは外し、モード選択画面で「準備中」として出す")]
+        [SerializeField] private bool isAvailable = true;
         [Tooltip("難易度を選べるかどうか")]
         [SerializeField] private bool hasDifficulty = true;
         [Header("1回のプレイの問題数")]
         [Min(1)] [SerializeField] private int easyQuestionCount = 5;
         [Min(1)] [SerializeField] private int normalQuestionCount = 7;
         [Min(1)] [SerializeField] private int hardQuestionCount = 7;
+        [Header("出題範囲の説明（モード選択画面に出す）")]
+        [SerializeField] private string easyRange = "小学漢字";
+        [SerializeField] private string normalRange = "常用漢字（よく使う）";
+        [SerializeField] private string hardRange = "常用漢字（あまり使わない）";
+
+        private static readonly Difficulty[] AllDifficulties = { Difficulty.Easy, Difficulty.Normal, Difficulty.Hard };
+        private static readonly Difficulty[] EasyOnly = { Difficulty.Easy };
 
         /// <summary>モードを表す ID（保存のキーに使う）</summary>
         public string ModeId => modeId;
@@ -38,8 +48,28 @@ namespace TechC.KanjiQuiz.Common
         /// <summary>プレイ画面のシーンの名前</summary>
         public string SceneName => sceneName;
 
+        /// <summary>遊べるかどうか（false ならモード選択画面で「準備中」）</summary>
+        public bool IsAvailable => isAvailable;
+
         /// <summary>難易度を選べるかどうか</summary>
         public bool HasDifficulty => hasDifficulty;
+
+        /// <summary>選べる難易度。難易度がないモードは Easy だけ</summary>
+        public IReadOnlyList<Difficulty> Difficulties => hasDifficulty ? AllDifficulties : EasyOnly;
+
+
+        /// <summary>出題範囲の説明（例：小学漢字）</summary>
+        public string Range(Difficulty difficulty)
+        {
+            if (!hasDifficulty) return easyRange;
+
+            switch (difficulty)
+            {
+                case Difficulty.Normal: return normalRange;
+                case Difficulty.Hard: return hardRange;
+                default: return easyRange;
+            }
+        }
 
         /// <summary>1回のプレイの問題数</summary>
         public int QuestionCount(Difficulty difficulty)
@@ -80,14 +110,17 @@ namespace TechC.KanjiQuiz.Common
         /// </summary>
         public static QuizModeDefinition Create(
             string modeId, string displayName, string sceneName, bool hasDifficulty = true,
-            int easyQuestionCount = 5, int normalQuestionCount = 7, int hardQuestionCount = 7)
+            int easyQuestionCount = 5, int normalQuestionCount = 7, int hardQuestionCount = 7,
+            bool isAvailable = true, string description = "")
         {
             if (string.IsNullOrEmpty(modeId)) throw new ArgumentException("ID が空です。", nameof(modeId));
 
             var definition = CreateInstance<QuizModeDefinition>();
             definition.modeId = modeId;
             definition.displayName = displayName;
+            definition.description = description;
             definition.sceneName = sceneName;
+            definition.isAvailable = isAvailable;
             definition.hasDifficulty = hasDifficulty;
             definition.easyQuestionCount = easyQuestionCount;
             definition.normalQuestionCount = normalQuestionCount;

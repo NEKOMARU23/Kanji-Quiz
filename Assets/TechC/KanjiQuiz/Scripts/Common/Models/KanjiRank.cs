@@ -32,10 +32,57 @@ namespace TechC.KanjiQuiz.Common
         /// <returns>級の名前（例：5級、初段）</returns>
         public static string Evaluate(int correctCount, int total, Difficulty difficulty)
         {
+            return Names[EvaluateLevel(correctCount, total, difficulty)];
+        }
+
+        /// <summary>
+        /// 正解数と難易度から級の高さを決める。0 が 10級、数が大きいほど上の級
+        /// 難易度が違う級どうしを比べるのに使う
+        /// </summary>
+        public static int EvaluateLevel(int correctCount, int total, Difficulty difficulty)
+        {
             if (total <= 0) throw new ArgumentOutOfRangeException(nameof(total));
             if (correctCount < 0 || correctCount > total) throw new ArgumentOutOfRangeException(nameof(correctCount));
 
-            return Names[TopLevel(difficulty) - StepsDown(correctCount, total)];
+            return TopLevel(difficulty) - StepsDown(correctCount, total);
+        }
+
+        /// <summary>級の高さから級の名前を返す（EvaluateLevel の逆）</summary>
+        public static string NameOf(int level)
+        {
+            if (level < 0 || level >= Names.Length) throw new ArgumentOutOfRangeException(nameof(level));
+            return Names[level];
+        }
+
+        /// <summary>難易度ごとの最高の級（全問正解のときの級）</summary>
+        public static string TopRank(Difficulty difficulty)
+        {
+            return Names[TopLevel(difficulty)];
+        }
+
+        /// <summary>
+        /// 今の正解数から、1つ上の級を取るのに必要な正解数を調べる
+        /// </summary>
+        /// <param name="moreCorrect">あと何問正解すればよいか</param>
+        /// <param name="nextRank">1つ上の級の名前</param>
+        /// <returns>その難易度の最高の級をもう取っていれば false</returns>
+        public static bool TryGetNextRank(int correctCount, int total, Difficulty difficulty, out int moreCorrect, out string nextRank)
+        {
+            int level = EvaluateLevel(correctCount, total, difficulty);
+            for (int correct = correctCount + 1; correct <= total; correct++)
+            {
+                int nextLevel = EvaluateLevel(correct, total, difficulty);
+                if (nextLevel > level)
+                {
+                    moreCorrect = correct - correctCount;
+                    nextRank = Names[nextLevel];
+                    return true;
+                }
+            }
+
+            moreCorrect = 0;
+            nextRank = null;
+            return false;
         }
 
         private static int StepsDown(int correctCount, int total)
