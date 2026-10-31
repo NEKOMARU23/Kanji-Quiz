@@ -64,11 +64,12 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <summary>
         /// モード選択画面（時間割）を見せる。最初は遊べる一番上のモードを選ぶ
         /// </summary>
-        public void Open()
+        /// <param name="fromTitle">タイトルから来たかどうか。true なら黒板が縮んで時間割表が貼られる演出をする</param>
+        public void Open(bool fromTitle = false)
         {
             isOpen = true;
             isBoardOpen = false;
-            view.ShowTimetable();
+            view.ShowTimetable(fromTitle);
             view.SetVisible(true);
             if (modes.Count > 0) SelectMode(FirstAvailableIndex(), playSound: false);
         }
@@ -107,7 +108,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             if (!isBoardOpen || isStarting) return;
 
             isBoardOpen = false;
-            view.ShowTimetable();
+            view.ShowTimetable(fromTitle: false);
             audioPlayer.PlaySe(SeType.PageTurn);
             SelectMode(modeIndex, playSound: false);
         }

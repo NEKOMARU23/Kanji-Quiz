@@ -12,6 +12,8 @@ namespace TechC.KanjiQuiz.Screens.Title
         [SerializeField] private ModeSelectView modeSelectView;
         [Tooltip("時間割に並べるモードの一覧（Data/Modes/ModeCatalog）")]
         [SerializeField] private QuizModeCatalog modeCatalog;
+        [Tooltip("黒板にチョークで書くロゴの字")]
+        [SerializeField] private string logoText = "漢字クイズ";
 
         private TitlePresenter presenter;
 
@@ -27,7 +29,8 @@ namespace TechC.KanjiQuiz.Screens.Title
                 modeCatalog.Modes, new PlayerPrefsBestRecordRepository(), new PlayerPrefsWeakQuestionRepository());
             var modeSelect = new ModeSelectPresenter(modes, modeSelectView, new SceneLoader(transition), audioPlayer);
             presenter = new TitlePresenter(
-                titleView, modeSelect, new ApplicationQuitter(), audioPlayer, TitleLaunchOptions.TakeOpenModeSelect());
+                titleView, modeSelect, new ApplicationQuitter(), audioPlayer, new StreamingAssetsKanjiStrokeSource(),
+                logoText, TitleLaunchOptions.TakeOpenModeSelect());
             presenter.Initialize();
         }
 

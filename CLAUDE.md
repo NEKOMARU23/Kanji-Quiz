@@ -41,10 +41,10 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 
 ## 現在の状態（2026-10-30 時点）
 
-- **遊べるのは書き順クイズと本物の漢字さがし**。モード選択（教室の時間割表）と難易度選択（黒板）もできた。タイトル画面は仮の見た目、ほかの3モードは未着手。次にやることは `Docs/Progress.md` の9章（**次はタイトル画面の見た目**。画像の案を出してユーザーに選んでもらってから作る）。返信文クイズは後回し（正しい返信文を作るのが難しいため）。
+- **遊べるのは書き順クイズと本物の漢字さがし**。タイトル（黒板にチョークで書くロゴ）、モード選択（教室の時間割表）、難易度選択（黒板）もできた。ほかの3モードは未着手。次にやることは `Docs/Progress.md` の9章。返信文クイズは後回し（正しい返信文を作るのが難しいため）。
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
   - KanjiVG の SVG を読む部品（`KanjiSvgParser`, `StrokePathParser`, `StrokeData`, `StreamingAssetsKanjiStrokeSource`）と、字を線で描く `KanjiGlyphRenderer`、熟語の辞書 `KanjiWordDictionary` も Common にある。
-  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、210 件）。
+  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、213 件）。
 - 書き順クイズは `Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`。
   - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。難易度・難易度ごとの漢字セット・選択肢の数・振り返り用の View もここで設定する。
   - 難易度はモード選択画面の黒板で選び、`QuizLaunchOptions.Difficulty` で受け取る（なければ EntryPoint の Inspector の値）。F1 キーで表示されるテスト用ボタン（`Scripts/DebugTools/DebugDifficultySwitcher`、エディタと開発ビルドのみ）で切り替えられる。シーンに保存する難易度は Easy にしておく。
@@ -61,6 +61,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - タイトルとモード選択は `Assets/TechC/KanjiQuiz/Scripts/Screens/Title/`（`Title.unity`、組み立て役は `TitleEntryPoint`）。タイトル → 時間割 → 黒板を1つのシーンで切り替える（仕様は `Docs/ScreenDesign.md` 3.1〜3.3）。
   - 時間割は `QuizModeCatalog` の順に並べる。まだ作っていないモード（四字熟語づくり・画像で名前当て・返信文クイズ・人名漢字 `JinmeiKanji`）は、モードの定義の `isAvailable` を外して「自習」と出す。モードを作ったら `isAvailable` を入れる。
   - 中断メニューの [やめる] と結果画面の [モード選択へ] は `TitleLaunchOptions.OpenModeSelect` を立てて Title を開く（時間割から始まる）。
+  - 黒板（Board）は1枚をタイトル・時間割の横・画面いっぱいで使い回す。ロゴは KanjiVG の書き順で `ChalkStrokeGraphic`（UI の線）に書く。時間割の横の黒板の字は `ChalkTextWriter` で1字ずつ出す。演出はクリックか Enter・スペースで飛ばせる（`SkipInput`）。
 - シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `Title.unity`（シーンリストの先頭）、`StrokeOrder.unity`、`RealKanji.unity` と `Result.unity`（全モード共通の結果画面）。
   - 全問回答すると `QuizResultStore` に結果、`QuizReviewStore` に問題と回答を置いて Result へ移る。
   - 結果画面の [問題を振り返る]（または一覧の問題）で、モードのシーンを振り返りとして開き直す。
