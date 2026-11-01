@@ -69,6 +69,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         [SerializeField] private float eraseAngle = -12f;
 
         private readonly Subject<Unit> startKeyPressed = new Subject<Unit>();
+        private readonly Subject<SeType> effectSound = new Subject<SeType>();
         private readonly List<RectTransform> eraseBands = new List<RectTransform>();
         private RectTransform magnetsRect;
         private Vector2 magnetsPosition;
@@ -80,10 +81,12 @@ namespace TechC.KanjiQuiz.Screens.Title
         public Observable<Unit> OnSettingsClicked => settingsButton.OnClickAsObservable();
         public Observable<Unit> OnKanjiBookClicked => kanjiBookButton.OnClickAsObservable();
         public Observable<Unit> OnCreditsClicked => creditsButton.OnClickAsObservable();
+        public Observable<SeType> OnEffectSound => effectSound;
 
         private void Awake()
         {
             startKeyPressed.AddTo(this);
+            effectSound.AddTo(this);
             magnetsRect = (RectTransform)magnets.transform;
             magnetsPosition = magnetsRect.anchoredPosition;
             if (eraser != null) eraser.gameObject.SetActive(false);
@@ -132,6 +135,7 @@ namespace TechC.KanjiQuiz.Screens.Title
                 {
                     for (int i = 0; i < logo.StrokeCount && !skipRequested; i++)
                     {
+                        effectSound.OnNext(SeType.Chalk);
                         await AnimateAsync(secondsPerStroke, t => logo.Progress = i + t, ct);
                         if (!skipRequested) await AnimateAsync(strokeInterval, _ => { }, ct);
                     }
@@ -193,6 +197,7 @@ namespace TechC.KanjiQuiz.Screens.Title
                     float bandHeight = area.height * 1.5f;
                     Vector2 top = new Vector2(band.anchoredPosition.x + area.width * eraseBandWidth * 0.5f, 0f);
                     Vector2 bottom = top + new Vector2(Mathf.Tan(eraseAngle * Mathf.Deg2Rad) * area.height, -area.height);
+                    effectSound.OnNext(SeType.Eraser);
                     await AnimateAsync(secondsPerErase, t =>
                     {
                         float eased = t * t * (3f - 2f * t);

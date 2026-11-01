@@ -74,6 +74,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             view.OnKanjiBookClicked.Subscribe(this, static (_, self) => self.OpenSubScreen(self.subScreens.KanjiBook)).AddTo(disposables);
             view.OnCreditsClicked.Subscribe(this, static (_, self) => self.OpenSubScreen(self.subScreens.Credits)).AddTo(disposables);
             modeSelect.OnBackToTitle.Subscribe(this, static (_, self) => self.ShowTitleAsync().Forget()).AddTo(disposables);
+            view.OnEffectSound.Subscribe(this, static (type, self) => self.audioPlayer.PlaySe(type)).AddTo(disposables);
 
             if (openModeSelectFirst)
             {
