@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 |---|---|
 | 状態 | 確定（実装に合わせて更新する） |
-| 最終更新 | 2026-10-31 |
+| 最終更新 | 2026-11-01 |
 | 関連 | [GameSpec.md](GameSpec.md) / [ScreenDesign.md](ScreenDesign.md) / [CodingRules.md](CodingRules.md) |
 
 ---
@@ -371,7 +371,7 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | `TechC.KanjiQuiz.Editor` | エディタ拡張（必要になったら） |
 | `TechC.KanjiQuiz.Tests` | EditMode テスト |
 
-テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-10-31 時点で 213 件）。主な対象は次のとおり。
+テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-11-01 時点で 250 件）。主な対象は次のとおり。
 
 | 対象 | テストクラス |
 |---|---|
@@ -436,5 +436,5 @@ Presenter をテストできるように、View は Presenter からインター
 2. ~~共通部分を作る。~~（完了）
 3. ~~書き順クイズを MVP に載せ替え、レビューで見つかった不具合を直す。~~（完了）
 4. ほかの4モードを1つずつ追加する。（本物の漢字さがしは完了。残りは3モード）
-5. ~~タイトル、モード選択、結果の画面を作る。~~（完了。タイトル画面の見た目は仮）
+5. ~~タイトル、モード選択、結果の画面を作る。~~（完了）
 6. 余裕があれば VContainer を導入する。
