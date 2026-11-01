@@ -77,6 +77,12 @@ MonoBehaviour:
   - type: 8
     clip: {fileID: 8300000, guid: 17305bffba8ce254ab1d690b9697ed8e, type: 3}
     volume: 0.8
+  - type: 9
+    clip: {fileID: 8300000, guid: c484a7945d334de4b8280db546fe2511, type: 3}
+    volume: 0.6
+  - type: 10
+    clip: {fileID: 8300000, guid: a704ef54a27792c4093beb7a18565b40, type: 3}
+    volume: 0.7
 --- !u!82 &6162793433763737670
 AudioSource:
   m_ObjectHideFlags: 0
