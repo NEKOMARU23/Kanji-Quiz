@@ -17,6 +17,7 @@ namespace TechC.KanjiQuiz.Tests
         private FakeCreditsView creditsView;
         private FakeSettingsView settingsView;
         private FakeTitleSubScreen kanjiBook;
+        private FakeAudioPlayer audioPlayer;
         private TitlePresenter presenter;
 
         [SetUp]
@@ -30,6 +31,7 @@ namespace TechC.KanjiQuiz.Tests
             creditsView = new FakeCreditsView();
             settingsView = new FakeSettingsView();
             kanjiBook = new FakeTitleSubScreen();
+            audioPlayer = new FakeAudioPlayer();
         }
 
         [TearDown]
@@ -52,7 +54,7 @@ namespace TechC.KanjiQuiz.Tests
             var subScreens = new TitleSubScreens(
                 settings: settings, kanjiBook: kanjiBook, credits: new CreditsPresenter(creditsView, new FakeAudioPlayer()));
             presenter = new TitlePresenter(
-                titleView, modeSelect, subScreens, quitter, new FakeAudioPlayer(), strokeSource, logoText, openModeSelectFirst);
+                titleView, modeSelect, subScreens, quitter, audioPlayer, strokeSource, logoText, openModeSelectFirst);
             presenter.Initialize();
         }
 
@@ -68,6 +70,17 @@ namespace TechC.KanjiQuiz.Tests
             Assert.AreEqual(13, titleView.LastLogoStrokePaths[0].Count);
             Assert.AreEqual(6, titleView.LastLogoStrokePaths[1].Count);
             Assert.IsTrue(presenter.IsMenuReady);
+        }
+
+        [Test]
+        public void 演出の効果音を頼まれたら鳴らす()
+        {
+            CreatePresenter();
+
+            titleView.EffectSound.OnNext(SeType.Chalk);
+            titleView.EffectSound.OnNext(SeType.Eraser);
+
+            CollectionAssert.AreEqual(new[] { SeType.Chalk, SeType.Eraser }, audioPlayer.PlayedSe);
         }
 
         [Test]
