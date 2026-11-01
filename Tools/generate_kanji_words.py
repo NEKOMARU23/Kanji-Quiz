@@ -17,6 +17,7 @@ JMdict_e.gz は http://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz から入手する
     - よく使われる言葉（JMdict の ke_pri）を、よく使われる順に3つまで。
       1つもなければ、よく使われる印のない2字の言葉を2つまで。それもなければ熟語なし
     - 当て字・まれな書き方・まれな読み、下品・差別的・古い言葉は使わない
+    - 子ども向けでない言葉（性・薬物・反社会的な組織・むごい殺し方・自殺・ののしりなど。EXCLUDED_WORDS）は使わない
     - 選んだ言葉を含む長い言葉（海外 と 海外旅行 など）は選ばない
 """
 import gzip
@@ -37,6 +38,25 @@ MAX_UNCOMMON_WORDS = 2
 BAD_KANJI_INFO = {"ateji", "iK", "io", "oK", "rK", "sK"}
 BAD_READING_INFO = {"gikun", "ik", "ok", "rk", "sk"}
 BAD_MISC = {"vulg", "X", "derog", "sens", "arch", "obs", "obsc"}
+
+# JMdict に印はないが、子どもも遊ぶゲームに出したくない言葉（2026-11-01 に出力の言葉をすべて見て決めた）。
+# ニュースでふつうに使う言葉（殺人・強盗・賄賂など）は、その字を学ぶのに要るので残す
+EXCLUDED_WORDS = {
+    # 性に関する言葉
+    "人妻", "中絶", "豊胸", "不倫", "不貞", "不妊", "避妊", "堕胎", "不淫", "催淫", "口淫", "売淫", "多淫", "勃起", "全裸", "妖艶", "童貞",
+    # 遊郭や性の娯楽
+    "女郎", "遊郭", "花柳", "花柳界", "枕絵",
+    # 薬物・賭博・反社会的な組織
+    "大麻", "麻薬", "覚醒剤", "賭博", "賭場", "暴力団", "総会屋",
+    # むごい殺し方、自殺
+    "絞殺", "絞首刑", "絞刑", "絞死", "絞縄", "虐殺", "拷問", "拷責", "自殺",
+    # 人をののしる言葉、差別と受け取られやすい言葉
+    "畜生", "嘲罵", "冷罵", "盲人",
+}
+
+# よく使われる言葉がないときに、印のない言葉まで探しにいかない字。
+# 印のない言葉が、ほとんど EXCLUDED_WORDS と同じ種類の言葉なので、熟語なしにする
+NO_UNCOMMON_FALLBACK = {"淫", "絞"}
 
 KANJI = re.compile(r"^[㐀-鿿\U00020000-\U0003ffff]{1,4}$")
 ENTITY = re.compile(r"&([A-Za-z0-9-]+);")
@@ -108,7 +128,7 @@ def main():
     uncommon = {ch: [] for ch in kanji_level}
     seen = set()
     for word, reading, pri in load_words(src):
-        if word in seen or any(ch not in kanji_level for ch in word):
+        if word in seen or word in EXCLUDED_WORDS or any(ch not in kanji_level for ch in word):
             continue
         seen.add(word)
         if len(word) == 1:
@@ -133,7 +153,7 @@ def main():
             words = choose(common[ch])
             if len(words) < MAX_WORDS and single[ch]:
                 words.append(choose(single[ch])[0])
-            if not words:
+            if not words and ch not in NO_UNCOMMON_FALLBACK:
                 # 印のない言葉には見慣れないものも多いので、よく使われる言葉が1つもないときだけ、少しだけ使う
                 words = choose(uncommon[ch])[:MAX_UNCOMMON_WORDS]
             if not words:
