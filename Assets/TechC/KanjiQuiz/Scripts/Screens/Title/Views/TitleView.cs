@@ -70,6 +70,7 @@ namespace TechC.KanjiQuiz.Screens.Title
 
         private readonly Subject<Unit> startKeyPressed = new Subject<Unit>();
         private readonly Subject<SeType> effectSound = new Subject<SeType>();
+        private readonly Subject<bool> chalkWriting = new Subject<bool>();
         private readonly List<RectTransform> eraseBands = new List<RectTransform>();
         private RectTransform magnetsRect;
         private Vector2 magnetsPosition;
@@ -82,11 +83,13 @@ namespace TechC.KanjiQuiz.Screens.Title
         public Observable<Unit> OnKanjiBookClicked => kanjiBookButton.OnClickAsObservable();
         public Observable<Unit> OnCreditsClicked => creditsButton.OnClickAsObservable();
         public Observable<SeType> OnEffectSound => effectSound;
+        public Observable<bool> OnChalkWriting => chalkWriting;
 
         private void Awake()
         {
             startKeyPressed.AddTo(this);
             effectSound.AddTo(this);
+            chalkWriting.AddTo(this);
             magnetsRect = (RectTransform)magnets.transform;
             magnetsPosition = magnetsRect.anchoredPosition;
             if (eraser != null) eraser.gameObject.SetActive(false);
@@ -133,11 +136,19 @@ namespace TechC.KanjiQuiz.Screens.Title
                 // ロゴを1画ずつ書く
                 if (hasStrokes)
                 {
-                    for (int i = 0; i < logo.StrokeCount && !skipRequested; i++)
+                    // 書いている間はチョークの音を鳴らし続ける（飛ばしたり止めたりしたら、すぐ止める）
+                    chalkWriting.OnNext(true);
+                    try
                     {
-                        effectSound.OnNext(SeType.Chalk);
-                        await AnimateAsync(secondsPerStroke, t => logo.Progress = i + t, ct);
-                        if (!skipRequested) await AnimateAsync(strokeInterval, _ => { }, ct);
+                        for (int i = 0; i < logo.StrokeCount && !skipRequested; i++)
+                        {
+                            await AnimateAsync(secondsPerStroke, t => logo.Progress = i + t, ct);
+                            if (!skipRequested) await AnimateAsync(strokeInterval, _ => { }, ct);
+                        }
+                    }
+                    finally
+                    {
+                        chalkWriting.OnNext(false);
                     }
                     logo.Complete();
                 }

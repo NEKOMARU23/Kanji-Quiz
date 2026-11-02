@@ -113,6 +113,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         public Observable<int> OnDifficultyMoved => difficultyMoved;
         public Observable<Unit> OnStartClicked => startButton.OnClickAsObservable().Merge(startKeyPressed);
         public Observable<Unit> OnBackToTimetableClicked => backToTimetableButton.OnClickAsObservable().Merge(backToTimetableKeyPressed);
+        public Observable<bool> OnChalkWriting => chalkWriter != null ? chalkWriter.Writing : Observable.Return(false);
 
         private void Awake()
         {

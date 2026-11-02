@@ -33,6 +33,9 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <summary>[← 時間割へ] が押されたとき（黒板で Esc を含む）</summary>
         Observable<Unit> OnBackToTimetableClicked { get; }
 
+        /// <summary>時間割の横の黒板に字をチョークで書き始めたとき（true）と、書き終えた・飛ばした・止めたとき（false）</summary>
+        Observable<bool> OnChalkWriting { get; }
+
         /// <summary>モード選択画面を表示するかどうか。隠すときは黒板をタイトルの大きさに戻す</summary>
         void SetVisible(bool visible);
 

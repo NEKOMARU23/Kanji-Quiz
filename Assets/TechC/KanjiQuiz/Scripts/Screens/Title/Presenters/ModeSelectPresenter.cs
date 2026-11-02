@@ -22,6 +22,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         private bool isOpen;
         private bool isBoardOpen;
         private bool isStarting;
+        private bool isChalkSoundPlaying;
 
         /// <summary>[← タイトルへ] が押されたとき</summary>
         public Observable<Unit> OnBackToTitle => backToTitle;
@@ -59,6 +60,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             view.OnDifficultyMoved.Subscribe(this, static (d, self) => self.MoveDifficulty(d)).AddTo(disposables);
             view.OnStartClicked.Subscribe(this, static (_, self) => self.Start()).AddTo(disposables);
             view.OnBackToTimetableClicked.Subscribe(this, static (_, self) => self.CloseBoard()).AddTo(disposables);
+            view.OnChalkWriting.Subscribe(this, static (writing, self) => self.SetChalkSound(writing)).AddTo(disposables);
         }
 
         /// <summary>
@@ -185,10 +187,21 @@ namespace TechC.KanjiQuiz.Screens.Title
             return mode.Records.Count - 1;
         }
 
+        /// <summary>黒板に字を書いている間だけ、チョークの音をループで鳴らす</summary>
+        private void SetChalkSound(bool writing)
+        {
+            if (writing == isChalkSoundPlaying) return;
+            isChalkSoundPlaying = writing;
+            if (writing) audioPlayer.PlayLoop(SeType.Chalk);
+            else audioPlayer.StopLoop();
+        }
+
         public void Dispose()
         {
             disposables.Dispose();
             backToTitle.Dispose();
+            // AudioManager はシーンをまたいで残るので、書いている途中で片付けたら音を止める
+            SetChalkSound(false);
         }
     }
 }
