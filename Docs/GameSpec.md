@@ -386,7 +386,7 @@
 | Board/Inner/SmallContent | ChalkTextWriter | 時間割の横の黒板の字をチョークで1字ずつ書く。チョークの先は Board/Inner/ChalkTip |
 | CreditText | TextMeshPro | KanjiVG のクレジット（タイトルのときだけ） |
 | KanjiBookRoot | CanvasGroup / Image（机） | 漢字帳。Notebook の下に Tabs（出題範囲のタブ3つ）、LeftPage（SummaryText、Cells（GridLayoutGroup。CellTemplate を起動時に 10×8 個に増やす）、SelectionFrame、ページ送り）、RightPage（EmptyMessage と Detail。Detail は KanjiMasu、StrokeMasu（書き順のお手本の ChalkStrokeGraphic）、読み・意味・例文・使用例、ModeStamps） |
-| CreditsRoot | CanvasGroup / Image | クレジット（掲示板「ありがとう」）。Canvas のいちばん手前に置き、開いている間はタイトルを覆って押せなくする。Board/Cork に見出し（Heading）、おたより6枚（Notes）、[← タイトルへ]（BackButton） |
+| CreditsRoot | CanvasGroup / Image | クレジット（掲示板「ありがとう」）。Canvas のいちばん手前に置き、開いている間はタイトルを覆って押せなくする。Board/Cork に見出し（Heading）、おたより7枚（Notes。右上の小さい紙が On-Jin）、[← タイトルへ]（BackButton） |
 | ModeSelectRoot/TimetablePaper | Image / VerticalLayoutGroup（RowContainer） | 時間割表。行は TimetableRow プレハブ、4時間目のあとに LunchBreak プレハブ |
 | ModeSelectRoot/Board | Image（Inner、Tray） | 黒板。SmallBoardArea と LargeBoardArea の間で大きさを変える。中身は SmallContent（時間割の横）と LargeContent（画面いっぱい、列は DifficultyColumn プレハブ） |
 | ModeSelectRoot/AttendButton | Button | [この授業を受ける] |
@@ -439,8 +439,12 @@
 
 - `Art/Audio/SE/` の `se_correct`（正解）、`se_incorrect`（不正解）、`se_roulette_loop`（ルーレット、ループ）、`se_score_reveal`（正解数の発表）。
 - プレイ中の音は `se_select`（選択肢を選んだ）、`se_page_turn`（問題を切り替えた）。結果画面では、ほかに `se_stamp`（級のハンコ）、`se_hanamaru`（花丸を書く）、`se_new_record`（自己ベスト更新）を使う。
-- タイトル画面では、ロゴを1画書くたびに `se_chalk`（チョーク）、黒板消しを1回引くたびに `se_eraser`（黒板消し）を鳴らす。TitleView が `OnEffectSound` で知らせ、TitlePresenter が鳴らす。
-- どの音も `Tools/generate_placeholder_se.py` で計算して作った**自作の音**（ほかの人の音源を使っていないので、クレジット不要）。製品版でもこれを使う（2026-11-01 に決定）。音を変えるときはスクリプトを直して作り直し、音量は AudioManager プレハブの `seEntries` で種類ごとに設定する。
+- タイトル画面では、ロゴを書いている間と、時間割の横の黒板に字を書いている間、`se_chalk_writing`（チョークで黒板に書く音）をループで鳴らす。書き終えたり飛ばしたりしたら、すぐ止める。TitleView・ModeSelectView が `OnChalkWriting` で知らせ、TitlePresenter・ModeSelectPresenter が鳴らす（シーンを移るときも止める）。黒板消しを1回引くたびに `se_eraser`（黒板消し）を鳴らす（`OnEffectSound`）。
+- チョークの音のほかは、`Tools/generate_placeholder_se.py` で計算して作った**自作の音**（ほかの人の音源を使っていないので、クレジット不要）。製品版でもこれを使う（2026-11-01 に決定）。音を変えるときはスクリプトを直して作り直し、音量は AudioManager プレハブの `seEntries` で種類ごとに設定する。
+- チョークの音 `se_chalk_writing.mp3` は [On-Jin ～音人～](https://on-jin.com/) の音源（2026-11-02 にユーザーが選んだ）。個人の作品なので連絡なしで無料で使える（会社の仕事などで使うときは利用の連絡が必要）。
+  - 利用規約で、素材のまま第三者が取得できる状態にできないので、外部の音源は `Art/Audio/External/` に置き、**Git に入れない**（`.gitignore`。`.meta` だけ入れてプレハブからの参照を保つ）。リポジトリを公開しても音源は出ない。ビルドでは音源がファイルのまま出ないので、ゲームは配ってよい。
+  - 新しく取り出したリポジトリでは、音源を On-Jin からダウンロードして `Art/Audio/External/se_chalk_writing.mp3` に置く（ないとチョークの音が鳴らないだけで、ほかは動く）。
+  - クレジットは必須ではないが、クレジット画面の掲示板に載せている。
 
 **画像**
 

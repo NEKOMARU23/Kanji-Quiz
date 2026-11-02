@@ -337,7 +337,7 @@ flowchart LR
 ### 3.9 クレジット（CR1：掲示板「ありがとう」）
 
 - 教室の掲示板に「ありがとう」の見出しと、使わせてもらったデータ・フォントごとのおたよりを画びょうで貼る。
-- おたより：書き順データ（KanjiVG、© Ulrich Apel、CC BY-SA 3.0）、漢字の情報・漢字セット（KANJIDIC2、EDRDG、CC BY-SA 4.0）、使用例の熟語（JMdict、EDRDG、CC BY-SA 4.0）、漢字の部品の組み合わせ（BabelStone IDS、Andrew West）、フォント（Klee One、Fontworks、SIL OFL 1.1）、意味と例文（Claude（AI）で作成）。
+- おたより：書き順データ（KanjiVG、© Ulrich Apel、CC BY-SA 3.0）、漢字の情報・漢字セット（KANJIDIC2、EDRDG、CC BY-SA 4.0）、使用例の熟語（JMdict、EDRDG、CC BY-SA 4.0）、漢字の部品の組み合わせ（BabelStone IDS、Andrew West）、フォント（Klee One、Fontworks、SIL OFL 1.1）、意味と例文（Claude（AI）で作成）、効果音のチョーク（On-Jin ～音人～、on-jin.com。2026-11-02 に追加。見出しの右の小さい紙）。見出しの説明は「データやフォント、効果音を使わせてもらっています」。
 - おたよりには、名前とライセンスの下に公開しているサイトも小さく書く。
 - [← タイトルへ] のマグネットか Esc で閉じる。開くときは掲示板が少し下りてくる（0.25秒）。開いている間はタイトルのボタンや Enter に反応しない。
 - タイトルの下に出しているクレジットの文は、クレジット画面ができたあとも残す（KanjiVG は表示が必要なため）。

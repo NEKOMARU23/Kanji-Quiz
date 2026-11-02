@@ -3,7 +3,7 @@
 | 項目 | 内容 |
 |---|---|
 | 状態 | 確定（実装に合わせて更新する） |
-| 最終更新 | 2026-11-01 |
+| 最終更新 | 2026-11-02 |
 | 関連 | [GameSpec.md](GameSpec.md) / [ScreenDesign.md](ScreenDesign.md) / [CodingRules.md](CodingRules.md) |
 
 ---
@@ -143,7 +143,7 @@ classDiagram
 | `KanjiSvgParser` / `KanjiSvgStroke` / `StrokePathParser` / `StrokeData` | SVG から画のパスデータと、その画が入っている部品のグループ（g 要素の id）を取り出し、座標の列に変換する | Model |
 | `KanjiGlyphRenderer` | 漢字1字を画の線（LineRenderer）でまとめて描く。フォントにない字（偽物）も描ける | View |
 | `ChalkStrokeGraphic` | 漢字の画を UI の線（MaskableGraphic）として、何画目のどこまで書いたかに合わせて描く。LineRenderer と違い UI の描画順に従うので、黒板消しの跡などで隠せる | View |
-| `ChalkTextWriter` | TextMeshPro の字を1字ずつチョークで書くように出す（頂点の色で左から右へ濃くし、チョークの先の画像を動かす） | View |
+| `ChalkTextWriter` | TextMeshPro の字を1字ずつチョークで書くように出す（頂点の色で左から右へ濃くし、チョークの先の画像を動かす）。書いている途中かどうかを `Writing`（R3）で知らせる（チョークの音を鳴らすため） | View |
 | `SkipInput` | 演出を飛ばす入力（左クリック、タップ、Enter、スペース）を、演出をしている View が確かめる | View |
 | `Difficulty` / `DifficultyExtensions` | 難易度と、その表示名（簡単・常識・困難） | Model |
 | `KanjiSet` | 出題範囲の漢字の集まり。JSON から読む。サロゲートペアの漢字も1文字として扱う | Model |
@@ -371,7 +371,7 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | `TechC.KanjiQuiz.Editor` | エディタ拡張（必要になったら） |
 | `TechC.KanjiQuiz.Tests` | EditMode テスト |
 
-テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-11-01 時点で 250 件）。主な対象は次のとおり。
+テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-11-02 時点で 254 件）。主な対象は次のとおり。
 
 | 対象 | テストクラス |
 |---|---|
