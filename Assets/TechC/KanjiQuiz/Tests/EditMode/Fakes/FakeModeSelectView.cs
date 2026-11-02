@@ -17,6 +17,7 @@ namespace TechC.KanjiQuiz.Tests
         public readonly Subject<int> DifficultyMoved = new Subject<int>();
         public readonly Subject<Unit> StartClicked = new Subject<Unit>();
         public readonly Subject<Unit> BackToTimetableClicked = new Subject<Unit>();
+        public readonly Subject<bool> ChalkWriting = new Subject<bool>();
 
         public Observable<int> OnModeClicked => ModeClicked;
         public Observable<int> OnModeMoved => ModeMoved;
@@ -26,6 +27,7 @@ namespace TechC.KanjiQuiz.Tests
         public Observable<int> OnDifficultyMoved => DifficultyMoved;
         public Observable<Unit> OnStartClicked => StartClicked;
         public Observable<Unit> OnBackToTimetableClicked => BackToTimetableClicked;
+        public Observable<bool> OnChalkWriting => ChalkWriting;
 
         public bool IsVisible { get; private set; }
         public IReadOnlyList<ModeSummary> Timetable { get; private set; }

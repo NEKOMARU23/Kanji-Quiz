@@ -18,6 +18,7 @@ namespace TechC.KanjiQuiz.Tests
         public readonly Subject<Unit> KanjiBookClicked = new Subject<Unit>();
         public readonly Subject<Unit> CreditsClicked = new Subject<Unit>();
         public readonly Subject<SeType> EffectSound = new Subject<SeType>();
+        public readonly Subject<bool> ChalkWriting = new Subject<bool>();
 
         public Observable<Unit> OnStartClicked => StartClicked;
         public Observable<Unit> OnQuitClicked => QuitClicked;
@@ -25,6 +26,7 @@ namespace TechC.KanjiQuiz.Tests
         public Observable<Unit> OnKanjiBookClicked => KanjiBookClicked;
         public Observable<Unit> OnCreditsClicked => CreditsClicked;
         public Observable<SeType> OnEffectSound => EffectSound;
+        public Observable<bool> OnChalkWriting => ChalkWriting;
 
         public bool IsVisible { get; private set; }
         public int IntroCount { get; private set; }

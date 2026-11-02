@@ -77,10 +77,36 @@ namespace TechC.KanjiQuiz.Tests
         {
             CreatePresenter();
 
-            titleView.EffectSound.OnNext(SeType.Chalk);
             titleView.EffectSound.OnNext(SeType.Eraser);
 
-            CollectionAssert.AreEqual(new[] { SeType.Chalk, SeType.Eraser }, audioPlayer.PlayedSe);
+            CollectionAssert.AreEqual(new[] { SeType.Eraser }, audioPlayer.PlayedSe);
+        }
+
+        [Test]
+        public void ロゴを書いている間だけチョークの音をループで鳴らす()
+        {
+            CreatePresenter();
+
+            titleView.ChalkWriting.OnNext(true);
+
+            CollectionAssert.AreEqual(new[] { SeType.Chalk }, audioPlayer.PlayedLoops);
+            Assert.IsTrue(audioPlayer.IsLooping);
+
+            titleView.ChalkWriting.OnNext(false);
+
+            Assert.IsFalse(audioPlayer.IsLooping);
+        }
+
+        [Test]
+        public void 書いている途中で片付けるとチョークの音を止める()
+        {
+            CreatePresenter();
+            titleView.ChalkWriting.OnNext(true);
+
+            presenter.Dispose();
+            presenter = null;
+
+            Assert.IsFalse(audioPlayer.IsLooping);
         }
 
         [Test]

@@ -53,6 +53,33 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
+        public void 黒板に字を書いている間だけチョークの音をループで鳴らす()
+        {
+            CreatePresenter();
+
+            view.ChalkWriting.OnNext(true);
+
+            CollectionAssert.AreEqual(new[] { SeType.Chalk }, audio.PlayedLoops);
+            Assert.IsTrue(audio.IsLooping);
+
+            view.ChalkWriting.OnNext(false);
+
+            Assert.IsFalse(audio.IsLooping);
+        }
+
+        [Test]
+        public void 字を書いている途中で片付けるとチョークの音を止める()
+        {
+            CreatePresenter();
+            view.ChalkWriting.OnNext(true);
+
+            presenter.Dispose();
+            presenter = null;
+
+            Assert.IsFalse(audio.IsLooping);
+        }
+
+        [Test]
         public void 開くまでは画面を見せない()
         {
             CreatePresenter();
