@@ -1,7 +1,8 @@
 """
-仮の効果音（WAV）を作る。
+効果音（WAV）を作る。
 
-正式な素材に差し替えるまでの仮の音。標準ライブラリだけで動く。
+製品版でも使う自作の音（ほかの人の音源を使わず、計算で作る）。標準ライブラリだけで動く。
+チョークの音（se_chalk_writing.mp3）だけは On-Jin ～音人～ の音源なので、このスクリプトでは作らない。
 出力先: Assets/TechC/KanjiQuiz/Art/Audio/SE/
 
     python Tools/generate_placeholder_se.py
@@ -185,6 +186,20 @@ def new_record():
     return normalize(track, peak=0.6)
 
 
+def eraser():
+    """黒板消しで1回引く：ザッという柔らかい音（1回引く秒数 0.33 秒に合わせる）"""
+    random.seed(5)
+    count = int(SAMPLE_RATE * 0.33)
+    track = []
+    for i in range(count):
+        t = i / count
+        # 引き始めと引き終わりは弱く、真ん中で一番こする
+        envelope = math.sin(math.pi * t) ** 1.5 * (0.85 + 0.15 * math.sin(2 * math.pi * 18 * t))
+        track.append(random.uniform(-1, 1) * envelope)
+    # フェルトでこするので、紙をめくる音よりこもらせる
+    return normalize(lowpass(lowpass(track, 0.85), 0.6), peak=0.4)
+
+
 if __name__ == "__main__":
     save("se_correct.wav", correct())
     save("se_incorrect.wav", incorrect())
@@ -195,3 +210,4 @@ if __name__ == "__main__":
     save("se_stamp.wav", stamp())
     save("se_hanamaru.wav", hanamaru_draw())
     save("se_new_record.wav", new_record())
+    save("se_eraser.wav", eraser())

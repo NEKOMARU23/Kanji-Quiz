@@ -31,5 +31,11 @@ namespace TechC.KanjiQuiz.Common
 
         /// <summary>自己ベストを更新した</summary>
         NewRecord,
+
+        /// <summary>黒板にチョークで1画書く</summary>
+        Chalk,
+
+        /// <summary>黒板消しで1回引く</summary>
+        Eraser,
     }
 }

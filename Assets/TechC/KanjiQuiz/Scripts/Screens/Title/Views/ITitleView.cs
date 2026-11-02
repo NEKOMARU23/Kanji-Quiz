@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
+using TechC.KanjiQuiz.Common;
 
 namespace TechC.KanjiQuiz.Screens.Title
 {
@@ -24,6 +25,12 @@ namespace TechC.KanjiQuiz.Screens.Title
 
         /// <summary>[クレジット] が押されたとき</summary>
         Observable<Unit> OnCreditsClicked { get; }
+
+        /// <summary>演出の中で効果音を1回鳴らしてほしいとき（黒板消しを引き始めた）</summary>
+        Observable<SeType> OnEffectSound { get; }
+
+        /// <summary>ロゴをチョークで書き始めたとき（true）と、書き終えた・飛ばした・止めたとき（false）</summary>
+        Observable<bool> OnChalkWriting { get; }
 
         /// <summary>タイトル画面を表示するかどうか</summary>
         void SetVisible(bool visible);

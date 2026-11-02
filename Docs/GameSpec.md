@@ -4,7 +4,7 @@
 |---|---|
 | プロダクト名 | KanjiQuiz |
 | エンジン | Unity 6000.4.3f1（URP） |
-| 最終更新 | 2026-10-31 |
+| 最終更新 | 2026-11-01 |
 | ステータス | 開発中（書き順クイズと本物の漢字さがしが遊べる。ほかの3モードは未着手） |
 | 開発体制 | 1人（就職活動用のポートフォリオ作品） |
 | 完成目標 | 2027年1月 |
@@ -146,7 +146,8 @@
   - JMdict でよく使われる印（`ke_pri`）のある言葉を、よく使われる順に3つまで。選んだ言葉を含む長い言葉（海外と海外旅行など）は選ばない。
   - 3つに満たなければ、1字で使う言葉（鞄（かばん）など）も使う。1つもなければ、印のない2字の言葉を2つまで。
   - 当て字・まれな書き方・まれな読み、下品・差別的・古い言葉は使わない。
-- 熟語のない字：小学 0 字、常用（よく使う）1 字、常用（あまり使わない）4 字、常用外 98 字（本物の漢字さがしで出題する 1,730 字のうち 5 字）。振り返りでは熟語の欄を出さない。
+  - JMdict に印がなくても子ども向けでない言葉（性・遊郭・薬物・賭博・反社会的な組織・むごい殺し方・自殺・ののしりなど）は、スクリプトの `EXCLUDED_WORDS` で外す（2026-11-01）。ニュースでふつうに使う言葉（殺人・強盗・賄賂など）は残す。淫・絞は熟語なしにする（`NO_UNCOMMON_FALLBACK`）。
+- 熟語のない字：小学 0 字、常用（よく使う）2 字、常用（あまり使わない）6 字、常用外 98 字（本物の漢字さがしで出題する 1,730 字のうち 8 字）。振り返りでは熟語の欄を出さない。
 
 *意味と例文のデータ*（2026-10-31 作成）
 
@@ -385,7 +386,7 @@
 | Board/Inner/SmallContent | ChalkTextWriter | 時間割の横の黒板の字をチョークで1字ずつ書く。チョークの先は Board/Inner/ChalkTip |
 | CreditText | TextMeshPro | KanjiVG のクレジット（タイトルのときだけ） |
 | KanjiBookRoot | CanvasGroup / Image（机） | 漢字帳。Notebook の下に Tabs（出題範囲のタブ3つ）、LeftPage（SummaryText、Cells（GridLayoutGroup。CellTemplate を起動時に 10×8 個に増やす）、SelectionFrame、ページ送り）、RightPage（EmptyMessage と Detail。Detail は KanjiMasu、StrokeMasu（書き順のお手本の ChalkStrokeGraphic）、読み・意味・例文・使用例、ModeStamps） |
-| CreditsRoot | CanvasGroup / Image | クレジット（掲示板「ありがとう」）。Canvas のいちばん手前に置き、開いている間はタイトルを覆って押せなくする。Board/Cork に見出し（Heading）、おたより6枚（Notes）、[← タイトルへ]（BackButton） |
+| CreditsRoot | CanvasGroup / Image | クレジット（掲示板「ありがとう」）。Canvas のいちばん手前に置き、開いている間はタイトルを覆って押せなくする。Board/Cork に見出し（Heading）、おたより7枚（Notes。右上の小さい紙が On-Jin）、[← タイトルへ]（BackButton） |
 | ModeSelectRoot/TimetablePaper | Image / VerticalLayoutGroup（RowContainer） | 時間割表。行は TimetableRow プレハブ、4時間目のあとに LunchBreak プレハブ |
 | ModeSelectRoot/Board | Image（Inner、Tray） | 黒板。SmallBoardArea と LargeBoardArea の間で大きさを変える。中身は SmallContent（時間割の横）と LargeContent（画面いっぱい、列は DifficultyColumn プレハブ） |
 | ModeSelectRoot/AttendButton | Button | [この授業を受ける] |
@@ -393,7 +394,7 @@
 
 - プレハブは `Prefabs/Screens/Title/` の TimetableRow・LunchBreak・DifficultyColumn。
 - 時間割に並べるモードは `QuizModeCatalog` の順。まだ作っていないモードの定義（四字熟語づくり・画像で名前当て・返信文クイズ・人名漢字のモード）は `isAvailable` を外してあり、「自習（○○ 準備中）」と出す。
-- 黒板のチョークの丸と級の枠、掲示板のコルク、漢字帳のマスと選んだマスの枠は `Tools/generate_placeholder_ui.py` で作った仮の画像（`fx_chalk_circle`、`frame_chalk_stamp`、`bg_cork`、`frame_masu`、`frame_select`）。
+- 黒板のチョークの丸と級の枠、掲示板のコルク、漢字帳のマスと選んだマスの枠は `Tools/generate_placeholder_ui.py` で作った画像（`fx_chalk_circle`、`frame_chalk_stamp`、`bg_cork`、`frame_masu`、`frame_select`）。
 - クレジットのおたよりの文はシーンに直接書いている。使うデータやフォントが増えたら、CreditsRoot/Board/Cork/Notes に紙を足す。
 基準解像度は 1920×1080（Canvas Scaler：Scale With Screen Size、Match 0.5）。文字はすべて Klee One（4.2）で表示する。
 
@@ -438,12 +439,17 @@
 
 - `Art/Audio/SE/` の `se_correct`（正解）、`se_incorrect`（不正解）、`se_roulette_loop`（ルーレット、ループ）、`se_score_reveal`（正解数の発表）。
 - プレイ中の音は `se_select`（選択肢を選んだ）、`se_page_turn`（問題を切り替えた）。結果画面では、ほかに `se_stamp`（級のハンコ）、`se_hanamaru`（花丸を書く）、`se_new_record`（自己ベスト更新）を使う。
-- 今は `Tools/generate_placeholder_se.py` で作った**仮の音**。正式な素材に差し替えるときは、AudioManager プレハブの `seEntries` で種類ごとに音と音量を設定する。
+- タイトル画面では、ロゴを書いている間と、時間割の横の黒板に字を書いている間、`se_chalk_writing`（チョークで黒板に書く音）をループで鳴らす。書き終えたり飛ばしたりしたら、すぐ止める。TitleView・ModeSelectView が `OnChalkWriting` で知らせ、TitlePresenter・ModeSelectPresenter が鳴らす（シーンを移るときも止める）。黒板消しを1回引くたびに `se_eraser`（黒板消し）を鳴らす（`OnEffectSound`）。
+- チョークの音のほかは、`Tools/generate_placeholder_se.py` で計算して作った**自作の音**（ほかの人の音源を使っていないので、クレジット不要）。製品版でもこれを使う（2026-11-01 に決定）。音を変えるときはスクリプトを直して作り直し、音量は AudioManager プレハブの `seEntries` で種類ごとに設定する。
+- チョークの音 `se_chalk_writing.mp3` は [On-Jin ～音人～](https://on-jin.com/) の音源（2026-11-02 にユーザーが選んだ）。個人の作品なので連絡なしで無料で使える（会社の仕事などで使うときは利用の連絡が必要）。
+  - 利用規約で、素材のまま第三者が取得できる状態にできないので、外部の音源は `Art/Audio/External/` に置き、**Git に入れない**（`.gitignore`。`.meta` だけ入れてプレハブからの参照を保つ）。リポジトリを公開しても音源は出ない。ビルドでは音源がファイルのまま出ないので、ゲームは配ってよい。
+  - 新しく取り出したリポジトリでは、音源を On-Jin からダウンロードして `Art/Audio/External/se_chalk_writing.mp3` に置く（ないとチョークの音が鳴らないだけで、ほかは動く）。
+  - クレジットは必須ではないが、クレジット画面の掲示板に載せている。
 
 **画像**
 
 - `Art/UI/` の `bg_print`（学校のプリントのような背景）、`bg_desk`（切り替えのときに見える机）、`fx_sheet_shadow`（切り替えで動くプリントの影）、`icon_stamp_correct`（○のハンコ）、`icon_stamp_incorrect`（×のハンコ）、`frame_stamp_rank`（級のハンコの枠）、`icon_hanamaru`（花丸）。
-- 今は `Tools/generate_placeholder_ui.py` で作った**仮の画像**。
+- どの画像も `Tools/generate_placeholder_ui.py` で描いた**自作の画像**（ほかの人の素材を使っていないので、クレジット不要）。製品版でもこれを使う（2026-11-01 に決定）。
 
 **ResultItem プレハブ**（問題1つ分の行）
 
@@ -685,7 +691,7 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 - [x] キーボード操作
 - [x] シーンのひな形（シーンテンプレート）とモードの定義
 - [x] ゲーム内での難易度選択（モード選択画面の黒板。F1 のテスト用ボタンも残している）
-- [x] タイトル画面・モード選択画面とシーン遷移（タイトル画面の見た目とロゴの演出は仮）
+- [x] タイトル画面・モード選択画面とシーン遷移
 - [x] タイトルのクレジット（掲示板「ありがとう」）
 - [x] タイトルの設定（黒板に板書。効果音の音量、ひらがなで表示、記録を消す）
 - [x] タイトルの漢字帳（正解した字を集めるマス目の漢字練習帳）
@@ -718,7 +724,9 @@ PR #1 のコードレビューで見つかった不具合は、書き順クイ�
 
 | 本物の漢字さがしの偽物で、部首と借りた部品が重なる（2026-10-27） | 部首の側から部品を置く枠を狭め、重ならない枠を JSON に入れる（詳しくは [BugFixes.md](BugFixes.md) 1章） |
 
-現在わかっている不具合はない。直した不具合の原因と直し方は [BugFixes.md](BugFixes.md) に書く。
+| 本物の漢字さがしで、偽物が実在する字にそっくりに見えることがある（例：「胃」の偽物「月＋土」が「青」に見える。2026-11-01 にビルドの確認で発見） | 直さない（2026-11-01 にユーザーが判断） |
+
+直した不具合の原因と直し方は [BugFixes.md](BugFixes.md) に書く。
 
 ### 8.3 決めること
 

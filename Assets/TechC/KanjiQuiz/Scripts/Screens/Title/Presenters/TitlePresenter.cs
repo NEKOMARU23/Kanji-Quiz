@@ -29,6 +29,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         private bool isBusy;
         private ITitleSubScreen openSubScreen;
         private bool isSubScreenOnBoard;
+        private bool isChalkSoundPlaying;
         private bool isDisposed;
 
         /// <summary>タイトルが表示されていて、メニューを押せる状態かどうか</summary>
@@ -74,6 +75,8 @@ namespace TechC.KanjiQuiz.Screens.Title
             view.OnKanjiBookClicked.Subscribe(this, static (_, self) => self.OpenSubScreen(self.subScreens.KanjiBook)).AddTo(disposables);
             view.OnCreditsClicked.Subscribe(this, static (_, self) => self.OpenSubScreen(self.subScreens.Credits)).AddTo(disposables);
             modeSelect.OnBackToTitle.Subscribe(this, static (_, self) => self.ShowTitleAsync().Forget()).AddTo(disposables);
+            view.OnEffectSound.Subscribe(this, static (type, self) => self.audioPlayer.PlaySe(type)).AddTo(disposables);
+            view.OnChalkWriting.Subscribe(this, static (writing, self) => self.SetChalkSound(writing)).AddTo(disposables);
 
             if (openModeSelectFirst)
             {
@@ -174,6 +177,15 @@ namespace TechC.KanjiQuiz.Screens.Title
             isSubScreenOnBoard = false;
         }
 
+        /// <summary>ロゴを書いている間だけ、チョークの音をループで鳴らす</summary>
+        private void SetChalkSound(bool writing)
+        {
+            if (writing == isChalkSoundPlaying) return;
+            isChalkSoundPlaying = writing;
+            if (writing) audioPlayer.PlayLoop(SeType.Chalk);
+            else audioPlayer.StopLoop();
+        }
+
         private void Quit()
         {
             if (!IsMenuReady) return;
@@ -199,6 +211,8 @@ namespace TechC.KanjiQuiz.Screens.Title
             lifetimeCts.Cancel();
             lifetimeCts.Dispose();
             disposables.Dispose();
+            // AudioManager はシーンをまたいで残るので、書いている途中で片付けたら音を止める
+            SetChalkSound(false);
             modeSelect.Dispose();
             foreach (var screen in subScreens.All()) screen.Dispose();
         }

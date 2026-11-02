@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using R3;
 using TMPro;
 using UnityEngine;
 
@@ -28,11 +29,17 @@ namespace TechC.KanjiQuiz.Common
         [Tooltip("行と行の間の秒数")]
         [Min(0f)] [SerializeField] private float lineInterval = 0.12f;
 
+        private readonly ReactiveProperty<bool> writing = new ReactiveProperty<bool>(false);
+
         /// <summary>書いている途中かどうか</summary>
-        public bool IsWriting { get; private set; }
+        public bool IsWriting => writing.Value;
+
+        /// <summary>書いている途中かどうかの変化（書き始めたら true、書き終えた・飛ばした・止めたら false）</summary>
+        public ReadOnlyReactiveProperty<bool> Writing => writing;
 
         private void Awake()
         {
+            writing.AddTo(this);
             if (chalkTip != null) chalkTip.gameObject.SetActive(false);
         }
 
@@ -60,7 +67,7 @@ namespace TechC.KanjiQuiz.Common
                 line.text.ForceMeshUpdate();
             }
             if (chalkTip != null) chalkTip.gameObject.SetActive(false);
-            IsWriting = false;
+            writing.Value = false;
         }
 
         /// <summary>
@@ -69,7 +76,7 @@ namespace TechC.KanjiQuiz.Common
         public async UniTask WriteAsync(CancellationToken ct)
         {
             Clear();
-            IsWriting = true;
+            writing.Value = true;
             try
             {
                 foreach (var line in lines)
@@ -81,7 +88,7 @@ namespace TechC.KanjiQuiz.Common
             }
             finally
             {
-                IsWriting = false;
+                writing.Value = false;
                 if (chalkTip != null) chalkTip.gameObject.SetActive(false);
             }
         }

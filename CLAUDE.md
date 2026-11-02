@@ -39,12 +39,12 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - 問題データは JSON。`IQuestionRepository` 経由で読む（同梱の JSON は `LocalQuestionRepository<TEntry>`。`TEntry` は問題1件の [Serializable] な型）。
 - 非同期は UniTask。問題ごとに `CancellationTokenSource` を作り直す。`async void` 禁止。
 
-## 現在の状態（2026-10-31 時点）
+## 現在の状態（2026-11-02 時点）
 
 - **遊べるのは書き順クイズと本物の漢字さがし**。タイトル（黒板にチョークで書くロゴ）、モード選択（教室の時間割表）、難易度選択（黒板）、タイトルのメニューの設定・漢字帳・クレジットもできた。ほかの3モードは未着手。次にやることは `Docs/Progress.md` の9章。返信文クイズは後回し（正しい返信文を作るのが難しいため）。
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
   - KanjiVG の SVG を読む部品（`KanjiSvgParser`, `StrokePathParser`, `StrokeData`, `StreamingAssetsKanjiStrokeSource`）と、字を線で描く `KanjiGlyphRenderer`、熟語の辞書 `KanjiWordDictionary` も Common にある。
-  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、249 件）。
+  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、254 件）。
 - 書き順クイズは `Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`。
   - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。難易度・難易度ごとの漢字セット・選択肢の数・振り返り用の View もここで設定する。
   - 難易度はモード選択画面の黒板で選び、`QuizLaunchOptions.Difficulty` で受け取る（なければ EntryPoint の Inspector の値）。F1 キーで表示されるテスト用ボタン（`Scripts/DebugTools/DebugDifficultySwitcher`、エディタと開発ビルドのみ）で切り替えられる。シーンに保存する難易度は Easy にしておく。
@@ -78,7 +78,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - モード名・シーン名・難易度ごとの問題数・保存のキーは `Data/Modes/` のモードの定義（`QuizModeDefinition`）に書く。書き順クイズは `Mode_StrokeOrder`、本物の漢字さがしは `Mode_RealKanji`（各 EntryPoint の `mode` に設定）。
 - 中断メニュー（Esc か右上の [メニュー]、見た目は机の上の連絡帳）で、続ける・最初からやり直す・やめる（時間割へ）・効果音の音量・出題の字のほかは ひらがなで表示。音量は PlayerPrefs の `Volume_Se`。キーボード操作は数字キー・Enter・← →・Esc。メニューを開いている間とシーンの切り替え中は `InputGate` でキー操作を止める。
 - 切り替えはカメラの映像をテクスチャに描いて使うので、**新しいシーンの Canvas は Screen Space - Camera にする**（Overlay の UI はプリントに映らない）。Title・StrokeOrder・RealKanji・Result はどれも Camera にしてある。
-- 効果音は `AudioManager`（`Prefabs/Common/AudioManager`、Title・StrokeOrder・RealKanji・Result のシーンに置いている）。シングルトンは `SingletonMonoBehaviour<T>` を継承して作る。今の効果音と画像は `Tools/generate_placeholder_se.py`・`Tools/generate_placeholder_ui.py` で作った仮のもの。
+- 効果音は `AudioManager`（`Prefabs/Common/AudioManager`、Title・StrokeOrder・RealKanji・Result のシーンに置いている）。シングルトンは `SingletonMonoBehaviour<T>` を継承して作る。効果音と画像は `Tools/generate_placeholder_se.py`・`Tools/generate_placeholder_ui.py` で作った自作のもの（製品版でも使う。クレジット不要）。新しい音・画像もこのスクリプトに関数を足して作る。例外はチョークの音 `Art/Audio/External/se_chalk_writing.mp3`（On-Jin ～音人～ の音源）で、利用規約のため Git に入れない（`.meta` だけ入れる。Docs/GameSpec.md 4章）。外部の音源を足すときも `External/` に置き、クレジット画面の掲示板に載せる。
 - 文字は Klee One の TMP フォントアセット（Dynamic、TMP Settings の既定）で表示する。
 - 未実装の機能と既知の不具合は `Docs/GameSpec.md` の8章を参照。
 
@@ -134,6 +134,8 @@ git -c credential.helper= -c "credential.helper=!gh auth git-credential" push ht
 ## ハマりどころ
 
 - **R3 と Microsoft.Bcl.AsyncInterfaces**：NuGetForUnity は Unity 6 で AsyncInterfaces を入れずにスキップする。`Assets/Packages/` の DLL を消さないこと。入れ直すときは `NugetForUnity.PackageRestorer.Restore(true)` を実行する。
+- **記録の保存先は会社名で決まる**：Player Settings の会社名は `TechC`、製品名は `KanjiQuiz`。変えると PlayerPrefs の保存先が変わり、記録が消えたように見えるので変えない。
+- **ビルドすると設定のファイルに差分が出る**：`Assets/Settings/`（URP のシェーダーの絞り込み）と `ProjectSettings/`（ビルド中だけ入る preloadedAssets など）が書き換わる。作業と関係なければ `git checkout` で戻す。ビルドは `Builds/`（Git に入れない）に作る。
 - **TMP の Dynamic フォント**：Play するとエディタ上でフォントアセットに文字が追加され、差分が出る。コミット前に `ClearFontAssetData(true)` で消す。
 - **Canvas は Screen Space - Camera**：書き順の線（LineRenderer）を UI より手前に出すため、`CumulativeStrokeRenderer` の `sortingOrder` を 1 以上にしている。UI 要素の z 座標が 0 以外だと遠近法で小さく見えるので注意。
 - **Play モードの確認**：エディタが非アクティブだとフレームが進まない。`unity command set_autotick` と、Play 中に `Application.runInBackground = true` を設定する。

@@ -107,3 +107,8 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# 外部の音源（On-Jin ～音人～ など）。利用規約で、素材のまま第三者が取得できる状態にできないため Git に入れない
+# .meta は入れて、プレハブからの参照（GUID）を保つ。音源は各自で同じ場所に置く（Docs/GameSpec.md 4章）
+/Assets/TechC/KanjiQuiz/Art/Audio/External/*
+!/Assets/TechC/KanjiQuiz/Art/Audio/External/*.meta
