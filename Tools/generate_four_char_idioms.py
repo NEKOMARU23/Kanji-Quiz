@@ -10,7 +10,9 @@ Tools/four_char_idiom_candidates.tsv（extract_four_char_idioms.py で JMdict �
   - 例文に熟語が入っている。意味・例文とも、表示する文で 40 字以内
   - まぎらわしい字が、位置ごとに3字ずつ（12 字とも別の字）で、常用漢字。熟語の字とは重ならない
   - まぎらわしい字を1つ入れただけで、別の四字熟語（候補にあるもの）にならない
-また、12 字のまぎらわしい字と熟語の字を組み合わせると別の四字熟語が作れるものは、数だけ知らせる（困難で起きうる）。
+  - 常識の熟語は、2字を入れ替えても別の四字熟語にならない（2マスを空けるため）
+  - 困難の熟語は、熟語の字と 12 字のまぎらわしい字を組み合わせて、別の四字熟語（並べ替えを含む）が作れない
+ほかの難易度で別の四字熟語が作れるものは、数だけ知らせる（その難易度では、並べ替えるマスがないので困らない）。
 
 使い方:
     python -I Tools/generate_four_char_idioms.py
@@ -120,6 +122,16 @@ def main():
                 if other in known:
                     errors.append(f"{word}: {pos + 1} 字目に「{ch}」を入れると、別の四字熟語「{other}」になる")
 
+        # 常識では2マスを空けるので、2字を入れ替えた並びが別の熟語だと、正しく並べても不正解になりうる
+        if level == "Normal":
+            for i in range(4):
+                for j in range(i + 1, 4):
+                    chars = list(word)
+                    chars[i], chars[j] = chars[j], chars[i]
+                    swapped = "".join(chars)
+                    if swapped != word and swapped in known:
+                        errors.append(f"{word}: {i + 1} 字目と {j + 1} 字目を入れ替えると、別の四字熟語「{swapped}」になる（常識では2マスを空けるため）")
+
         entries[level].append({
             "word": word,
             "reading": readings[word],
@@ -134,16 +146,25 @@ def main():
             print("  " + e)
         sys.exit(1)
 
-    # 困難では 12 字のまぎらわしい字から 8 字を出すので、組み合わせで別の熟語が作れるかを知らせる
+    # 困難では4字とも並べ、12 字のまぎらわしい字から 8 字を出すので、組み合わせで別の熟語が作れると
+    # 正しく並べても不正解になりうる。困難の熟語ならまちがいとして止め、ほかの難易度なら知らせるだけにする
     anagram = []
     for level in entries:
         for e in entries[level]:
             tiles = Counter(e["word"] + "".join(e["confusers"]))
             for other in known:
                 if other != e["word"] and not (Counter(other) - tiles):
-                    anagram.append(f"{e['word']} → {other}")
+                    if level == "Hard":
+                        errors.append(f"{e['word']}: 候補の字で別の四字熟語「{other}」も作れる（困難では4字とも並べるため）")
+                    else:
+                        anagram.append(f"{e['word']} → {other}")
+    if errors:
+        print("まちがいがあるので、JSON を書きません：")
+        for e in errors:
+            print("  " + e)
+        sys.exit(1)
     if anagram:
-        print(f"注意：まぎらわしい字との組み合わせで別の四字熟語が作れるもの {len(anagram)} 件（困難で同時に出ると、どちらにも見える）")
+        print(f"注意：まぎらわしい字との組み合わせで別の四字熟語が作れるもの {len(anagram)} 件（簡単・常識では字を並べ替えないので、出題には困らない）")
         for a in anagram:
             print("  " + a)
 
