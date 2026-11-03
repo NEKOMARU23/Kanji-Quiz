@@ -47,5 +47,26 @@ namespace TechC.KanjiQuiz.Screens.Title
 
         /// <summary>右のページのお手本に、書き順を1画ずつ書く（KanjiVG の d 属性、書き順の順）。空なら何も書かない</summary>
         void PlayStrokes(IReadOnlyList<string> strokePaths);
+
+        /// <summary>四字熟語のページの熟語が押されたとき（ページの中の番号）</summary>
+        Observable<int> OnIdiomClicked { get; }
+
+        /// <summary>四字熟語のページの、1ページの熟語の数</summary>
+        int IdiomsPerPage { get; }
+
+        /// <summary>四字熟語のページ（true）と、漢字のマス目のページ（false）を切り替える</summary>
+        void SetIdiomMode(bool idiomMode);
+
+        /// <summary>
+        /// 四字熟語のページの熟語を出す
+        /// </summary>
+        /// <param name="idioms">行ごとの熟語。集めた熟語はその熟語、まだの熟語は空文字、範囲の外は null（行を出さない）</param>
+        void SetIdiomPage(IReadOnlyList<string> idioms, int pageIndex, int pageCount);
+
+        /// <summary>選んでいる熟語の行を囲む。-1 なら囲まない</summary>
+        void SetSelectedIdiom(int index);
+
+        /// <summary>右のページに熟語の内容を出す。null なら案内の文を出す</summary>
+        void ShowIdiomDetail(IdiomBookDetail detail);
     }
 }
