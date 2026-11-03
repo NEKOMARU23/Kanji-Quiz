@@ -98,8 +98,9 @@ namespace TechC.KanjiQuiz.Modes.FourCharIdiom
 
         private void ShowMeaning(FourCharIdiomQuestion question)
         {
+            // 意味の中の、空いたマスの字を含む言葉は読みで出す（答えが見えないように）
             bool useHiragana = displaySettings != null && displaySettings.UseHiragana.CurrentValue;
-            view.SetMeaning(RubyText.Render(question.Meaning, useHiragana));
+            view.SetMeaning(FourCharIdiomHint.Render(question, useHiragana));
         }
 
         private void ShowBoard(FourCharIdiomQuestion question)
