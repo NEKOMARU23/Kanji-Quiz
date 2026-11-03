@@ -37,6 +37,10 @@ namespace TechC.KanjiQuiz.Screens.Title
         [SerializeField] private float noWeakFontSize = 34f;
         [Tooltip("苦手な漢字をいくつまで書くか")]
         [Min(1)] [SerializeField] private int maxWeakCount = 6;
+        [Tooltip("苦手な問題が2字以上（四字熟語など）のときの字の大きさ")]
+        [SerializeField] private float longWeakFontSize = 34f;
+        [Tooltip("苦手な問題が2字以上（四字熟語など）のとき、いくつまで書くか")]
+        [Min(1)] [SerializeField] private int maxLongWeakCount = 4;
         [Tooltip("選んでいない列の濃さ")]
         [Range(0f, 1f)] [SerializeField] private float unselectedAlpha = 0.55f;
         [SerializeField] private Color weakColor = new Color(0.95f, 0.66f, 0.63f, 1f);
@@ -47,7 +51,8 @@ namespace TechC.KanjiQuiz.Screens.Title
 
         /// <summary>列の内容を書く</summary>
         /// <param name="isFirst">一番左の列かどうか（左の線を隠す）</param>
-        public void Set(DifficultyRecord record, bool isFirst)
+        /// <param name="questionNoun">問題の呼び方（「苦手な○○」に使う。例：漢字、熟語）</param>
+        public void Set(DifficultyRecord record, bool isFirst, string questionNoun = "漢字")
         {
             leftLine.SetActive(!isFirst);
             nameText.text = record.Difficulty.ToDisplayName();
@@ -63,11 +68,11 @@ namespace TechC.KanjiQuiz.Screens.Title
             goalText.text = record.Goal;
 
             bool hasWeak = record.WeakQuestions.Count > 0;
-            weakLabelText.text = hasWeak ? "苦手な漢字（次に出ます）" : "苦手な漢字";
+            weakLabelText.text = hasWeak ? $"苦手な{questionNoun}（次に出ます）" : $"苦手な{questionNoun}";
             weakLabelText.color = hasWeak ? weakColor : mutedColor;
             weakText.text = hasWeak ? JoinWeak(record) : "なし";
             weakText.color = hasWeak ? weakColor : mutedColor;
-            weakText.fontSize = hasWeak ? weakFontSize : noWeakFontSize;
+            weakText.fontSize = !hasWeak ? noWeakFontSize : HasLongWeak(record) ? longWeakFontSize : weakFontSize;
         }
 
         /// <summary>選んでいる列かどうかを切り替える</summary>
@@ -77,14 +82,27 @@ namespace TechC.KanjiQuiz.Screens.Title
             canvasGroup.alpha = selected ? 1f : unselectedAlpha;
         }
 
+        /// <summary>苦手な問題に2字以上のもの（四字熟語など）があるかどうか</summary>
+        private static bool HasLongWeak(DifficultyRecord record)
+        {
+            foreach (var question in record.WeakQuestions)
+            {
+                if (question.Length > 1) return true;
+            }
+            return false;
+        }
+
         private string JoinWeak(DifficultyRecord record)
         {
+            // 2字以上の問題は字を小さくして数を減らし、1つの問題の途中で改行しないようにする
+            bool isLong = HasLongWeak(record);
             var builder = new StringBuilder();
-            int count = Mathf.Min(record.WeakQuestions.Count, maxWeakCount);
+            int count = Mathf.Min(record.WeakQuestions.Count, isLong ? maxLongWeakCount : maxWeakCount);
             for (int i = 0; i < count; i++)
             {
                 if (i > 0) builder.Append('　');
-                builder.Append(record.WeakQuestions[i]);
+                if (isLong) builder.Append("<nobr>").Append(record.WeakQuestions[i]).Append("</nobr>");
+                else builder.Append(record.WeakQuestions[i]);
             }
             if (record.WeakQuestions.Count > count) builder.Append(" …");
             return builder.ToString();

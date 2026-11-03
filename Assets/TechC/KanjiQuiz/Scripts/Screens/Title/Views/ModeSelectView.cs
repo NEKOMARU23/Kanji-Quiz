@@ -234,7 +234,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             boardPeriodText.text = $"{mode.Period}時間目";
             boardNameText.text = mode.Definition.DisplayName;
             boardDescriptionText.text = mode.Definition.Description;
-            SetColumns(mode.Records);
+            SetColumns(mode.Records, mode.Definition.QuestionNoun);
 
             timetablePaper.SetActive(false);
             backToTitleButton.gameObject.SetActive(false);
@@ -278,7 +278,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             }
         }
 
-        private void SetColumns(IReadOnlyList<DifficultyRecord> records)
+        private void SetColumns(IReadOnlyList<DifficultyRecord> records, string questionNoun)
         {
             columnSubscriptions.Clear();
             foreach (Transform child in columnContainer) Destroy(child.gameObject);
@@ -287,7 +287,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             for (int i = 0; i < records.Count; i++)
             {
                 var column = Instantiate(columnPrefab, columnContainer);
-                column.Set(records[i], isFirst: i == 0);
+                column.Set(records[i], isFirst: i == 0, questionNoun);
                 int index = i;
                 column.OnClicked.Subscribe(this, (_, self) => self.difficultyClicked.OnNext(index)).AddTo(columnSubscriptions);
                 columns.Add(column);
