@@ -52,6 +52,8 @@ namespace TechC.KanjiQuiz.Modes.FourCharIdiom
         [Range(0f, 1f)] [SerializeField] private float usedTileAlpha = 0.25f;
 
         [Header("--- そのほか ---")]
+        [Tooltip("問題文。振り返りでは、同じ場所に正解の熟語と例文を出すので隠す。不要なら空でよい")]
+        [SerializeField] private GameObject questionText;
         [Tooltip("苦手な熟語のときに出す「苦手」の印。不要なら空でよい")]
         [SerializeField] private GameObject weakMark;
         [Tooltip("振り返りで、正解の熟語・読み・例文を出すテキスト。振り返りのときだけ表示される場所に置く")]
@@ -179,6 +181,7 @@ namespace TechC.KanjiQuiz.Modes.FourCharIdiom
 
         public void ShowAnswerInfo(string word, string reading, string example)
         {
+            if (questionText != null) questionText.SetActive(string.IsNullOrEmpty(word));
             if (answerInfoText == null) return;
             if (string.IsNullOrEmpty(word))
             {
