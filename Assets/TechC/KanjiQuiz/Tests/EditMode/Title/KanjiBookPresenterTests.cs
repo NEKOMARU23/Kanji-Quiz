@@ -192,5 +192,109 @@ namespace TechC.KanjiQuiz.Tests
             Assert.IsFalse(view.IsVisible);
             Assert.AreEqual(1, closedCount);
         }
+
+        /// <summary>四字熟語のページつきの漢字帳（熟語は3つ、1ページ2つ。一石二鳥と温故知新を集めている）</summary>
+        private KanjiBookPresenter CreateIdiomPresenter()
+        {
+            repository.Save("FourCharIdiom", new[] { "一石二鳥", "温故知新" });
+            var idioms = IdiomBookEntry.FromJson(
+                "{\"questions\":[" +
+                "{\"word\":\"一石二鳥\",\"reading\":\"いっせきにちょう\",\"meaning\":\"ふたつの{得|とく}\",\"example\":\"{今日|きょう}は一石二鳥だ。\"}," +
+                "{\"word\":\"十人十色\",\"reading\":\"じゅうにんといろ\",\"meaning\":\"それぞれちがう\",\"example\":\"十人十色だ。\"}," +
+                "{\"word\":\"温故知新\",\"reading\":\"おんこちしん\",\"meaning\":\"{昔|むかし}に{学|まな}ぶ\",\"example\":\"温故知新の{心|こころ}。\"}]}");
+            var idiomPresenter = new KanjiBookPresenter(
+                view, new FakeAudioPlayer(), new[] { new KanjiSet("A", "小学漢字", new[] { "一", "二" }) }, new[] { strokeOrder },
+                () => KanjiBook.Load(repository, new[] { "StrokeOrder", "FourCharIdiom" }),
+                LoadInfo, new FakeKanjiStrokeSource(new Dictionary<string, int>()), displaySettings, idioms);
+            idiomPresenter.Initialize();
+            return idiomPresenter;
+        }
+
+        [Test]
+        public void 四字熟語のデータがあれば最後に四字熟語のタブを足す()
+        {
+            using (var idiomPresenter = CreateIdiomPresenter())
+            {
+                idiomPresenter.Open();
+
+                CollectionAssert.AreEqual(new[] { "小学漢字", KanjiBookPresenter.IdiomSectionTitle }, view.TabTitles);
+                Assert.IsFalse(view.IsIdiomMode);
+            }
+        }
+
+        [Test]
+        public void 四字熟語のタブでは集めた熟語を一覧に書き最初の熟語の意味を出す()
+        {
+            using (var idiomPresenter = CreateIdiomPresenter())
+            {
+                view.IdiomsPerPage = 2;
+                idiomPresenter.Open();
+                view.TabClicked.OnNext(1);
+
+                Assert.IsTrue(view.IsIdiomMode);
+                Assert.AreEqual(KanjiBookPresenter.IdiomSectionTitle, view.SummaryTitle);
+                Assert.AreEqual(2, view.CollectedCount);
+                Assert.AreEqual(3, view.TotalCount);
+                CollectionAssert.AreEqual(new[] { "一石二鳥", "" }, view.Idioms);
+                Assert.AreEqual(2, view.PageCount);
+                Assert.AreEqual("一石二鳥", idiomPresenter.SelectedIdiom);
+                Assert.AreEqual(0, view.SelectedIdiom);
+                Assert.AreEqual("いっせきにちょう", view.IdiomDetail.Reading);
+                Assert.AreEqual("ふたつの得", view.IdiomDetail.Meaning);
+                Assert.AreEqual("今日は一石二鳥だ。", view.IdiomDetail.Example);
+            }
+        }
+
+        [Test]
+        public void まだ集めていない熟語は選べず次のページの熟語は選べる()
+        {
+            using (var idiomPresenter = CreateIdiomPresenter())
+            {
+                view.IdiomsPerPage = 2;
+                idiomPresenter.Open();
+                view.TabClicked.OnNext(1);
+
+                view.IdiomClicked.OnNext(1);
+                Assert.AreEqual("一石二鳥", idiomPresenter.SelectedIdiom);
+
+                view.PageMoved.OnNext(1);
+                CollectionAssert.AreEqual(new[] { "温故知新", null }, view.Idioms);
+                view.IdiomClicked.OnNext(0);
+                Assert.AreEqual("温故知新", idiomPresenter.SelectedIdiom);
+                Assert.AreEqual("昔に学ぶ", view.IdiomDetail.Meaning);
+            }
+        }
+
+        [Test]
+        public void 四字熟語のタブでひらがなの設定を変えると意味と例文を出し直す()
+        {
+            using (var idiomPresenter = CreateIdiomPresenter())
+            {
+                view.IdiomsPerPage = 2;
+                idiomPresenter.Open();
+                view.TabClicked.OnNext(1);
+
+                displaySettings.SetUseHiragana(true);
+
+                Assert.AreEqual("ふたつのとく", view.IdiomDetail.Meaning);
+                Assert.AreEqual("きょうは一石二鳥だ。", view.IdiomDetail.Example);
+            }
+        }
+
+        [Test]
+        public void 四字熟語のタブから漢字のタブに戻るとマス目に戻る()
+        {
+            using (var idiomPresenter = CreateIdiomPresenter())
+            {
+                idiomPresenter.Open();
+                view.TabClicked.OnNext(1);
+
+                view.TabClicked.OnNext(0);
+
+                Assert.IsFalse(view.IsIdiomMode);
+                Assert.IsNull(idiomPresenter.SelectedIdiom);
+                Assert.AreEqual("二", idiomPresenter.SelectedKanji);
+            }
+        }
     }
 }

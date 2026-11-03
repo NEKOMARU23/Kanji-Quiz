@@ -66,5 +66,28 @@ namespace TechC.KanjiQuiz.Tests
             Assert.AreEqual("カイ", dictionary.Get("海"), "同じ字は最初のものを使う");
             Assert.AreEqual(string.Empty, dictionary.Get("空"));
         }
+
+        [Test]
+        public void 漢字帳の保存は四字熟語も1つずつ区切って戻せる()
+        {
+            string saved = PlayerPrefsKanjiBookRepository.Serialize(new[] { "一石二鳥", "海", "十人十色" });
+
+            CollectionAssert.AreEqual(new[] { "一石二鳥", "海", "十人十色" }, PlayerPrefsKanjiBookRepository.Deserialize(saved));
+        }
+
+        [Test]
+        public void 熟語1つだけの保存も4字に分かれない()
+        {
+            string saved = PlayerPrefsKanjiBookRepository.Serialize(new[] { "一石二鳥" });
+
+            CollectionAssert.AreEqual(new[] { "一石二鳥" }, PlayerPrefsKanjiBookRepository.Deserialize(saved));
+        }
+
+        [Test]
+        public void 前の形式で保存した漢字帳も1字ずつ読める()
+        {
+            CollectionAssert.AreEqual(new[] { "海", "空", "二" }, PlayerPrefsKanjiBookRepository.Deserialize("海空二"));
+            CollectionAssert.IsEmpty(PlayerPrefsKanjiBookRepository.Deserialize(string.Empty));
+        }
     }
 }

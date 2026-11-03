@@ -146,6 +146,25 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
+        public void 意味の中の空いたマスの字を含む言葉は読みで出し振り返りでは漢字で出す()
+        {
+            var question = new FourCharIdiomQuestion(
+                "老若男女", "ろうにゃくなんにょ", "お{年寄|としよ}りも{若|わか}い{人|ひと}も、{男|おとこ}の{人|ひと}も。", "老若男女が{集|あつ}まる。",
+                new[] { 1 }, new[] { "若", "苦", "英", "右" });
+
+            Assert.AreEqual("お年寄りもわかい人も、男の人も。", FourCharIdiomHint.Render(question, useHiragana: false));
+            Assert.AreEqual("おとしよりもわかいひとも、おとこのひとも。", FourCharIdiomHint.Render(question, useHiragana: true));
+
+            var reviewView = new FakeQuizReviewView();
+            var answers = new[] { AnswerRecord.Create(FourCharIdiomAnswer.Encode(new[] { 0 }), true) };
+            using (var review = new FourCharIdiomReviewPresenter(new[] { question }, answers, 0, frameView, reviewView, view, new FakeSceneLoader()))
+            {
+                review.Initialize();
+                Assert.AreEqual("お年寄りも若い人も、男の人も。", view.Meaning);
+            }
+        }
+
+        [Test]
         public void 苦手な熟語なら苦手の印を出す()
         {
             CreatePresenter(new WeakQuestionList(new[] { "一石二鳥" }));

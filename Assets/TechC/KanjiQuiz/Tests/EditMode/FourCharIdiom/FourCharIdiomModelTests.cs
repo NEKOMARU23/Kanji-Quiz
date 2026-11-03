@@ -109,11 +109,13 @@ namespace TechC.KanjiQuiz.Tests
             Assert.AreEqual("十人十色", questions[0].Word);
         }
 
-        [Test]
-        public void 同梱の問題データからどの難易度の決まりでも問題を作れる()
+        [TestCase("Easy")]
+        [TestCase("Normal")]
+        [TestCase("Hard")]
+        public void 同梱の問題データからどの難易度の決まりでも問題を作れる(string level)
         {
-            var asset = AssetDatabase.LoadAssetAtPath<TextAsset>("Assets/TechC/KanjiQuiz/Data/FourCharIdiom/FourCharIdiom_Easy.json");
-            Assert.IsNotNull(asset);
+            var asset = AssetDatabase.LoadAssetAtPath<TextAsset>($"Assets/TechC/KanjiQuiz/Data/FourCharIdiom/FourCharIdiom_{level}.json");
+            Assert.IsNotNull(asset, level);
             var entries = new LocalQuestionRepository<FourCharIdiomEntry>(asset.text).LoadAll();
             Assert.GreaterOrEqual(entries.Count, 50);
 
