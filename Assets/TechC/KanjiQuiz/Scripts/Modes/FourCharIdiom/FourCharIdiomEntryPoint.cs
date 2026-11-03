@@ -33,6 +33,7 @@ namespace TechC.KanjiQuiz.Modes.FourCharIdiom
         [SerializeField] private TextAsset hardQuestions;
 
         private readonly IWeakQuestionRepository weakRepository = new PlayerPrefsWeakQuestionRepository();
+        private readonly IKanjiBookRepository kanjiBookRepository = new PlayerPrefsKanjiBookRepository();
         private ISceneLoader sceneLoader;
         private IAudioPlayer audioPlayer;
         private WeakQuestionList weakList;
@@ -140,6 +141,9 @@ namespace TechC.KanjiQuiz.Modes.FourCharIdiom
             // 間違えた熟語を苦手に加え、正解した熟語を外す
             weakList.RecordResult(result);
             weakRepository.Save(RecordKey, weakList);
+
+            // 正解した熟語を、熟語のまま漢字帳に集める（漢字帳の四字熟語のページに出る）
+            KanjiBook.Collect(kanjiBookRepository, mode.ModeId, result);
 
             sceneLoader.Load(SceneNames.Result);
         }
