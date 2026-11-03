@@ -32,6 +32,8 @@ namespace TechC.KanjiQuiz.Common
         [SerializeField] private string easyRange = "小学漢字";
         [SerializeField] private string normalRange = "常用漢字（よく使う）";
         [SerializeField] private string hardRange = "常用漢字（あまり使わない）";
+        [Tooltip("問題の呼び方（難易度の黒板の「苦手な○○」に使う）。四字熟語づくりは「熟語」")]
+        [SerializeField] private string questionNoun = "漢字";
 
         private static readonly Difficulty[] AllDifficulties = { Difficulty.Easy, Difficulty.Normal, Difficulty.Hard };
         private static readonly Difficulty[] EasyOnly = { Difficulty.Easy };
@@ -53,6 +55,9 @@ namespace TechC.KanjiQuiz.Common
 
         /// <summary>難易度を選べるかどうか</summary>
         public bool HasDifficulty => hasDifficulty;
+
+        /// <summary>問題の呼び方（例：漢字、熟語）。設定がなければ「漢字」</summary>
+        public string QuestionNoun => string.IsNullOrEmpty(questionNoun) ? "漢字" : questionNoun;
 
         /// <summary>選べる難易度。難易度がないモードは Easy だけ</summary>
         public IReadOnlyList<Difficulty> Difficulties => hasDifficulty ? AllDifficulties : EasyOnly;

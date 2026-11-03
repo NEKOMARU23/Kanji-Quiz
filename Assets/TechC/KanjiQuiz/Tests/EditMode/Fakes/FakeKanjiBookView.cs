@@ -66,5 +66,25 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         public void PlayStrokes(IReadOnlyList<string> strokePaths) => StrokePaths = strokePaths;
+
+        public readonly Subject<int> IdiomClicked = new Subject<int>();
+        public Observable<int> OnIdiomClicked => IdiomClicked;
+        public int IdiomsPerPage { get; set; } = 2;
+        public bool IsIdiomMode { get; private set; }
+        public IReadOnlyList<string> Idioms { get; private set; }
+        public int SelectedIdiom { get; private set; } = -1;
+        public IdiomBookDetail IdiomDetail { get; private set; }
+
+        public void SetIdiomMode(bool idiomMode) => IsIdiomMode = idiomMode;
+
+        public void SetIdiomPage(IReadOnlyList<string> idioms, int pageIndex, int pageCount)
+        {
+            Idioms = idioms;
+            PageIndex = pageIndex;
+            PageCount = pageCount;
+        }
+
+        public void SetSelectedIdiom(int index) => SelectedIdiom = index;
+        public void ShowIdiomDetail(IdiomBookDetail detail) => IdiomDetail = detail;
     }
 }

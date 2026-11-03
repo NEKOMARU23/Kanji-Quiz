@@ -17,5 +17,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/TechC/KanjiQuiz/Scenes/RealKanji.unity
     guid: e97080ef95650484bb7250b513c30c72
+  - enabled: 1
+    path: Assets/TechC/KanjiQuiz/Scenes/FourCharIdiom.unity
+    guid: 1ca31dfb854823643b2859d877d3bbf5
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

@@ -31,7 +31,7 @@ namespace TechC.KanjiQuiz.Common
         }
 
         /// <summary>
-        /// 1回のプレイの結果から、正解した漢字（結果の Label）をそのモードの漢字帳に足して保存する
+        /// 1回のプレイの結果から、正解したもの（結果の Label。漢字1字か、四字熟語づくりなら熟語）をそのモードの漢字帳に足して保存する
         /// </summary>
         /// <returns>新しく集めた漢字の数</returns>
         public static int Collect(IKanjiBookRepository repository, string modeId, QuizResult result)

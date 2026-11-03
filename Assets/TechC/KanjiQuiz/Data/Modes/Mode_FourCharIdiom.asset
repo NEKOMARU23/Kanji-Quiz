@@ -14,13 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: TechC.KanjiQuiz::TechC.KanjiQuiz.Common.QuizModeDefinition
   modeId: FourCharIdiom
   displayName: "\u56DB\u5B57\u719F\u8A9E\u3065\u304F\u308A"
-  description: "\u6F22\u5B57\u3092\u7D44\u307F\u5408\u308F\u305B\u3066\u3001\u56DB\u5B57\u719F\u8A9E\u3092\u5B8C\u6210\u3055\u305B\u308B\u3002"
+  description: "\u610F\u5473\u3092\u30D2\u30F3\u30C8\u306B\u3001\u56DB\u5B57\u719F\u8A9E\u3092\u3064\u304F\u308B\u3002"
   sceneName: FourCharIdiom
-  isAvailable: 0
+  isAvailable: 1
   hasDifficulty: 1
   easyQuestionCount: 5
   normalQuestionCount: 7
   hardQuestionCount: 7
-  easyRange: "\u5C0F\u5B66\u6F22\u5B57"
-  normalRange: "\u5E38\u7528\u6F22\u5B57\uFF08\u3088\u304F\u4F7F\u3046\uFF09"
-  hardRange: "\u5E38\u7528\u6F22\u5B57\uFF08\u3042\u307E\u308A\u4F7F\u308F\u306A\u3044\uFF09"
+  easyRange: "\u3060\u308C\u3067\u3082\u77E5\u3063\u3066\u3044\u308B\u719F\u8A9E"
+  normalRange: "\u5927\u4EBA\u306A\u3089\u77E5\u3063\u3066\u3044\u308B\u719F\u8A9E"
+  hardRange: "\u3042\u307E\u308A\u898B\u304B\u3051\u306A\u3044\u719F\u8A9E"
+  questionNoun: "\u719F\u8A9E"

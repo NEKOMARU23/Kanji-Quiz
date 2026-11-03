@@ -30,6 +30,8 @@ namespace TechC.KanjiQuiz.Screens.Title
         [SerializeField] private TextAsset[] meaningAssets;
         [Tooltip("使用例の熟語（Data/KanjiWords）")]
         [SerializeField] private TextAsset[] wordAssets;
+        [Tooltip("四字熟語のページに並べる熟語（Data/FourCharIdiom の Easy・Normal・Hard。この順に並べる）")]
+        [SerializeField] private TextAsset[] idiomAssets;
 
         private TitlePresenter presenter;
 
@@ -58,7 +60,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             var kanjiBook = new KanjiBookPresenter(
                 kanjiBookView, audioPlayer, kanjiSetAssets.Select(a => KanjiSet.FromJson(a.text)).ToList(), modeCatalog.Modes,
                 () => KanjiBook.Load(kanjiBookRepository, modeCatalog.Modes.Select(m => m.ModeId)),
-                LoadKanjiInfo, strokeSource, DisplaySettings.Shared);
+                LoadKanjiInfo, strokeSource, DisplaySettings.Shared, IdiomBookEntry.FromJson(Texts(idiomAssets ?? new TextAsset[0])));
             var subScreens = new TitleSubScreens(
                 settings: settings, kanjiBook: kanjiBook, credits: new CreditsPresenter(creditsView, audioPlayer));
             presenter = new TitlePresenter(

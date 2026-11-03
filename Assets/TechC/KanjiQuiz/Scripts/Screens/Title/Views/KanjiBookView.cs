@@ -12,6 +12,7 @@ namespace TechC.KanjiQuiz.Screens.Title
     /// 漢字帳の表示（机の上に開いた、マス目の漢字練習帳）
     /// 左のページにタブと集めた字のマス目、右のページに選んだ字の内容と書き順のお手本を出す
     /// [← タイトルへ] か Esc で閉じる。← → でページをめくる
+    /// 四字熟語のページでは、左のページに熟語の一覧、右のページに熟語の読み・意味・例文を出す
     /// </summary>
     public class KanjiBookView : MonoBehaviour, IKanjiBookView
     {
@@ -68,6 +69,26 @@ namespace TechC.KanjiQuiz.Screens.Title
         [Min(0.01f)] [SerializeField] private float secondsPerStroke = 0.35f;
         [SerializeField] private Button replayButton;
 
+        [Header("--- 四字熟語のページ ---")]
+        [Tooltip("熟語の一覧を並べる場所（GridLayoutGroup）。四字熟語のページのときだけ出す")]
+        [SerializeField] private RectTransform idiomContainer;
+        [Tooltip("熟語1つ分の行のひな形（Button と、子に TMP_Text）。起動時に idiomColumns×idiomRows 個に増やす")]
+        [SerializeField] private Button idiomTemplate;
+        [Min(1)] [SerializeField] private int idiomColumns = 2;
+        [Min(1)] [SerializeField] private int idiomRows = 8;
+        [Tooltip("まだ正解していない熟語の行に出す文字")]
+        [SerializeField] private string unknownIdiomText = "？？？？";
+        [Tooltip("まだ正解していない熟語の行の文字の色（集めた熟語より薄くする）")]
+        [SerializeField] private Color unknownIdiomColor = new Color(0.71f, 0.68f, 0.62f, 1f);
+        [Tooltip("熟語を選んだときに右のページに出すもの")]
+        [SerializeField] private GameObject idiomDetailRoot;
+        [Tooltip("熟語を選んでいないときに出す案内")]
+        [SerializeField] private GameObject idiomEmptyMessage;
+        [SerializeField] private TMP_Text idiomWordText;
+        [SerializeField] private TMP_Text idiomReadingText;
+        [SerializeField] private TMP_Text idiomMeaningText;
+        [SerializeField] private TMP_Text idiomExampleText;
+
         private readonly Subject<Unit> escapePressed = new Subject<Unit>();
         private readonly Subject<int> pageKeyPressed = new Subject<int>();
         private readonly Subject<int> tabClicked = new Subject<int>();
@@ -75,6 +96,10 @@ namespace TechC.KanjiQuiz.Screens.Title
         private readonly List<Button> cells = new List<Button>();
         private readonly List<TMP_Text> cellLabels = new List<TMP_Text>();
         private readonly List<Image> cellImages = new List<Image>();
+        private readonly Subject<int> idiomClicked = new Subject<int>();
+        private readonly List<Button> idiomButtons = new List<Button>();
+        private readonly List<TMP_Text> idiomLabels = new List<TMP_Text>();
+        private bool isIdiomMode;
         private Vector2 notebookPosition;
         private float openElapsed;
         private bool isStrokePlaying;
@@ -88,6 +113,8 @@ namespace TechC.KanjiQuiz.Screens.Title
                 .Merge(pageKeyPressed);
         public Observable<int> OnCellClicked => cellClicked;
         public int CellsPerPage => columns * rows;
+        public Observable<int> OnIdiomClicked => idiomClicked;
+        public int IdiomsPerPage => idiomColumns * idiomRows;
 
         private void Awake()
         {
@@ -95,6 +122,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             pageKeyPressed.AddTo(this);
             tabClicked.AddTo(this);
             cellClicked.AddTo(this);
+            idiomClicked.AddTo(this);
             if (notebook != null) notebookPosition = notebook.anchoredPosition;
 
             for (int i = 0; i < tabButtons.Length; i++)
@@ -104,6 +132,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             }
 
             CreateCells();
+            CreateIdiomRows();
             if (replayButton != null) replayButton.OnClickAsObservable().Subscribe(this, static (_, self) => self.RestartStrokes()).AddTo(this);
         }
 
@@ -128,6 +157,30 @@ namespace TechC.KanjiQuiz.Screens.Title
                 cellLabels.Add(cell.GetComponentInChildren<TMP_Text>(true));
                 cellImages.Add(cell.GetComponent<Image>());
             }
+        }
+
+        /// <summary>ひな形から idiomColumns×idiomRows 個の熟語の行を作る</summary>
+        private void CreateIdiomRows()
+        {
+            if (idiomTemplate == null || idiomContainer == null) return;
+            idiomTemplate.gameObject.SetActive(false);
+            if (idiomContainer.TryGetComponent<GridLayoutGroup>(out var grid))
+            {
+                grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+                grid.constraintCount = idiomColumns;
+            }
+
+            for (int i = 0; i < IdiomsPerPage; i++)
+            {
+                var row = Instantiate(idiomTemplate, idiomContainer);
+                row.name = $"Idiom_{i}";
+                row.gameObject.SetActive(true);
+                int index = i;
+                row.OnClickAsObservable().Subscribe(this, (_, self) => self.idiomClicked.OnNext(index)).AddTo(this);
+                idiomButtons.Add(row);
+                idiomLabels.Add(row.GetComponentInChildren<TMP_Text>(true));
+            }
+            idiomContainer.gameObject.SetActive(false);
         }
 
         private void Update()
@@ -224,6 +277,7 @@ namespace TechC.KanjiQuiz.Screens.Title
 
         public void ShowDetail(KanjiBookDetail detail)
         {
+            if (isIdiomMode) return;
             detailRoot.SetActive(detail != null);
             emptyMessage.SetActive(detail == null);
             if (detail == null) return;
@@ -247,6 +301,65 @@ namespace TechC.KanjiQuiz.Screens.Title
             if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(kanji)) return text;
             string color = ColorUtility.ToHtmlStringRGB(highlightColor);
             return text.Replace(kanji, $"<color=#{color}>{kanji}</color>");
+        }
+
+        public void SetIdiomMode(bool idiomMode)
+        {
+            isIdiomMode = idiomMode;
+            cellContainer.gameObject.SetActive(!idiomMode);
+            if (idiomContainer != null) idiomContainer.gameObject.SetActive(idiomMode);
+            if (idiomMode)
+            {
+                detailRoot.SetActive(false);
+                emptyMessage.SetActive(false);
+            }
+            else
+            {
+                if (idiomDetailRoot != null) idiomDetailRoot.SetActive(false);
+                if (idiomEmptyMessage != null) idiomEmptyMessage.SetActive(false);
+            }
+        }
+
+        public void SetIdiomPage(IReadOnlyList<string> idioms, int pageIndex, int pageCount)
+        {
+            for (int i = 0; i < idiomButtons.Count; i++)
+            {
+                string text = i < idioms.Count ? idioms[i] : null;
+                idiomButtons[i].gameObject.SetActive(text != null);
+                if (text == null) continue;
+                idiomLabels[i].text = text.Length > 0
+                    ? text
+                    : $"<color=#{ColorUtility.ToHtmlStringRGB(unknownIdiomColor)}>{unknownIdiomText}</color>";
+                idiomButtons[i].interactable = text.Length > 0;
+            }
+            pageText.text = $"{pageIndex + 1} / {pageCount}";
+            prevPageButton.interactable = pageIndex > 0;
+            nextPageButton.interactable = pageIndex < pageCount - 1;
+        }
+
+        public void SetSelectedIdiom(int index)
+        {
+            bool shown = index >= 0 && index < idiomButtons.Count;
+            selectionFrame.gameObject.SetActive(shown);
+            if (!shown) return;
+
+            selectionFrame.SetParent(idiomButtons[index].transform, false);
+            selectionFrame.anchorMin = Vector2.zero;
+            selectionFrame.anchorMax = Vector2.one;
+            selectionFrame.offsetMin = selectionFrame.offsetMax = Vector2.zero;
+            selectionFrame.SetAsLastSibling();
+        }
+
+        public void ShowIdiomDetail(IdiomBookDetail detail)
+        {
+            if (idiomDetailRoot != null) idiomDetailRoot.SetActive(detail != null);
+            if (idiomEmptyMessage != null) idiomEmptyMessage.SetActive(detail == null);
+            if (detail == null) return;
+
+            idiomWordText.text = detail.Word;
+            idiomReadingText.text = string.IsNullOrEmpty(detail.Reading) ? string.Empty : $"読み　{detail.Reading}";
+            idiomMeaningText.text = detail.Meaning;
+            idiomExampleText.text = Highlight(detail.Example, detail.Word);
         }
 
         public void PlayStrokes(IReadOnlyList<string> strokePaths)
