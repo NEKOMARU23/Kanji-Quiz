@@ -151,7 +151,7 @@ classDiagram
 | `QuizPresenterBase<TQuestion>` | 次へ・前へ・結果への遷移など全モード共通の進行 | Presenter |
 | `ChoiceQuizPresenter<TQuestion>` | 「N 個から1つ選ぶ」モード共通の判定 | Presenter |
 | `QuizFrameView` | ヘッダー、進行バー、次へ・前へボタン、問題を切り替えるときのスライド、Enter・← → のキー操作（`Prefabs/Common/QuizFrame`） | View |
-| `QuizModeDefinition` / `QuizModeCatalog` | モードの設定（ID、名前、説明、シーン、遊べるか、難易度ごとの問題数と出題範囲の説明）と一覧。ScriptableObject（`Data/Modes/`）。名前・保存のキー・優先する苦手な問題の数もここで作る | Model |
+| `QuizModeDefinition` / `QuizModeCatalog` | モードの設定（ID、名前、説明、シーン、遊べるか、難易度ごとの問題数と出題範囲の説明、問題の呼び方 `QuestionNoun`（漢字・熟語））と一覧。ScriptableObject（`Data/Modes/`）。名前・保存のキー・優先する苦手な問題の数もここで作る | Model |
 | `PauseMenuView` / `PauseMenuPresenter` / `PauseMenuEntryPoint` | 中断メニュー。組み立て役もプレハブ（`Prefabs/Common/PauseMenu`）に入っているので、置くだけで使える | View・Presenter |
 | `InputGate` | キー操作を一時的に止める（中断メニューを開いている間、シーンの切り替えの途中） | 共通 |
 | `CanvasCameraBinder` | プレハブの Screen Space - Camera の Canvas に、起動時に `Camera.main` を設定する | View |
@@ -168,7 +168,7 @@ classDiagram
 | `KanjiRank` | 正解率と難易度から級（10級〜初段）を決める。級の高さ（難易度をまたいで比べる）と、次の級まであと何問かも求める | Model |
 | `IBestRecordRepository` / `PlayerPrefsBestRecordRepository` / `BestRecordUpdate` | 自己ベストの保存先と、1回のプレイで更新したかどうか。`QuizResult.UpdateBestRecord` が1回だけ調べて保存する | Model |
 | `WeakQuestionList` / `IWeakQuestionRepository` / `PlayerPrefsWeakQuestionRepository` | 苦手な問題（間違えた問題）のリストと保存先。`OrderCandidates` で苦手な問題を先頭に並べる。問題は文字列で表すので、ほかのモードでも使える | Model |
-| `KanjiBook` / `IKanjiBookRepository` / `PlayerPrefsKanjiBookRepository` | 漢字帳。モードごとに正解した字を持つ。`KanjiBook.Collect` で結果の正解した字（Label）を足して保存する（各モードの組み立て役が結果画面へ移るときに呼ぶ）。キーは `KanjiBook_<モード>` | Model |
+| `KanjiBook` / `IKanjiBookRepository` / `PlayerPrefsKanjiBookRepository` | 漢字帳。モードごとに正解したもの（漢字1字。四字熟語づくりは熟語）を持つ。`KanjiBook.Collect` で結果の正解した Label を足して保存する（各モードの組み立て役が結果画面へ移るときに呼ぶ）。キーは `KanjiBook_<モード>`、値は1つずつ改行で区切った文字列（前の形式の、字をつなげただけの文字列も読める） | Model |
 | `KanjiReadingDictionary` | 漢字ごとの読み（本物の漢字さがしの問題データの `reading`） | Model |
 | `QuizRecordEraser` | 保存した記録（自己ベスト・苦手な問題・漢字帳）を、モードの一覧のすべてのモードと難易度について消す（設定の「記録を消す」）。保存先には `Delete` がある | Model |
 | `SceneTransitionView` / `ISceneTransition` | プリントを回収して次を配るようにシーンを切り替える（`SingletonMonoBehaviour` を継承）。`SceneLoader` に渡すと演出つきになる。カメラの映像をテクスチャに描いて使うので、各シーンの Canvas は Screen Space - Camera にする | View |
@@ -185,7 +185,7 @@ classDiagram
 | 書き順クイズ | `StrokeOrderPresenter`, `StrokeOrderReviewPresenter`（描画は `StrokeOrderChoiceDrawer` で共通化） | `StrokeOrderView`, `CumulativeStrokeRenderer`（書き順の描画と枠）, `StrokeAnimationView`（振り返りのお手本） | `StrokeOrderQuestion`, `StrokeOrderQuestionFactory`, `WrongOrderGenerator`, `StreamingAssetsKanjiStrokeSource`, `KanjiSvgParser`, `StrokePathParser` |
 | 本物の漢字さがし | `RealKanjiPresenter`, `RealKanjiReviewPresenter`（描画は `RealKanjiChoiceDrawer` で共通化） | `RealKanjiView`, `RealKanjiChoiceContentView`（選択肢の字・読み・振り返りの説明） | `RealKanjiEntry`, `RealKanjiQuestion`, `RealKanjiChoice`, `RealKanjiQuestionFactory`, `FakeKanjiComposer`（部品を入れ替えて偽物を組み立てる） |
 | 返信文クイズ | `ReplyMessagePresenter` | `MessageBubbleView`, `TextChoiceView` | `ReplyMessageQuestion` |
-| 四字熟語づくり | `FourCharIdiomPresenter`, `FourCharIdiomReviewPresenter`（マスと候補の表示内容は `FourCharIdiomBoard` で共通化） | `FourCharIdiomView`（意味、4つのマス、最大 12 の候補） | `FourCharIdiomEntry`, `FourCharIdiomQuestion`, `FourCharIdiomQuestionFactory`, `FourCharIdiomRule`（難易度ごとの空けるマスと候補の数）, `FourCharIdiomAnswer`（入れた候補の番号を `AnswerRecord.SelectedIndex` の1つの数にまとめる） |
+| 四字熟語づくり | `FourCharIdiomPresenter`, `FourCharIdiomReviewPresenter`（マスと候補の表示内容は `FourCharIdiomBoard` で共通化） | `FourCharIdiomView`（意味、4つのマス、最大 12 の候補） | `FourCharIdiomEntry`, `FourCharIdiomQuestion`, `FourCharIdiomQuestionFactory`, `FourCharIdiomRule`（難易度ごとの空けるマスと候補の数）, `FourCharIdiomAnswer`（入れた候補の番号を `AnswerRecord.SelectedIndex` の1つの数にまとめる）, `FourCharIdiomHint`（プレイ中の意味から、空いたマスの字を読みにして隠す） |
 | 画像で名前当て | `ImageNamePresenter` | `QuestionImageView`, `TextChoiceView` | `ImageNameQuestion` |
 
 - 選択式の4モードは `ChoiceQuizPresenter` を継承し、判定処理を共通化する。
@@ -202,7 +202,8 @@ classDiagram
 | `ModeSummary` | 時間割の1行と黒板の内容。`ModeSummary.Load` がモードの一覧と保存先（自己ベスト・苦手な問題）から作る | Model |
 | `TitlePresenter` | タイトル画面。ロゴの書き順を読んで View に書かせ、[はじめる] で黒板を消させてからモード選択を開く（消すのを飛ばしたら、モード選択の演出も飛ばす）。[← タイトルへ] で戻る。メニューから開く画面（`TitleSubScreens` にまとめた `ITitleSubScreen`）をタイトルの上に開き、開いている間はタイトルのボタンに反応しない | Presenter |
 | `SettingsPresenter` | タイトルから開く設定。効果音の音量（`IVolumeRepository`）、ひらがなで表示（`DisplaySettings`）、記録を消す（確認を出してから `QuizRecordEraser` で消し、`OnRecordsErased` で知らせる。組み立て役がこれを受けて `ModeSelectPresenter.ReloadModes` で時間割を読み直す）（`ITitleSubScreen`） | Presenter |
-| `KanjiBookPresenter` | 漢字帳。タブ（漢字セット）・ページ・選んだ字を持ち、マス目（集めた字／空のマス／範囲の外）と右のページの内容（`KanjiBookDetail`。意味と例文は表示の設定でひらがなにする）を View に渡す。書き順は `IKanjiStrokeSource` で読み、字を選び直したら読み込みを取り消す。漢字帳は開くたびに読み直し、字の情報（`KanjiInfo`）は最初に字を選んだときに1回だけ読む（`ITitleSubScreen`） | Presenter |
+| `IdiomBookEntry` / `IdiomBookDetail` | 漢字帳の四字熟語のページに出す熟語の情報（四字熟語づくりの問題データから読む）と、右のページの内容 | Model |
+| `KanjiBookPresenter` | 漢字帳。四字熟語のデータを渡すと、最後のタブに四字熟語のページを足す。タブ（漢字セット）・ページ・選んだ字を持ち、マス目（集めた字／空のマス／範囲の外）と右のページの内容（`KanjiBookDetail`。意味と例文は表示の設定でひらがなにする）を View に渡す。書き順は `IKanjiStrokeSource` で読み、字を選び直したら読み込みを取り消す。漢字帳は開くたびに読み直し、字の情報（`KanjiInfo`）は最初に字を選んだときに1回だけ読む（`ITitleSubScreen`） | Presenter |
 | `CreditsPresenter` | クレジット画面。開いて見せ、[← タイトルへ]（Esc）で閉じて `OnClosed` で知らせる（`ITitleSubScreen`） | Presenter |
 | `ModeSelectPresenter` | 時間割の選択、黒板の開閉、難易度の選択、`QuizLaunchOptions` に難易度を入れてモードのシーンを開く | Presenter |
 | `ITitleView` / `IModeSelectView` / `ISettingsView` / `IKanjiBookView` / `ICreditsView` と、その実装 `TitleView` / `ModeSelectView` / `SettingsView` / `KanjiBookView` / `CreditsView`（行は `TimetableRowView`、黒板の列は `DifficultyColumnView`） | 表示とキー操作 | View |
@@ -306,7 +307,7 @@ flowchart LR
 - タイトル、モード選択、結果の画面も同じく MVP で作る（`TitlePresenter` など）。
 - シーン間で渡すのは「選んだモード・難易度」と「結果（回答履歴）」だけ。難易度は `QuizLaunchOptions`、結果は `QuizResultStore`（どちらも静的クラス）で受け渡す。ほかのシーンから「モード選択へ」戻るときは `TitleLaunchOptions.OpenModeSelect` を立てて Title を開く。
 - 問題の振り返りは、結果画面から各モードのシーンを開き直して行う。各モードの EntryPoint は、`QuizReviewStore` に振り返りが頼まれていれば出題せずに振り返りの Presenter を作る。
-- 実装済みのシーンは `Title`、`StrokeOrder`、`RealKanji`、`Result`。どれも Build Profiles のシーンリストに登録し、先頭は `Title`。
+- 実装済みのシーンは `Title`、`StrokeOrder`、`RealKanji`、`FourCharIdiom`、`Result`。どれも Build Profiles のシーンリストに登録し、先頭は `Title`。
 - 画面の詳細は [ScreenDesign.md](ScreenDesign.md) を参照。
 
 ---
@@ -371,7 +372,7 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | `TechC.KanjiQuiz.Editor` | エディタ拡張（必要になったら） |
 | `TechC.KanjiQuiz.Tests` | EditMode テスト |
 
-テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-11-03 時点で 274 件）。主な対象は次のとおり。
+テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-11-04 時点で 285 件）。主な対象は次のとおり。
 
 | 対象 | テストクラス |
 |---|---|

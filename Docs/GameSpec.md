@@ -208,6 +208,7 @@
 *遊び方*
 
 - 四字熟語の**意味**（いつも表示）と、4つのマスを出す。いくつかのマスが空いていて、下に並んだ候補の字から選んで埋める。
+  - 意味の中に空いたマスの字があると答えが見えてしまうので、プレイ中は、その字を含む言葉を読み（ひらがな）で出す（例：老若男女で「若」が空いていれば「お年寄りもわかい人も…」。`FourCharIdiomHint`）。振り返りと漢字帳では漢字のまま出す。
 - 難易度で、空いているマスの数と候補の数を変える。難しくなるほど「つくる」感じが強くなる。
 
 | 難易度 | 空いているマス | 候補の字 | 例（一石二鳥） |
@@ -219,11 +220,13 @@
 - 空けるマスは、問題を作るときにランダムに決める。候補の並びもランダム。
 - 候補を押すと、左から数えて最初の空いたマスに入る。埋めたマスを押すと、その字は候補に戻る。空いたマスがなくなると [次へ] を押せる。
 - 入れた4字が熟語と同じなら正解。同じ字が2回出る熟語（自問自答など）は、候補にその字を2つ置き、どちらを使っても正解にする。
-- 回答した直後には正誤を出さない（ほかのモードと同じく、結果画面でまとめて出す）。[前へ] で戻ると、入れた字を元に戻す。
+- 回答した直後には正誤を出さない（ほかのモードと同じく、結果画面でまとめて出す）。結果画面の一覧では、○×を熟語の右に置く（`ResultItemView` が文字の長さに合わせてずらす）。[前へ] で戻ると、入れた字を元に戻す。
 - 難易度は**知られている度合い**で分ける（字の難しさではない）。簡単＝子どもでも知っている（一石二鳥、十人十色）、常識＝大人ならたいてい知っている（臨機応変、試行錯誤）、困難＝あまり見かけない（合従連衡、呉越同舟）。熟語に使う字は常用漢字だけ（人名用漢字は使わない）。
 - 問題数（5・7・7問）、級、自己ベスト、苦手な熟語の復習は、ほかのモードと同じ。保存のキーは `BestRecord_FourCharIdiom_<難易度>`・`WeakQuestions_FourCharIdiom_<難易度>`。
 - 振り返りでは、正解の熟語と自分が入れた字、読み、意味、例文を出す。
-- 漢字帳には、正解した四字熟語を**熟語のまま**登録し、意味を出す（2026-11-03 に決定。例：虎視眈々を正解したら、虎視眈々が載る）。今の漢字帳は1字ずつのマス目なので、四字熟語用のページを足す（未実装）。キーは `KanjiBook_FourCharIdiom` の予定。
+- 漢字帳には、正解した四字熟語を**熟語のまま**登録し、意味を出す（2026-11-03 に決定・実装。例：虎視眈々を正解したら、虎視眈々が載る）。漢字帳の4つ目のタブ「四字熟語」に、問題データの全 240 語を簡単→常識→困難の順に並べ、正解した熟語だけを書きこむ（まだの熟語は「？？？？」）。キーは `KanjiBook_FourCharIdiom`。
+  - 漢字帳の保存の形式を、集めたものを1つずつ改行で区切る形に変えた（それまでは字をつなげただけだったので、熟語が1字ずつに分かれてしまうため）。前の形式で保存した記録も読める（`PlayerPrefsKanjiBookRepository`）。
+- 難易度の黒板では、出題範囲を「だれでも知っている熟語から 5問」のように出し、苦手な問題の見出しを「苦手な熟語」にする（モードの定義の `questionNoun`）。
 - キー操作：候補は 1〜9・0・-・^（1〜12 番目）、Backspace（Delete）で最後に入れた字を戻す。Enter で次へ、← で前へ（ほかのモードと同じ）。
 
 *まぎらわしい字*
@@ -232,11 +235,11 @@
 - 簡単は空いたマスの位置の3字、常識は空いた2つの位置の6字から4字、困難は4つの位置の 12 字から8字を選ぶ。
 - まぎらわしい字を入れても、別の四字熟語にならないようにする（スクリプトで確かめる）。
 
-*問題データ*（簡単 60 語は作成済み。常識・困難は作成中）
+*問題データ*（2026-11-03 作成。簡単 60 語・常識 90 語・困難 90 語）
 
 - `Assets/TechC/KanjiQuiz/Data/FourCharIdiom/` の `FourCharIdiom_<難易度>.json`。
 - 熟語の候補は、JMdict の四字熟語の印（misc の yoji）がある言葉から `Tools/extract_four_char_idioms.py` で取り出す（常用漢字だけでできたもの 1,403 語）。そこから AI（Claude）が、ふつうの4字の言葉（相関関係など）と子ども向けでない言葉を外し、知られている度合いで難易度を分け、読み・意味・例文・まぎらわしい字をつける。意味と例文の書き方は、本物の漢字さがしの意味と例文と同じ（`{漢字|よみ}`）。
-- できたデータは `Tools/check_four_char_idioms.py` で確かめる。
+- `Tools/generate_four_char_idioms.py` が確かめてから JSON を書く。常識の熟語は、2字を入れ替えて別の四字熟語にならないもの、困難の熟語は、熟語の字とまぎらわしい字で別の四字熟語（並べ替えを含む）が作れないものだけにする（2マス・4マスを空けるので、正しく並べても不正解になるのを防ぐ）。このため、同工異曲・天長地久・無念無想・雲散霧消は外した（異曲同工・天地長久・無想無念・雲消霧散もあるため）。
 
 **画像で名前当て**
 
@@ -402,7 +405,7 @@
 ## 4. 画面構成（現状）
 
 今後の画面設計は [ScreenDesign.md](ScreenDesign.md) を参照。
-シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `Title.unity`（タイトルとモード選択）、`StrokeOrder.unity`（書き順クイズ）、`RealKanji.unity`（本物の漢字さがし）、`Result.unity`（結果画面、全モード共通）。Build Profiles のシーンリストの先頭は Title。
+シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `Title.unity`（タイトルとモード選択）、`StrokeOrder.unity`（書き順クイズ）、`RealKanji.unity`（本物の漢字さがし）、`FourCharIdiom.unity`（四字熟語づくり。時間割にはまだ出していない）、`Result.unity`（結果画面、全モード共通）。Build Profiles のシーンリストの先頭は Title。
 
 **Title シーン**（タイトル → モード選択（時間割）→ 難易度選択（黒板）を1つのシーンで切り替える。ScreenDesign.md 3.1〜3.3）
 
@@ -417,7 +420,7 @@
 | Board/Inner/EraseLayer | （子に Eraser） | 黒板消しで消した跡（黒板の色の帯）を置く場所と、黒板消し |
 | Board/Inner/SmallContent | ChalkTextWriter | 時間割の横の黒板の字をチョークで1字ずつ書く。チョークの先は Board/Inner/ChalkTip |
 | CreditText | TextMeshPro | KanjiVG のクレジット（タイトルのときだけ） |
-| KanjiBookRoot | CanvasGroup / Image（机） | 漢字帳。Notebook の下に Tabs（出題範囲のタブ3つ）、LeftPage（SummaryText、Cells（GridLayoutGroup。CellTemplate を起動時に 10×8 個に増やす）、SelectionFrame、ページ送り）、RightPage（EmptyMessage と Detail。Detail は KanjiMasu、StrokeMasu（書き順のお手本の ChalkStrokeGraphic）、読み・意味・例文・使用例、ModeStamps） |
+| KanjiBookRoot | CanvasGroup / Image（机） | 漢字帳。Notebook の下に Tabs（出題範囲のタブ3つと四字熟語のタブ Tab_3）、LeftPage（SummaryText、Cells（GridLayoutGroup。CellTemplate を起動時に 10×8 個に増やす）、Idioms（四字熟語のページの一覧。IdiomTemplate を起動時に 2×8 個に増やす）、SelectionFrame、ページ送り）、RightPage（EmptyMessage と Detail。Detail は KanjiMasu、StrokeMasu（書き順のお手本の ChalkStrokeGraphic）、読み・意味・例文・使用例、ModeStamps。四字熟語のページでは IdiomEmptyMessage と IdiomDetail（熟語・読み・意味・例文）） |
 | CreditsRoot | CanvasGroup / Image | クレジット（掲示板「ありがとう」）。Canvas のいちばん手前に置き、開いている間はタイトルを覆って押せなくする。Board/Cork に見出し（Heading）、おたより7枚（Notes。右上の小さい紙が On-Jin）、[← タイトルへ]（BackButton） |
 | ModeSelectRoot/TimetablePaper | Image / VerticalLayoutGroup（RowContainer） | 時間割表。行は TimetableRow プレハブ、4時間目のあとに LunchBreak プレハブ |
 | ModeSelectRoot/Board | Image（Inner、Tray） | 黒板。SmallBoardArea と LargeBoardArea の間で大きさを変える。中身は SmallContent（時間割の横）と LargeContent（画面いっぱい、列は DifficultyColumn プレハブ） |
