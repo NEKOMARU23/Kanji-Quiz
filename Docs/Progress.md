@@ -54,7 +54,7 @@
 - [x] 共通の View（進行表示、次へ・前へボタン、選択肢の並び）
 - [x] 結果画面（正解数、問題ごとの ○・×、もう一度、問題の振り返り）
 - [x] 日本語フォント（Klee One）
-- [x] EditMode テストの仕組み（現在 254 件）
+- [x] EditMode テストの仕組み（現在 274 件）
 - [x] 熟語のデータから子ども向けでない言葉を外す（2026-11-01）
 - [x] 問題データを JSON から読む共通部品（`IQuestionRepository`、`LocalQuestionRepository`）
 - [x] KanjiVG の SVG を読む部品を全モード共通にし、部品のグループつきで読めるようにした（`KanjiSvgParser.ExtractStrokes`）
@@ -121,12 +121,15 @@
 
 ### 4.4 四字熟語づくり（FourCharIdiom）
 
-- [ ] 漢字の提示方法（並べ替え、穴埋めなど）を決める
-- [ ] 四字熟語のリストを用意する
-- [ ] 漢字を枠に並べる操作（組み立て式の回答 UI）
-- [ ] Model・View・Presenter
-- [ ] シーンとレイアウト
-- [ ] テスト
+- [x] 遊び方を決める（難易度で空けるマスと候補の数を変える。意味はいつも表示。GameSpec.md 2.1、2026-11-02）
+- [x] 四字熟語の候補を JMdict から取り出す（`Tools/extract_four_char_idioms.py`、1,403 語）
+- [x] 問題データのもと（`Tools/four_char_idioms_source.tsv`、AI で作成）を確かめて JSON にするスクリプト（`Tools/generate_four_char_idioms.py`）
+- [x] 簡単の問題データ（60 語、`Data/FourCharIdiom/FourCharIdiom_Easy.json`）
+- [ ] 常識・困難の問題データ（各 90 語ほど）
+- [x] Model・View・Presenter（`Scripts/Modes/FourCharIdiom/`。シーンにはまだ置いていない）
+- [x] テスト（20 件）
+- [ ] シーン（`FourCharIdiom.unity`）とレイアウト、モードの定義 `Mode_FourCharIdiom` の `isAvailable`
+- [ ] 漢字帳に四字熟語のページを足す（熟語のまま登録して意味を出す）
 
 ### 4.5 本物の漢字さがし（RealKanji）
 
@@ -207,7 +210,7 @@
 
 ## 9. 次にやること
 
-1. 四字熟語づくり（2026-11-01 にユーザーの判断で今は保留。リストの入手先と、漢字の提示方法を決めるところから）。できたらモードの定義 `Mode_FourCharIdiom` の `isAvailable` を入れる
+1. 四字熟語づくり（4.4 の残り）：シーンを作って簡単で遊べるようにする → 常識・困難のデータ → 漢字帳の四字熟語のページ。できたらモードの定義 `Mode_FourCharIdiom` の `isAvailable` を入れる
 2. タイトルとモード選択の演出の速さの調整（秒数は TitleView・ModeSelectView・ChalkTextWriter の Inspector にある）
 3. 設定・漢字帳・クレジットの見た目と演出の調整（ユーザーに見てもらって決める）
 4. これから足す効果音と画像も、Claude が `Tools/generate_placeholder_se.py`・`generate_placeholder_ui.py` に関数を足して作る（ユーザーの希望、2026-11-01）。音はユーザーに聞いてもらって調整する

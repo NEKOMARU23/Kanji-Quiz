@@ -185,7 +185,7 @@ classDiagram
 | 書き順クイズ | `StrokeOrderPresenter`, `StrokeOrderReviewPresenter`（描画は `StrokeOrderChoiceDrawer` で共通化） | `StrokeOrderView`, `CumulativeStrokeRenderer`（書き順の描画と枠）, `StrokeAnimationView`（振り返りのお手本） | `StrokeOrderQuestion`, `StrokeOrderQuestionFactory`, `WrongOrderGenerator`, `StreamingAssetsKanjiStrokeSource`, `KanjiSvgParser`, `StrokePathParser` |
 | 本物の漢字さがし | `RealKanjiPresenter`, `RealKanjiReviewPresenter`（描画は `RealKanjiChoiceDrawer` で共通化） | `RealKanjiView`, `RealKanjiChoiceContentView`（選択肢の字・読み・振り返りの説明） | `RealKanjiEntry`, `RealKanjiQuestion`, `RealKanjiChoice`, `RealKanjiQuestionFactory`, `FakeKanjiComposer`（部品を入れ替えて偽物を組み立てる） |
 | 返信文クイズ | `ReplyMessagePresenter` | `MessageBubbleView`, `TextChoiceView` | `ReplyMessageQuestion` |
-| 四字熟語づくり | `FourCharIdiomPresenter` | `IdiomBoardView`（4つの枠と候補） | `FourCharIdiomQuestion` |
+| 四字熟語づくり | `FourCharIdiomPresenter`, `FourCharIdiomReviewPresenter`（マスと候補の表示内容は `FourCharIdiomBoard` で共通化） | `FourCharIdiomView`（意味、4つのマス、最大 12 の候補） | `FourCharIdiomEntry`, `FourCharIdiomQuestion`, `FourCharIdiomQuestionFactory`, `FourCharIdiomRule`（難易度ごとの空けるマスと候補の数）, `FourCharIdiomAnswer`（入れた候補の番号を `AnswerRecord.SelectedIndex` の1つの数にまとめる） |
 | 画像で名前当て | `ImageNamePresenter` | `QuestionImageView`, `TextChoiceView` | `ImageNameQuestion` |
 
 - 選択式の4モードは `ChoiceQuizPresenter` を継承し、判定処理を共通化する。
@@ -371,7 +371,7 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | `TechC.KanjiQuiz.Editor` | エディタ拡張（必要になったら） |
 | `TechC.KanjiQuiz.Tests` | EditMode テスト |
 
-テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-11-02 時点で 254 件）。主な対象は次のとおり。
+テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/` にある（2026-11-03 時点で 274 件）。主な対象は次のとおり。
 
 | 対象 | テストクラス |
 |---|---|
@@ -386,6 +386,7 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 | 書き順クイズの Model | `WrongOrderGeneratorTests`, `StrokeOrderQuestionFactoryTests` |
 | 書き順クイズの Presenter（苦手の印、振り返りのお手本） | `StrokeOrderPresenterTests` |
 | 本物の漢字さがし（偽物の組み立て、問題づくり、出題と振り返りの表示） | `FakeKanjiComposerTests`, `RealKanjiQuestionFactoryTests`, `RealKanjiPresenterTests` |
+| 四字熟語づくり（回答のまとめ方、問題づくり、同梱データ、出題と振り返りの表示） | `FourCharIdiomModelTests`, `FourCharIdiomPresenterTests` |
 | 苦手な問題 | `WeakQuestionListTests` |
 | タイトルとモード選択（記録のまとめ、時間割と黒板の操作） | `ModeSummaryTests`, `ModeSelectPresenterTests`, `TitlePresenterTests`, `SettingsPresenterTests`, `KanjiBookPresenterTests`, `CreditsPresenterTests`, `QuizRecordEraserTests`, `KanjiBookTests` |
 | 中断メニュー、キー操作を止める仕組み | `PauseMenuPresenterTests`, `InputGateTests` |
