@@ -51,6 +51,20 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
             CorrectCount = ReadingQuizAnswer.Decode(correctMask).Count;
         }
 
+        /// <summary>正しい読み（選択肢のうち正しいものを、番号の順に並べたもの）</summary>
+        public IReadOnlyList<string> CorrectReadings
+        {
+            get
+            {
+                var readings = new List<string>();
+                for (int i = 0; i < choices.Count; i++)
+                {
+                    if (ReadingQuizAnswer.IsSelected(CorrectMask, i)) readings.Add(choices[i]);
+                }
+                return readings;
+            }
+        }
+
         /// <summary>選んだ組み合わせが正解かどうか（選んだ数と正しい数が同じで、すべて一致するとき）</summary>
         public bool IsCorrect(int selectedMask)
         {

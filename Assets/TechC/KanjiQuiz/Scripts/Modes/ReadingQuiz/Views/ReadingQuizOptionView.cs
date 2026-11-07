@@ -18,6 +18,8 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
         [SerializeField] private GameObject selectedMark;
 
         private readonly Subject<int> onClicked = new Subject<int>();
+        private static readonly Color NormalColor = new Color(0.15f, 0.15f, 0.15f, 1f);
+        private static readonly Color CorrectColor = new Color(0.12f, 0.42f, 0.2f, 1f);
         private int index;
 
         /// <summary>押したときの番号</summary>
@@ -46,6 +48,12 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
         public void SetSelected(bool selected)
         {
             if (selectedMark != null) selectedMark.SetActive(selected);
+        }
+
+        /// <summary>振り返りで、正しい読みなら文字を緑にする</summary>
+        public void SetCorrect(bool correct)
+        {
+            if (label != null) label.color = correct ? CorrectColor : NormalColor;
         }
 
         /// <summary>押せるかどうか</summary>

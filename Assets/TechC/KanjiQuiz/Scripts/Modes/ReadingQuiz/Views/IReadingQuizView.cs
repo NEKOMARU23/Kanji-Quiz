@@ -24,6 +24,9 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
         /// <summary>選択肢を押せるかどうか</summary>
         void SetOptionsInteractable(bool interactable);
 
+        /// <summary>振り返りで、その選択肢が正しい読みかどうかの表示を変える</summary>
+        void SetOptionCorrect(int index, bool correct);
+
         /// <summary>「読みを1つ選ぶ」「読みをすべて選ぶ」などの案内</summary>
         void SetHint(string hint);
     }

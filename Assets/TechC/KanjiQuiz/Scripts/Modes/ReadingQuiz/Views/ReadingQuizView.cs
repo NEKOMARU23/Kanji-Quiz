@@ -77,6 +77,12 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
         }
 
         /// <inheritdoc/>
+        public void SetOptionCorrect(int index, bool correct)
+        {
+            if (index >= 0 && index < options.Count) options[index].SetCorrect(correct);
+        }
+
+        /// <inheritdoc/>
         public void SetHint(string hint)
         {
             if (hintText != null) hintText.text = hint;
