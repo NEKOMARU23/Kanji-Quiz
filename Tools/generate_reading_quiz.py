@@ -15,8 +15,10 @@ JMdict_e.gz は http://ftp.edrdg.org/pub/Nihongo/JMdict_e.gz から入手する
 難易度（2026-11-07 の決定）:
     - 熟語は2〜4字で、漢字だけでできている。字は漢字セットにあり、Hyogai（人名用漢字）は使わない
     - 熟語の中で一番難しい字の漢字セットで決める
-        簡単 ＝ 小学漢字（Elementary）だけの熟語。普通の読み
-        常識 ＝ 常用漢字（JoyoCommon）を含み、困難の字（JoyoRare）を含まない熟語。普通の読み
+        簡単 ＝ 小学漢字（Elementary）だけの熟語で、よく使われる上位の語（EASY_MAX_FREQ 以下）。普通の読み
+        常識 ＝ 普通の読みの熟語のうち、簡単に入らないもの（常用漢字を含む熟語と、小学漢字だけでも
+               よく使われる上位に入らない熟語）。普通の読み
+        ※ 困難の字（JoyoRare）を含まない熟語で、普通の読みのものだけを常識に入れる
         困難 ＝ 困難の字（JoyoRare）を含む熟語。普段は読まない読み（下の「困難の読み」）
 
 普通の読み（簡単・常識）:
@@ -70,12 +72,16 @@ SOURCE = kw.SOURCE
 # 漢字セットの順（0 が一番やさしい）
 SET_KEYS = ["Elementary", "JoyoCommon", "JoyoRare"]
 
-# 難易度 ＝ 熟語の一番難しい字の段階、選択肢の数（1つだけ正解／複数回答）、読みの種類
+# 難易度と、選択肢の数（1つだけ正解／複数回答）。振り分けは build_candidates を見る
 DIFFICULTIES = {
-    "Easy": {"level": 0, "single_options": 3, "multi_options": 5, "reading": "ordinary"},
-    "Normal": {"level": 1, "single_options": 4, "multi_options": 6, "reading": "ordinary"},
-    "Hard": {"level": 2, "single_options": 4, "multi_options": 6, "reading": "rare"},
+    "Easy": {"single_options": 3, "multi_options": 5},
+    "Normal": {"single_options": 4, "multi_options": 6},
+    "Hard": {"single_options": 4, "multi_options": 6},
 }
+
+# 簡単に残す、よく使われる言葉の頻度の上限（JMdict の nf。nf05 は上位約2,500語）。
+# これより下の普通の言葉は常識に移す（2026-11-07 の決定。政務次官・労働組合などの大人の語を外すため）
+EASY_MAX_FREQ = 5
 
 # 読み・熟語の書き方の印
 KUNJI_READING_INFO = {"gikun", "ik"}            # 当て読み・不規則な読み
@@ -138,8 +144,6 @@ def build_candidates(src, level_of):
         if any(ch not in level_of for ch in word):
             continue
         level = max(level_of[ch] for ch in word)
-        name = next(n for n, rule in DIFFICULTIES.items() if rule["level"] == level)
-        rule = DIFFICULTIES[name]
 
         # 読みを分ける：普通の読み（印なし）と、すべての読み（まれな読みを含む）
         all_valid, plain_valid, rare_reading = [], [], False
@@ -154,16 +158,21 @@ def build_candidates(src, level_of):
             else:
                 plain_valid.append(reb)
 
-        common = kw.priority(pri) is not None
+        freq = kw.priority(pri)            # 普通の言葉なら頻度（小さいほどよく使う）。印がなければ None
+        common = freq is not None
         rare_kanji = bool(kinf & (KUNJI_KANJI_INFO | RARE_KANJI_INFO))
-        if rule["reading"] == "ordinary":
+        if level == 2:
+            # 困難：普段は読まない読みの熟語だけ
+            name = "Hard"
+            valid = all_valid
+            if not (rare_reading or rare_kanji):
+                continue
+        else:
+            # 簡単・常識：普通の読みの熟語。よく使う上位の語だけ簡単に残し、ほかは常識へ移す（2026-11-07）
             if not common or rare_kanji:
                 continue
             valid = plain_valid
-        else:
-            valid = all_valid
-            if not (rare_reading or rare_kanji):
-                continue  # 困難は、普段は読まない読みの熟語だけ
+            name = "Easy" if level == 0 and freq <= EASY_MAX_FREQ else "Normal"
         if not (1 <= len(valid) <= MAX_READINGS):
             continue
         seen.add(word)
