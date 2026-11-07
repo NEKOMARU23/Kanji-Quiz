@@ -39,12 +39,12 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - 問題データは JSON。`IQuestionRepository` 経由で読む（同梱の JSON は `LocalQuestionRepository<TEntry>`。`TEntry` は問題1件の [Serializable] な型）。
 - 非同期は UniTask。問題ごとに `CancellationTokenSource` を作り直す。`async void` 禁止。
 
-## 現在の状態（2026-11-05 時点）
+## 現在の状態（2026-11-07 時点）
 
-- **遊べるのは書き順クイズ・本物の漢字さがし・四字熟語づくり**。タイトル（黒板にチョークで書くロゴ）、モード選択（教室の時間割表）、難易度選択（黒板）、タイトルのメニューの設定・漢字帳・クレジットもできた。読み当て・使い分けは未着手（フェーズ1）。文章クイズ（旧・返信文クイズ）・画像で名前当て・人名漢字のモードは余裕があれば。次にやることは `Docs/Progress.md` の9章（次は読み当て）。
+- **遊べるのは書き順クイズ・本物の漢字さがし・四字熟語づくり・読み当て**。タイトル（黒板にチョークで書くロゴ）、モード選択（教室の時間割表）、難易度選択（黒板）、タイトルのメニューの設定・漢字帳・クレジットもできた。使い分けは未着手（フェーズ1）。文章クイズ（旧・返信文クイズ）・画像で名前当て・人名漢字のモードは余裕があれば。次にやることは `Docs/Progress.md` の9章（次は使い分け、読み当ての人の確認と PR）。
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
   - KanjiVG の SVG を読む部品（`KanjiSvgParser`, `StrokePathParser`, `StrokeData`, `StreamingAssetsKanjiStrokeSource`）と、字を線で描く `KanjiGlyphRenderer`、熟語の辞書 `KanjiWordDictionary` も Common にある。
-  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、285 件）。
+  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、316 件）。
 - 書き順クイズは `Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`。
   - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。難易度・難易度ごとの漢字セット・選択肢の数・振り返り用の View もここで設定する。
   - 難易度はモード選択画面の黒板で選び、`QuizLaunchOptions.Difficulty` で受け取る（なければ EntryPoint の Inspector の値）。F1 キーで表示されるテスト用ボタン（`Scripts/DebugTools/DebugDifficultySwitcher`、エディタと開発ビルドのみ）で切り替えられる。シーンに保存する難易度は Easy にしておく。
@@ -59,7 +59,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
   - 偽物は `FakeKanjiComposer` が、本物の SVG の部首のグループの画に、借りた部品の画を問題データの `box`（部品を置く枠）に合わせて足して作る。`box` は Python が、部首と部品の線が重ならないように求めたもの（`Docs/BugFixes.md` 1章）。4つとも `KanjiGlyphRenderer` で線で描く（本物だけフォントにすると見抜けるため）。
   - シーンは `RealKanji.unity`（ひな形から作った）、組み立て役は `GameManager` の `RealKanjiEntryPoint`、選択肢は `Prefabs/Modes/RealKanji/RealKanjiChoice`、モードの定義は `Mode_RealKanji`。保存のキーは `BestRecord_RealKanji_<難易度>`・`WeakQuestions_RealKanji_<難易度>`（Play で確かめたあとは消す）。
 - タイトルとモード選択は `Assets/TechC/KanjiQuiz/Scripts/Screens/Title/`（`Title.unity`、組み立て役は `TitleEntryPoint`）。タイトル → 時間割 → 黒板を1つのシーンで切り替える（仕様は `Docs/ScreenDesign.md` 3.1〜3.3）。
-  - 時間割は `QuizModeCatalog` の順に並べる。まだ作っていないモード（読み当て・使い分け・文章クイズ・画像で名前当て・人名漢字 `JinmeiKanji`）は、モードの定義の `isAvailable` を外して「自習」と出す。モードを作ったら `isAvailable` を入れる。
+  - 時間割は `QuizModeCatalog` の順に並べる。まだ作っていないモード（使い分け・文章クイズ・画像で名前当て・人名漢字 `JinmeiKanji`）は、モードの定義の `isAvailable` を外して「自習」と出す。モードを作ったら `isAvailable` を入れる。
   - 中断メニューの [やめる] と結果画面の [モード選択へ] は `TitleLaunchOptions.OpenModeSelect` を立てて Title を開く（時間割から始まる）。
   - タイトルのメニューから開く画面は `ITitleSubScreen`（`TitleSubScreens` にまとめて `TitlePresenter` に渡す）。設定（`SettingsPresenter`）は黒板消しでタイトルを消して黒板に板書し、漢字帳（`KanjiBookPresenter`、机の上の見開きノート）とクレジット（`CreditsPresenter`、コルクの掲示板）はタイトルの上に重ねる。閉じるとロゴを書き直さずにタイトルに戻る（仕様は `Docs/ScreenDesign.md` 3.7〜3.9）。
   - 設定の「記録を消す」は `QuizRecordEraser` で自己ベスト・苦手な漢字・漢字帳を消す。ユーザーの記録も消えるので、Play の確認では押さない。
@@ -88,7 +88,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - private フィールドは camelCase、接頭辞なし。SerializeField も private。
 - クラス名の接尾辞：`View` / `Presenter` / `EntryPoint` / `Repository`。Model は接尾辞なし。
 - 名前空間は `TechC.KanjiQuiz.<フォルダ>`。モードは `TechC.KanjiQuiz.Modes.<ModeName>`。
-- モード名：`StrokeOrder`, `RealKanji`, `FourCharIdiom`（作ったもの）。未作成の案：`ReadingQuiz`（読み当て）, `KanjiUsage`（使い分け）, `ReplyMessage`（文章クイズ）, `ImageName`（画像で名前当て）。
+- モード名：`StrokeOrder`, `RealKanji`, `FourCharIdiom`, `ReadingQuiz`（作ったもの）。未作成の案：`KanjiUsage`（使い分け）, `ReplyMessage`（文章クイズ）, `ImageName`（画像で名前当て）。
 - public メンバーには日本語の `/// <summary>`。ログは `[クラス名]` で始める。
 - `GameObject.Find` / `FindObjectOfType` 禁止。シャッフルは共通化したものを使う。
 - 詳細は `Docs/CodingRules.md`。
