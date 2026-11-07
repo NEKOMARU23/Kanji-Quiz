@@ -39,9 +39,9 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - 問題データは JSON。`IQuestionRepository` 経由で読む（同梱の JSON は `LocalQuestionRepository<TEntry>`。`TEntry` は問題1件の [Serializable] な型）。
 - 非同期は UniTask。問題ごとに `CancellationTokenSource` を作り直す。`async void` 禁止。
 
-## 現在の状態（2026-11-04 時点）
+## 現在の状態（2026-11-05 時点）
 
-- **遊べるのは書き順クイズ・本物の漢字さがし・四字熟語づくり**。タイトル（黒板にチョークで書くロゴ）、モード選択（教室の時間割表）、難易度選択（黒板）、タイトルのメニューの設定・漢字帳・クレジットもできた。画像で名前当て・返信文クイズ・人名漢字のモードは未着手。次にやることは `Docs/Progress.md` の9章。返信文クイズは後回し（正しい返信文を作るのが難しいため）。
+- **遊べるのは書き順クイズ・本物の漢字さがし・四字熟語づくり**。タイトル（黒板にチョークで書くロゴ）、モード選択（教室の時間割表）、難易度選択（黒板）、タイトルのメニューの設定・漢字帳・クレジットもできた。画像で名前当て・返信文クイズ・人名漢字のモードは未着手。次にやることは `Docs/Progress.md` の9章（次は画像で名前当て。画像の集め方を決めるところから）。返信文クイズは後回し（正しい返信文を作るのが難しいため）。
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
   - KanjiVG の SVG を読む部品（`KanjiSvgParser`, `StrokePathParser`, `StrokeData`, `StreamingAssetsKanjiStrokeSource`）と、字を線で描く `KanjiGlyphRenderer`、熟語の辞書 `KanjiWordDictionary` も Common にある。
   - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、285 件）。
@@ -76,10 +76,10 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
   - 間違えた漢字は `WeakQuestionList`（PlayerPrefs のキー `WeakQuestions_StrokeOrder_<難易度>`）に残し、次のプレイで問題数の半分まで優先して出す。出たときは「苦手」のハンコを出す。Play で確かめたあとは、このキーも `PlayerPrefs.DeleteKey` で消す。
 - 背景は学校のプリントのような画像（各 Canvas の Background）。シーンの切り替えは `SceneTransitionView`（`Prefabs/Common/SceneTransition`、プリントを回収して次を配る）で、`new SceneLoader(SceneTransitionView.Instance)` のように EntryPoint で渡す。
 - **新しいモードのシーンは File > New Scene のテンプレート「漢字クイズのモード」から作る**（`Scenes/Templates/`、手順は `Docs/GameSpec.md` 4.6）。共通の部品は `Prefabs/Common/` のプレハブ（QuizFrame、PauseMenu、PrintBackground、AudioManager、SceneTransition）。
-- モード名・シーン名・難易度ごとの問題数・保存のキーは `Data/Modes/` のモードの定義（`QuizModeDefinition`）に書く。書き順クイズは `Mode_StrokeOrder`、本物の漢字さがしは `Mode_RealKanji`（各 EntryPoint の `mode` に設定）。
+- モード名・シーン名・難易度ごとの問題数・保存のキーは `Data/Modes/` のモードの定義（`QuizModeDefinition`）に書く。書き順クイズは `Mode_StrokeOrder`、本物の漢字さがしは `Mode_RealKanji`、四字熟語づくりは `Mode_FourCharIdiom`（各 EntryPoint の `mode` に設定）。問題の呼び方（難易度の黒板の「苦手な○○」）は `questionNoun`。
 - 中断メニュー（Esc か右上の [メニュー]、見た目は机の上の連絡帳）で、続ける・最初からやり直す・やめる（時間割へ）・効果音の音量・出題の字のほかは ひらがなで表示。音量は PlayerPrefs の `Volume_Se`。キーボード操作は数字キー・Enter・← →・Esc。メニューを開いている間とシーンの切り替え中は `InputGate` でキー操作を止める。
-- 切り替えはカメラの映像をテクスチャに描いて使うので、**新しいシーンの Canvas は Screen Space - Camera にする**（Overlay の UI はプリントに映らない）。Title・StrokeOrder・RealKanji・Result はどれも Camera にしてある。
-- 効果音は `AudioManager`（`Prefabs/Common/AudioManager`、Title・StrokeOrder・RealKanji・Result のシーンに置いている）。シングルトンは `SingletonMonoBehaviour<T>` を継承して作る。効果音と画像は `Tools/generate_placeholder_se.py`・`Tools/generate_placeholder_ui.py` で作った自作のもの（製品版でも使う。クレジット不要）。新しい音・画像もこのスクリプトに関数を足して作る。例外はチョークの音 `Art/Audio/External/se_chalk_writing.mp3`（On-Jin ～音人～ の音源）で、利用規約のため Git に入れない（`.meta` だけ入れる。Docs/GameSpec.md 4章）。外部の音源を足すときも `External/` に置き、クレジット画面の掲示板に載せる。
+- 切り替えはカメラの映像をテクスチャに描いて使うので、**新しいシーンの Canvas は Screen Space - Camera にする**（Overlay の UI はプリントに映らない）。Title・StrokeOrder・RealKanji・FourCharIdiom・Result はどれも Camera にしてある。
+- 効果音は `AudioManager`（`Prefabs/Common/AudioManager`、Title・StrokeOrder・RealKanji・FourCharIdiom・Result のシーンに置いている）。シングルトンは `SingletonMonoBehaviour<T>` を継承して作る。効果音と画像は `Tools/generate_placeholder_se.py`・`Tools/generate_placeholder_ui.py` で作った自作のもの（製品版でも使う。クレジット不要）。新しい音・画像もこのスクリプトに関数を足して作る。例外はチョークの音 `Art/Audio/External/se_chalk_writing.mp3`（On-Jin ～音人～ の音源）で、利用規約のため Git に入れない（`.meta` だけ入れる。Docs/GameSpec.md 4章）。外部の音源を足すときも `External/` に置き、クレジット画面の掲示板に載せる。
 - 文字は Klee One の TMP フォントアセット（Dynamic、TMP Settings の既定）で表示する。
 - 未実装の機能と既知の不具合は `Docs/GameSpec.md` の8章を参照。
 
