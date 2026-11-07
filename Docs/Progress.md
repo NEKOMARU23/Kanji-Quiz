@@ -252,12 +252,13 @@
 | [#22](https://github.com/NEKOMARU23/Knaji-Quiz/pull/22) | 読み当ての問題データを頻度で振り分け直す（簡単・常識・困難）、専門語・固有名詞・不適切な語を外す | 2026-11-07 |
 | [#23](https://github.com/NEKOMARU23/Knaji-Quiz/pull/23) | 読み当ての全件の判断（判断ファイル）と作り直したデータ（PR #22 のブランチに対してマージ。main には入らなかった） | 2026-11-07 |
 | [#24](https://github.com/NEKOMARU23/Knaji-Quiz/pull/24) | PR #23 の内容を main に反映（判断ファイルと作り直したデータ、生成スクリプト） | 2026-11-07 |
+| [#25](https://github.com/NEKOMARU23/Knaji-Quiz/pull/25) | 読み当てを追加（Model・Presenter・View・シーン・モードの定義・時間割、問題データ、振り返り）。レビュー待ち | 2026-11-07 |
 
 ---
 
 ## 9. 次にやること
 
-1. **読み当てのブランチを push して PR を作る**（次の最優先）。ブランチは `feature/kono/reading-quiz-mode`（main の `51d8fbfc` から切った。8コミット、未 push）。基点は main。PR の説明は CLAUDE.md の形式（コミットと同じ題名、テンプレートを全部埋める）。中身は実装、テスト、シーン、モード定義、時間割、振り返り、進行状況。
+1. **PR #25（読み当て）のレビューとマージ**（次の最優先）。ブランチは `feature/kono/reading-quiz-mode`（main の `51d8fbfc` から切った）。基点は main。マージ後は、PR #25 の内容を main に反映できたか確かめる。
 2. **読み当ての人の確認**：判断ファイル `Tools/reading_quiz_review.tsv`（外す語・外す読み・難易度の移動）を見て、Claude の判断を直す。特に（a）常識に残した専門語の線引き、（b）困難で外した不適切な語の線引き、（c）複数回答の読みが正しいか（「下手」のように意味で読みが変わるもの）。直したら `python -I Tools/generate_reading_quiz.py <JMdict_e.gz> Assets/TechC/KanjiQuiz/Data/KanjiSets Assets/TechC/KanjiQuiz/Data/ReadingQuiz` でデータを作り直す。
 3. **使い分け**（フェーズ1。4.7）：同じ読みの漢字を文の中で選ぶ。文のデータを AI で作って人が確かめる（意味と例文と同じ方法）→ Model・View・Presenter・シーン・テスト。読み当ての実装（`Scripts/Modes/ReadingQuiz/`）と同じ形で作る。
 4. 四字熟語のデータを目で確かめる（AI で作った意味・例文・まぎらわしい字。claude.ai のアーティファクト「四字熟語データの確認」）。「夫唱婦随」「良妻賢母」など今の時代に合わない考え方の熟語を残すかも決める
