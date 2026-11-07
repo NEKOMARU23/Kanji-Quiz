@@ -83,6 +83,11 @@ RARE_READING_INFO = {"ok", "rk", "sk"}          # 古い読み・まれな読み
 KUNJI_KANJI_INFO = {"ateji", "iK"}              # 当て字・不規則な表記
 RARE_KANJI_INFO = {"io", "oK", "rK", "sK"}      # 送り仮名の違い・古い字体・まれな字体・検索用
 
+# 固有名詞（会社・場所・作品・人名など）の印。読み当ては一般の語だけにする
+PROPER_MISC = {"place", "organization", "company", "work", "surname", "given"}
+# 2026-11-07 に確認して外した語（子どもに出さない意味・言葉）
+READING_EXCLUDED_WORDS = {"斑斑", "尿尿"}
+
 KANA = re.compile(r"^[ぁ-ゖー]+$")
 MIN_CHARS = 2
 MAX_CHARS = 4
@@ -100,7 +105,7 @@ def parse_jmdict(path):
     root = ET.fromstring(data)
     for entry in root.iter("entry"):
         misc = {m.text for sense in entry.iter("sense") for m in sense.iter("misc")}
-        if misc & kw.BAD_MISC:
+        if misc & kw.BAD_MISC or misc & PROPER_MISC:
             continue
         readings = []
         for r in entry.iter("r_ele"):
@@ -124,9 +129,11 @@ def build_candidates(src, level_of):
         for reb, restr, _ in readings:
             if reb and (not restr or word in restr):
                 all_readings[word].add(reb)
-        if word in seen or word in kw.EXCLUDED_WORDS:
+        if word in seen or word in kw.EXCLUDED_WORDS or word in READING_EXCLUDED_WORDS:
             continue
         if not (MIN_CHARS <= len(word) <= MAX_CHARS) or not kw.KANJI.match(word):
+            continue
+        if len(set(word)) == 1:  # 同じ字の繰り返し
             continue
         if any(ch not in level_of for ch in word):
             continue
