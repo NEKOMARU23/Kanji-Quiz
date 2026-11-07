@@ -130,6 +130,14 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
+        public void Question_CorrectReadingsAreTheCorrectChoices()
+        {
+            var question = new ReadingQuizQuestion("今日", new[] { "きょう", "こんじつ", "こんにち" }, (1 << 0) | (1 << 2));
+
+            CollectionAssert.AreEqual(new[] { "きょう", "こんにち" }, question.CorrectReadings.ToArray());
+        }
+
+        [Test]
         public void Factory_ReturnsNullWhenNotEnoughWrongReadings()
         {
             var entry = Entry("熟語", new[] { "よみ" }, "ちがう1");

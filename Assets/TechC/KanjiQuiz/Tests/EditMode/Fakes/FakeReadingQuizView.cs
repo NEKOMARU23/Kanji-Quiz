@@ -15,6 +15,7 @@ namespace TechC.KanjiQuiz.Tests
         public IReadOnlyList<string> Options { get; private set; } = new List<string>();
         public bool[] Selected { get; private set; } = new bool[0];
         public bool OptionsInteractable { get; private set; }
+        public bool[] Correct { get; private set; } = new bool[0];
         public string Hint { get; private set; }
 
         public void SetWord(string word) => Word = word;
@@ -23,6 +24,12 @@ namespace TechC.KanjiQuiz.Tests
         {
             Options = readings;
             Selected = new bool[readings.Count];
+            Correct = new bool[readings.Count];
+        }
+
+        public void SetOptionCorrect(int index, bool correct)
+        {
+            if (index >= 0 && index < Correct.Length) Correct[index] = correct;
         }
 
         public void SetOptionSelected(int index, bool selected)
