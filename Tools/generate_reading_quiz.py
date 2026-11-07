@@ -91,6 +91,12 @@ RARE_KANJI_INFO = {"io", "oK", "rK", "sK"}      # 送り仮名の違い・古い
 
 # 固有名詞（会社・場所・作品・人名など）の印。読み当ては一般の語だけにする
 PROPER_MISC = {"place", "organization", "company", "work", "surname", "given"}
+# 専門分野の語（JMdict の分野の印）。簡単と常識では、すべての意味がこの分野だけの語を使わない
+TECH_FIELDS = {"comp", "med", "math", "chem", "law", "anat", "physics", "astron", "ling", "biol", "gramm",
+               "finc", "geol", "bot", "mil", "internet", "econ", "print", "psy", "archit", "photo", "tradem"}
+# 手作業で決めた判断（Tools/reading_quiz_review.tsv）。列は 語・action・外す読み（, 区切り）
+REVIEW_PATH = os.path.join(_HERE, "reading_quiz_review.tsv")
+REVIEW_NAMES = {"easy": "Easy", "normal": "Normal", "hard": "Hard"}
 # 2026-11-07 に確認して外した語（子どもに出さない意味・言葉）
 READING_EXCLUDED_WORDS = {"斑斑", "尿尿"}
 
@@ -113,6 +119,10 @@ def parse_jmdict(path):
         misc = {m.text for sense in entry.iter("sense") for m in sense.iter("misc")}
         if misc & kw.BAD_MISC or misc & PROPER_MISC:
             continue
+        # すべての意味が専門分野の語なら、専門用語（簡単・常識には使わない）
+        senses = list(entry.iter("sense"))
+        technical = bool(senses) and all(
+            {f.text for f in s.iter("field")} & TECH_FIELDS for s in senses)
         readings = []
         for r in entry.iter("r_ele"):
             if r.find("re_nokanji") is not None:
@@ -122,7 +132,22 @@ def parse_jmdict(path):
             word = k.findtext("keb")
             kinf = {i.text for i in k.iter("ke_inf")}
             pri = {p.text for p in k.iter("ke_pri")}
-            yield word, kinf, pri, readings
+            yield word, kinf, pri, readings, technical
+
+
+def load_review(path):
+    """手作業の判断を読む。語 → (action, 外す読みの集合)。"""
+    review = {}
+    if not os.path.exists(path):
+        return review
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            line = line.rstrip("\n")
+            if not line or line.startswith("#") or line.startswith("word\t"):
+                continue
+            word, action, drop = (line.split("\t") + ["", ""])[:3]
+            review[word] = (action, set(x for x in drop.split(",") if x))
+    return review
 
 
 def build_candidates(src, level_of):
@@ -130,7 +155,8 @@ def build_candidates(src, level_of):
     candidates = {name: [] for name in DIFFICULTIES}
     all_readings = defaultdict(set)
     seen = set()
-    for word, kinf, pri, readings in parse_jmdict(src):
+    review = load_review(REVIEW_PATH)
+    for word, kinf, pri, readings, technical in parse_jmdict(src):
         # まちがいに使わないため、印の付いた読みも含めて全部覚える
         for reb, restr, _ in readings:
             if reb and (not restr or word in restr):
@@ -161,6 +187,10 @@ def build_candidates(src, level_of):
         freq = kw.priority(pri)            # 普通の言葉なら頻度（小さいほどよく使う）。印がなければ None
         common = freq is not None
         rare_kanji = bool(kinf & (KUNJI_KANJI_INFO | RARE_KANJI_INFO))
+        # 当て読みの印がある読みを持つ語は、普通の読みが分からないので簡単・常識には使わない
+        # （例：今日は「きょう」、明日は「あした」で、普通の読みだけでは正しい答えにならない）
+        kunji_word = any(inf & KUNJI_READING_INFO for reb, restr, inf in readings
+                         if reb and (not restr or word in restr))
         if level == 2:
             # 困難：普段は読まない読みの熟語だけ
             name = "Hard"
@@ -169,10 +199,22 @@ def build_candidates(src, level_of):
                 continue
         else:
             # 簡単・常識：普通の読みの熟語。よく使う上位の語だけ簡単に残し、ほかは常識へ移す（2026-11-07）
-            if not common or rare_kanji:
+            if not common or rare_kanji or technical or kunji_word:
                 continue
             valid = plain_valid
             name = "Easy" if level == 0 and freq <= EASY_MAX_FREQ else "Normal"
+        # 手作業の判断：外す語、外す読み、難易度の移動
+        action, dropped = review.get(word, ("", set()))
+        if action == "drop":
+            continue
+        valid = [reb for reb in valid if reb not in dropped]
+        if action in REVIEW_NAMES:
+            name = REVIEW_NAMES[action]
+        elif name == "Easy":
+            # 簡単は、子どもが普段使う語だと手作業で確かめた語だけ。確かめていない語は常識へ
+            name = "Normal"
+        if action == "easy":
+            name = "Easy"
         if not (1 <= len(valid) <= MAX_READINGS):
             continue
         seen.add(word)
@@ -255,11 +297,14 @@ def main():
     os.makedirs(out_dir, exist_ok=True)
 
     for name, rule in DIFFICULTIES.items():
-        pool = sorted(candidates[name], key=lambda c: c["word"])
+        # まちがいの読みは、同じ種類の読み（普通の読み＝簡単と常識、珍しい読み＝困難）の語から取る
+        same_kind = ("Hard",) if name == "Hard" else ("Easy", "Normal")
+        pool = sorted((c for n in same_kind for c in candidates[n]), key=lambda c: c["word"])
         index = build_index(pool)
+        own = sorted(candidates[name], key=lambda c: c["word"])
         questions = []
         skipped = 0
-        for cand in pool:
+        for cand in own:
             forbidden = all_readings[cand["word"]] | set(cand["readings"])
             wrong = wrong_readings(cand, rule, index, forbidden)
             if wrong is None:
