@@ -88,7 +88,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - private フィールドは camelCase、接頭辞なし。SerializeField も private。
 - クラス名の接尾辞：`View` / `Presenter` / `EntryPoint` / `Repository`。Model は接尾辞なし。
 - 名前空間は `TechC.KanjiQuiz.<フォルダ>`。モードは `TechC.KanjiQuiz.Modes.<ModeName>`。
-- モード名：`StrokeOrder`, `RealKanji`, `FourCharIdiom`, `ReadingQuiz`（作ったもの）。未作成の案：`KanjiUsage`（使い分け）, `ReplyMessage`（文章クイズ）, `ImageName`（画像で名前当て）。
+- モード名：`StrokeOrder`, `RealKanji`, `FourCharIdiom`, `ReadingQuiz`（作ったもの）。`KanjiUsage`（使い分け。2026-11-14 に決定、未作成）。未作成の案：`ReplyMessage`（文章クイズ）, `ImageName`（画像で名前当て）。
 - public メンバーには日本語の `/// <summary>`。ログは `[クラス名]` で始める。
 - `GameObject.Find` / `FindObjectOfType` 禁止。シャッフルは共通化したものを使う。
 - 詳細は `Docs/CodingRules.md`。
