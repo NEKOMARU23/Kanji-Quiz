@@ -176,9 +176,10 @@
 ### 4.7 使い分け（フェーズ1。2026-11-07 に追加）
 
 - [x] 遊び方を決める（2026-11-14。GameSpec.md 2.1。同音異義語と異字同訓の両方。難易度は字の範囲とまぎらわしさ、問題数 5/7/7、選択肢 3/4/4、候補は同じ読みの実在する言葉だけ。モード名 `KanjiUsage`）
-- [ ] 言葉の組を JMdict から取り出すスクリプトを作る（同じ読みで、常用漢字だけの、よく使う言葉）
-- [ ] 文と、候補それぞれの短い意味を作る（AI で作り、人が確かめる。意味と例文と同じ方法）
-- [ ] 問題データ（JSON）を作り、確かめるスクリプトを作る
+- [x] 言葉の組を JMdict から取り出すスクリプトを作る（`Tools/extract_kanji_usage_groups.py` → `Tools/kanji_usage_candidates.tsv`。2,696 の読み。よく使う言葉で4つ以上ある組は 302、小学漢字だけで3つ以上ある組は 457。2026-11-14）
+- [x] 文と、候補それぞれの短い意味を作る（`Tools/kanji_usage_source.tsv`。Claude が書いた。2026-11-14）。**人の確認はまだ**
+- [x] 問題データ（JSON）を作り、確かめるスクリプトを作る（`Tools/generate_kanji_usage.py` → `Data/KanjiUsage/KanjiUsage_<難易度>.json`。簡単 162・常識 151・困難 150 問（困難のうち3語の組の3択 69）。2026-11-14。最初は 60〜90 の目安で作ったが、少ないので各 150 前後に増やした（ユーザーの判断）。ユーザーの確認で、ふつうでない読みで組に入った言葉（細胞＝さいほう、羽＝は など）が見つかったので、候補の一覧に「ふつうの読みか」を足し、確かめるスクリプトで弾くようにした（`Docs/BugFixes.md`）
+- [ ] 文と意味の人の確認（確認用の一覧は claude.ai のアーティファクト「使い分けの問題データ（確認用）」）
 - [ ] Model・View・Presenter（`Scripts/Modes/KanjiUsage/`）
 - [ ] シーンとレイアウト（シーンのひな形から作る）
 - [ ] モードの定義 `Mode_KanjiUsage` と時間割への追加（`isAvailable`）
@@ -262,7 +263,7 @@
 
 ## 9. 次にやること
 
-1. **使い分け**（フェーズ1の最後。4.7）：遊び方は 2026-11-14 に決めた（GameSpec.md 2.1）。次は、JMdict から同じ読みの言葉の組を取り出すスクリプトを作り、文と意味を AI で作る → Model・View・Presenter・シーン・テスト。読み当ての実装（`Scripts/Modes/ReadingQuiz/`）と同じ形で作る。
+1. **使い分け**（フェーズ1の最後。4.7）：遊び方は 2026-11-14 に決めた（GameSpec.md 2.1）。問題データ（簡単 162・常識 151・困難 150 問）まで作った（ブランチ `feature/kono/kanji-usage-data`。ゲームへの組み込みはまだ）。次は Model・View・Presenter・シーン・テスト。読み当ての実装（`Scripts/Modes/ReadingQuiz/`）と同じ形で作る。文と意味（`Tools/kanji_usage_source.tsv`）は人の確認がまだ。直したら `python -I Tools/generate_kanji_usage.py` で作り直す。
 2. **読み当ての人の確認**（ユーザーがあとで行う。確認用の一覧は claude.ai のアーティファクト「読み当ての判断ファイル（確認用）」）：判断ファイル `Tools/reading_quiz_review.tsv`（外す語・外す読み・難易度の移動）を見て、Claude の判断を直す。特に（a）常識に残した専門語の線引き、（b）困難で外した不適切な語の線引き、（c）複数回答の読みが正しいか（「下手」のように意味で読みが変わるもの）。直したら `python -I Tools/generate_reading_quiz.py <JMdict_e.gz> Assets/TechC/KanjiQuiz/Data/KanjiSets Assets/TechC/KanjiQuiz/Data/ReadingQuiz` でデータを作り直す。
 3. 四字熟語のデータを目で確かめる（AI で作った意味・例文・まぎらわしい字。claude.ai のアーティファクト「四字熟語データの確認」）。「夫唱婦随」「良妻賢母」など今の時代に合わない考え方の熟語を残すかも決める
 4. タイトルとモード選択の演出の速さの調整（秒数は TitleView・ModeSelectView・ChalkTextWriter の Inspector にある）
