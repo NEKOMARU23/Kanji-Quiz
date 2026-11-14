@@ -255,7 +255,8 @@
 | [#22](https://github.com/NEKOMARU23/Knaji-Quiz/pull/22) | 読み当ての問題データを頻度で振り分け直す（簡単・常識・困難）、専門語・固有名詞・不適切な語を外す | 2026-11-07 |
 | [#23](https://github.com/NEKOMARU23/Knaji-Quiz/pull/23) | 読み当ての全件の判断（判断ファイル）と作り直したデータ（PR #22 のブランチに対してマージ。main には入らなかった） | 2026-11-07 |
 | [#24](https://github.com/NEKOMARU23/Knaji-Quiz/pull/24) | PR #23 の内容を main に反映（判断ファイルと作り直したデータ、生成スクリプト） | 2026-11-07 |
-| [#25](https://github.com/NEKOMARU23/Knaji-Quiz/pull/25) | 読み当てを追加（Model・Presenter・View・シーン・モードの定義・時間割、問題データ、振り返り）。レビュー待ち | 2026-11-07 |
+| [#25](https://github.com/NEKOMARU23/Knaji-Quiz/pull/25) | 読み当てを追加（Model・Presenter・View・シーン・モードの定義・時間割、問題データ、振り返り） | 2026-11-07 |
+| [#26](https://github.com/NEKOMARU23/Knaji-Quiz/pull/26) | 使い分けの遊び方を決めて仕様に反映し、進行状況の使い分けのチェックの写しまちがいを直す | 2026-11-14 |
 
 ---
 
