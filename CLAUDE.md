@@ -39,12 +39,12 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - 問題データは JSON。`IQuestionRepository` 経由で読む（同梱の JSON は `LocalQuestionRepository<TEntry>`。`TEntry` は問題1件の [Serializable] な型）。
 - 非同期は UniTask。問題ごとに `CancellationTokenSource` を作り直す。`async void` 禁止。
 
-## 現在の状態（2026-11-07 時点）
+## 現在の状態（2026-11-14 時点）
 
-- **遊べるのは書き順クイズ・本物の漢字さがし・四字熟語づくり・読み当て**。タイトル（黒板にチョークで書くロゴ）、モード選択（教室の時間割表）、難易度選択（黒板）、タイトルのメニューの設定・漢字帳・クレジットもできた。使い分けは未着手（フェーズ1）。文章クイズ（旧・返信文クイズ）・画像で名前当て・人名漢字のモードは余裕があれば。次にやることは `Docs/Progress.md` の9章（次は使い分け、読み当ての人の確認と PR）。
+- **遊べるのは書き順クイズ・本物の漢字さがし・四字熟語づくり・読み当て・使い分け**（フェーズ1の5モードがそろった）。タイトル（黒板にチョークで書くロゴ）、モード選択（教室の時間割表）、難易度選択（黒板）、タイトルのメニューの設定・漢字帳・クレジットもできた。文章クイズ（旧・返信文クイズ）・画像で名前当て・人名漢字のモードは余裕があれば。次にやることは `Docs/Progress.md` の9章（使い分けの人の確認とビルド確認、読み当ての人の確認）。
 - MVP の共通部分は `Assets/TechC/KanjiQuiz/Scripts/Common/`（`QuizSession`, `QuizPresenterBase`, `ChoiceQuizPresenter`, `ChoiceQuizReviewPresenter`, `QuizFrameView`, `ChoiceListView`, `QuizReviewView` など）。
   - KanjiVG の SVG を読む部品（`KanjiSvgParser`, `StrokePathParser`, `StrokeData`, `StreamingAssetsKanjiStrokeSource`）と、字を線で描く `KanjiGlyphRenderer`、熟語の辞書 `KanjiWordDictionary` も Common にある。
-  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、316 件）。
+  - ゲーム本体は `TechC.KanjiQuiz` アセンブリ、EditMode テストは `Assets/TechC/KanjiQuiz/Tests/EditMode/`（`TechC.KanjiQuiz.Tests`、340 件）。
 - 書き順クイズは `Assets/TechC/KanjiQuiz/Scripts/Modes/StrokeOrder/`。
   - シーンの `GameManager` にある `StrokeOrderEntryPoint` が組み立て役。難易度・難易度ごとの漢字セット・選択肢の数・振り返り用の View もここで設定する。
   - 難易度はモード選択画面の黒板で選び、`QuizLaunchOptions.Difficulty` で受け取る（なければ EntryPoint の Inspector の値）。F1 キーで表示されるテスト用ボタン（`Scripts/DebugTools/DebugDifficultySwitcher`、エディタと開発ビルドのみ）で切り替えられる。シーンに保存する難易度は Easy にしておく。
@@ -58,15 +58,18 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
   - 振り返りに出す意味と例文は `Data/KanjiMeanings/` の JSON（AI で作ったもの。手で直してよいが、直したら `Tools/check_kanji_meanings.py` で確かめる）。文の中の漢字には `{漢字|よみ}` の形で読みをつけ、`RubyText` で漢字のまま／ひらがなにして出す。中断メニューの「出題の字のほかは ひらがなで表示」（`DisplaySettings`、PlayerPrefs の `Option_Hiragana`）で切り替える。
   - 偽物は `FakeKanjiComposer` が、本物の SVG の部首のグループの画に、借りた部品の画を問題データの `box`（部品を置く枠）に合わせて足して作る。`box` は Python が、部首と部品の線が重ならないように求めたもの（`Docs/BugFixes.md` 1章）。4つとも `KanjiGlyphRenderer` で線で描く（本物だけフォントにすると見抜けるため）。
   - シーンは `RealKanji.unity`（ひな形から作った）、組み立て役は `GameManager` の `RealKanjiEntryPoint`、選択肢は `Prefabs/Modes/RealKanji/RealKanjiChoice`、モードの定義は `Mode_RealKanji`。保存のキーは `BestRecord_RealKanji_<難易度>`・`WeakQuestions_RealKanji_<難易度>`（Play で確かめたあとは消す）。
+- 使い分けは `Assets/TechC/KanjiQuiz/Scripts/Modes/KanjiUsage/`（仕様は `Docs/GameSpec.md` 2.1）。文の空いたところに合う言葉を、同じ読みの言葉の候補（3〜4つ）から1つ選ぶ。1つ選ぶ選択式なので、共通の `ChoiceQuizPresenter`・`ChoiceQuizReviewPresenter`・`ChoiceListView` に、文と選択肢の言葉・意味を描かせる（本物の漢字さがしと同じ形）。
+  - 問題データは `Data/KanjiUsage/`（簡単 162・常識 151・困難 150 問）。`Tools/extract_kanji_usage_groups.py`（JMdict から同じ読みの言葉の組を取り出す）→ `Tools/kanji_usage_source.tsv`（文・まちがい・意味を AI が書く。手で直してよい）→ `Tools/generate_kanji_usage.py`（確かめて JSON にする。JSON は手で編集しない）。選択肢の数は問題データのまちがいの数で決まる（簡単3・常識4・困難3または4）。文と意味の漢字には `{漢字|よみ}` で読みをつけ、`RubyText` でひらがなにできる（設定を切り替えたらすぐ出し直す）。
+  - 組み立て役は `KanjiUsageEntryPoint`、シーンは `KanjiUsage.unity`（ひな形から作った）、選択肢は `Prefabs/Modes/KanjiUsage/KanjiUsageChoice`、モードの定義は `Mode_KanjiUsage`。苦手な問題は正解の言葉で覚える。保存のキーは `BestRecord_KanjiUsage_<難易度>`・`WeakQuestions_KanjiUsage_<難易度>`・`KanjiBook_KanjiUsage`（Play で確かめたあとは消す）。漢字帳の画面に使い分けのタブはまだない（集めるだけ）。
 - タイトルとモード選択は `Assets/TechC/KanjiQuiz/Scripts/Screens/Title/`（`Title.unity`、組み立て役は `TitleEntryPoint`）。タイトル → 時間割 → 黒板を1つのシーンで切り替える（仕様は `Docs/ScreenDesign.md` 3.1〜3.3）。
-  - 時間割は `QuizModeCatalog` の順に並べる。まだ作っていないモード（使い分け・文章クイズ・画像で名前当て・人名漢字 `JinmeiKanji`）は、モードの定義の `isAvailable` を外して「自習」と出す。モードを作ったら `isAvailable` を入れる。
+  - 時間割は `QuizModeCatalog` の順に並べる。まだ作っていないモード（文章クイズ・画像で名前当て・人名漢字 `JinmeiKanji`）は、モードの定義の `isAvailable` を外して「自習」と出す。モードを作ったら `isAvailable` を入れる。時間割の紙には、8つのモード＋昼休みまで収まる（行の高さ 88。9つ以上にするときは `Docs/ScreenDesign.md` 3.2 を見て、見せ方を考え直す）。
   - 中断メニューの [やめる] と結果画面の [モード選択へ] は `TitleLaunchOptions.OpenModeSelect` を立てて Title を開く（時間割から始まる）。
   - タイトルのメニューから開く画面は `ITitleSubScreen`（`TitleSubScreens` にまとめて `TitlePresenter` に渡す）。設定（`SettingsPresenter`）は黒板消しでタイトルを消して黒板に板書し、漢字帳（`KanjiBookPresenter`、机の上の見開きノート）とクレジット（`CreditsPresenter`、コルクの掲示板）はタイトルの上に重ねる。閉じるとロゴを書き直さずにタイトルに戻る（仕様は `Docs/ScreenDesign.md` 3.7〜3.9）。
   - 設定の「記録を消す」は `QuizRecordEraser` で自己ベスト・苦手な漢字・漢字帳を消す。ユーザーの記録も消えるので、Play の確認では押さない。
   - 四字熟語づくりは `Scripts/Modes/FourCharIdiom/`（仕様は `Docs/GameSpec.md` 2.1）。意味をヒントに、空いたマスに候補の字を入れる（簡単1マス・候補4、常識2マス・候補6、困難4マス・候補12）。問題データは `Data/FourCharIdiom/`（`Tools/four_char_idioms_source.tsv` を AI で書き、`Tools/generate_four_char_idioms.py` で確かめて JSON にする。JSON は手で編集しない）。回答（マスごとの候補の番号）は `FourCharIdiomAnswer` で `AnswerRecord.SelectedIndex` の1つの数にまとめる。保存のキーは `BestRecord_FourCharIdiom_<難易度>`・`WeakQuestions_FourCharIdiom_<難易度>`・`KanjiBook_FourCharIdiom`（Play で確かめたあとは消す）。
   - 漢字帳は、各モードの組み立て役が結果画面へ移るときに `KanjiBook.Collect` で正解した字（四字熟語づくりは熟語のまま）を `KanjiBook_<モード>` に足す（値は改行区切り）。四字熟語は漢字帳の4つ目のタブに出る。読みは `KanjiReadingDictionary`（RealKanji の問題データ）、意味と例文・熟語は既存の辞書。データは `TitleEntryPoint` で設定する。Play で確かめたあとは `KanjiBook_<モード>` も消す。
   - 黒板（Board）は1枚をタイトル・時間割の横・画面いっぱいで使い回す。ロゴは KanjiVG の書き順で `ChalkStrokeGraphic`（UI の線）に書く。時間割の横の黒板の字は `ChalkTextWriter` で1字ずつ出す。演出はクリックか Enter・スペースで飛ばせる（`SkipInput`）。
-- シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `Title.unity`（シーンリストの先頭）、`StrokeOrder.unity`、`RealKanji.unity`、`FourCharIdiom.unity`（四字熟語づくり）と `Result.unity`（全モード共通の結果画面）。
+- シーンは `Assets/TechC/KanjiQuiz/Scenes/` の `Title.unity`（シーンリストの先頭）、`StrokeOrder.unity`、`RealKanji.unity`、`FourCharIdiom.unity`（四字熟語づくり）、`ReadingQuiz.unity`（読み当て）、`KanjiUsage.unity`（使い分け）と `Result.unity`（全モード共通の結果画面）。
   - 全問回答すると `QuizResultStore` に結果、`QuizReviewStore` に問題と回答を置いて Result へ移る。
   - 結果画面の [問題を振り返る]（または一覧の問題）で、モードのシーンを振り返りとして開き直す。
   - 結果画面は、1問ずつ ○×（ハンコの画像）→ 正解数のルーレット → 正解数 → 級のハンコ → 全問正解なら花丸 → 自己ベスト、の順に効果音つきで見せる（クリックで飛ばせる。振り返りから戻ったときは演出しない）。
@@ -76,10 +79,10 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
   - 間違えた漢字は `WeakQuestionList`（PlayerPrefs のキー `WeakQuestions_StrokeOrder_<難易度>`）に残し、次のプレイで問題数の半分まで優先して出す。出たときは「苦手」のハンコを出す。Play で確かめたあとは、このキーも `PlayerPrefs.DeleteKey` で消す。
 - 背景は学校のプリントのような画像（各 Canvas の Background）。シーンの切り替えは `SceneTransitionView`（`Prefabs/Common/SceneTransition`、プリントを回収して次を配る）で、`new SceneLoader(SceneTransitionView.Instance)` のように EntryPoint で渡す。
 - **新しいモードのシーンは File > New Scene のテンプレート「漢字クイズのモード」から作る**（`Scenes/Templates/`、手順は `Docs/GameSpec.md` 4.6）。共通の部品は `Prefabs/Common/` のプレハブ（QuizFrame、PauseMenu、PrintBackground、AudioManager、SceneTransition）。
-- モード名・シーン名・難易度ごとの問題数・保存のキーは `Data/Modes/` のモードの定義（`QuizModeDefinition`）に書く。書き順クイズは `Mode_StrokeOrder`、本物の漢字さがしは `Mode_RealKanji`、四字熟語づくりは `Mode_FourCharIdiom`（各 EntryPoint の `mode` に設定）。問題の呼び方（難易度の黒板の「苦手な○○」）は `questionNoun`。
+- モード名・シーン名・難易度ごとの問題数・保存のキーは `Data/Modes/` のモードの定義（`QuizModeDefinition`）に書く。書き順クイズは `Mode_StrokeOrder`、本物の漢字さがしは `Mode_RealKanji`、四字熟語づくりは `Mode_FourCharIdiom`、読み当ては `Mode_ReadingQuiz`、使い分けは `Mode_KanjiUsage`（各 EntryPoint の `mode` に設定）。問題の呼び方（難易度の黒板の「苦手な○○」）は `questionNoun`。
 - 中断メニュー（Esc か右上の [メニュー]、見た目は机の上の連絡帳）で、続ける・最初からやり直す・やめる（時間割へ）・効果音の音量・出題の字のほかは ひらがなで表示。音量は PlayerPrefs の `Volume_Se`。キーボード操作は数字キー・Enter・← →・Esc。メニューを開いている間とシーンの切り替え中は `InputGate` でキー操作を止める。
-- 切り替えはカメラの映像をテクスチャに描いて使うので、**新しいシーンの Canvas は Screen Space - Camera にする**（Overlay の UI はプリントに映らない）。Title・StrokeOrder・RealKanji・FourCharIdiom・Result はどれも Camera にしてある。
-- 効果音は `AudioManager`（`Prefabs/Common/AudioManager`、Title・StrokeOrder・RealKanji・FourCharIdiom・Result のシーンに置いている）。シングルトンは `SingletonMonoBehaviour<T>` を継承して作る。効果音と画像は `Tools/generate_placeholder_se.py`・`Tools/generate_placeholder_ui.py` で作った自作のもの（製品版でも使う。クレジット不要）。新しい音・画像もこのスクリプトに関数を足して作る。例外はチョークの音 `Art/Audio/External/se_chalk_writing.mp3`（On-Jin ～音人～ の音源）で、利用規約のため Git に入れない（`.meta` だけ入れる。Docs/GameSpec.md 4章）。外部の音源を足すときも `External/` に置き、クレジット画面の掲示板に載せる。
+- 切り替えはカメラの映像をテクスチャに描いて使うので、**新しいシーンの Canvas は Screen Space - Camera にする**（Overlay の UI はプリントに映らない）。Title・StrokeOrder・RealKanji・FourCharIdiom・ReadingQuiz・KanjiUsage・Result はどれも Camera にしてある。
+- 効果音は `AudioManager`（`Prefabs/Common/AudioManager`、Title・StrokeOrder・RealKanji・FourCharIdiom・ReadingQuiz・KanjiUsage・Result のシーンに置いている）。シングルトンは `SingletonMonoBehaviour<T>` を継承して作る。効果音と画像は `Tools/generate_placeholder_se.py`・`Tools/generate_placeholder_ui.py` で作った自作のもの（製品版でも使う。クレジット不要）。新しい音・画像もこのスクリプトに関数を足して作る。例外はチョークの音 `Art/Audio/External/se_chalk_writing.mp3`（On-Jin ～音人～ の音源）で、利用規約のため Git に入れない（`.meta` だけ入れる。Docs/GameSpec.md 4章）。外部の音源を足すときも `External/` に置き、クレジット画面の掲示板に載せる。
 - 文字は Klee One の TMP フォントアセット（Dynamic、TMP Settings の既定）で表示する。
 - 未実装の機能と既知の不具合は `Docs/GameSpec.md` の8章を参照。
 
@@ -88,7 +91,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - private フィールドは camelCase、接頭辞なし。SerializeField も private。
 - クラス名の接尾辞：`View` / `Presenter` / `EntryPoint` / `Repository`。Model は接尾辞なし。
 - 名前空間は `TechC.KanjiQuiz.<フォルダ>`。モードは `TechC.KanjiQuiz.Modes.<ModeName>`。
-- モード名：`StrokeOrder`, `RealKanji`, `FourCharIdiom`, `ReadingQuiz`（作ったもの）。`KanjiUsage`（使い分け。2026-11-14 に決定、未作成）。未作成の案：`ReplyMessage`（文章クイズ）, `ImageName`（画像で名前当て）。
+- モード名：`StrokeOrder`, `RealKanji`, `FourCharIdiom`, `ReadingQuiz`, `KanjiUsage`（作ったもの）。未作成の案：`ReplyMessage`（文章クイズ）, `ImageName`（画像で名前当て）。
 - public メンバーには日本語の `/// <summary>`。ログは `[クラス名]` で始める。
 - `GameObject.Find` / `FindObjectOfType` 禁止。シャッフルは共通化したものを使う。
 - 詳細は `Docs/CodingRules.md`。
@@ -125,6 +128,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
 - テストの実行：`unity command run_tests --mode EditMode --filter TechC.KanjiQuiz.Tests`。
 - **エディタのダイアログで CLI が止まる**：ブランチを切り替えてシーンファイルが書き換わると、「The open scene(s) have been modified externally」ダイアログが出てメインスレッドが止まる。`unity status` は ready のままなのに `unity command` がすべてタイムアウトする場合はこれを疑い、ユーザーに Unity の画面を確認してもらう。ブランチは `git checkout -b <新ブランチ> origin/main` のように、作業ツリーが変わらない形で切ると起きにくい。
 - `eval` では `using` が効かない。型は完全修飾名で書き、拡張メソッドは静的メソッドとして呼ぶ（例：`R3.ObservableSubscribeExtensions.Subscribe(p, x => ...)`）。
+- `eval` の結果に日本語が入るときは、パイプで Python の標準入力に渡さず、`> ファイル` に書いてから `open(ファイル, 'rb').read().decode('utf-8', errors='replace')` で読む（Windows の標準入力は cp932 で、文字化けや UnicodeEncodeError になる）。
 - 長い `eval` のコードはファイルに書いてから `"$(cat ファイル)"` で渡す。Bash のヒアドキュメントに複雑な引用符を入れると解析に失敗することがある。
 
 ### Play モードでの動作確認の手順
