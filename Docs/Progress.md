@@ -259,6 +259,7 @@
 | [#25](https://github.com/NEKOMARU23/Knaji-Quiz/pull/25) | 読み当てを追加（Model・Presenter・View・シーン・モードの定義・時間割、問題データ、振り返り） | 2026-11-07 |
 | [#26](https://github.com/NEKOMARU23/Knaji-Quiz/pull/26) | 使い分けの遊び方を決めて仕様に反映し、進行状況の使い分けのチェックの写しまちがいを直す | 2026-11-14 |
 | [#27](https://github.com/NEKOMARU23/Knaji-Quiz/pull/27) | 使い分けの問題データ（簡単162・常識151・困難150問）と、作って確かめるスクリプト、ふつうでない読みが混ざった不具合の記録 | 2026-11-14 |
+| [#28](https://github.com/NEKOMARU23/Knaji-Quiz/pull/28) | アドバイザーに相談するタイミング（コミット・PR前、モード実装前など6つ）を CLAUDE.md に追加 | 2026-11-14 |
 
 ---
 
