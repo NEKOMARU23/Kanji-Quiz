@@ -22514,6 +22514,7 @@ MonoBehaviour:
   idiomColumns: 2
   idiomRows: 8
   unknownIdiomText: "\uFF1F\uFF1F\uFF1F\uFF1F"
+  unknownIdiomColor: {r: 0.71, g: 0.68, b: 0.62, a: 1}
   idiomDetailRoot: {fileID: 1824753076}
   idiomEmptyMessage: {fileID: 254815818}
   idiomWordText: {fileID: 1211534601}
@@ -23019,7 +23020,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u2015 \u66F8\u304D\u9806\u30FB\u672C\u7269\u306E\u6F22\u5B57\u30FB\u56DB\u5B57\u719F\u8A9E
+  m_text: "\u2015 \u66F8\u304D\u9806\u30FB\u672C\u7269\u306E\u6F22\u5B57\u30FB\u56DB\u5B57\u719F\u8A9E\u30FB\u8AAD\u307F\u5F53\u3066\u30FB\u4F7F\u3044\u5206\u3051
     \u2015"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c33382b104c0cea41bac0ec83a682435, type: 2}
