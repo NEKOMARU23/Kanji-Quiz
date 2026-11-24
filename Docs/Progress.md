@@ -2,7 +2,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 最終更新 | 2026-11-14（使い分けの実装） |
+| 最終更新 | 2026-11-24（背景を賞状のような紙に変更） |
 | 完成目標 | 2027年1月 |
 | 現在のフェーズ | フェーズ1（ゲームモード5種） |
 | 関連 | [GameSpec.md](GameSpec.md) / [Architecture.md](Architecture.md) / [ScreenDesign.md](ScreenDesign.md) |
@@ -77,6 +77,7 @@
 - [x] 結果画面の ○・× をハンコにし、全問正解なら花丸を書く
 - [x] 苦手な問題の復習の仕組み（`WeakQuestionList`）
 - [x] 学校のプリントのような背景と、プリントを回収して次を配るシーン切り替え（`SceneTransitionView`）
+- [x] 背景を、和紙のように見える再生紙から、賞状のような紙（クリーム色に金の二重枠）に変更（2026-11-24。学校モチーフへの路線変更。25案から選んだ。Play・ビルド・16:9 以外での見た目は未確認）
 - [x] 効果音と画像は、自作のスクリプト（`Tools/generate_placeholder_se.py`・`generate_placeholder_ui.py`）で作ったものを製品版でも使うことにした（2026-11-01）
 - [x] タイトルのチョークと黒板消しの音。チョークは On-Jin ～音人～ の音源に差し替え、ロゴや時間割の横の黒板に字を書いている間だけループで鳴らす（2026-11-02）
 - [ ] BGM
@@ -263,6 +264,7 @@
 | [#29](https://github.com/NEKOMARU23/Knaji-Quiz/pull/29) | 使い分けモードを追加（Model・Presenter・View・シーン・モードの定義・時間割、テスト）、時間割の行の高さを 88 に | 2026-11-14 |
 | [#30](https://github.com/NEKOMARU23/Knaji-Quiz/pull/30) | 使い分けのビルド版（Windows）での確認結果を進行状況に反映 | 2026-11-16 |
 | [#31](https://github.com/NEKOMARU23/Knaji-Quiz/pull/31) | タイトルの副題に、読み当てと使い分けを足す | 2026-11-16 |
+| [#34](https://github.com/NEKOMARU23/Knaji-Quiz/pull/34) | 背景画像を、和紙のような再生紙から賞状のような紙（金の二重枠）に変更 | 2026-11-24 |
 
 ---
 
