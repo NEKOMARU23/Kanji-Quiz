@@ -36,7 +36,7 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
-        public void 書き直したあとは、変わらなければ何もしない()
+        public void 書き直したあとは_変わらなければ何もしない()
         {
             var tracker = new RubyLabelTracker<Label>();
             var label = new Label();
@@ -46,7 +46,7 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
-        public void 設定が変わったら、元の印のついた文字から書き直す()
+        public void 設定が変わったら_元の印のついた文字から書き直す()
         {
             var tracker = new RubyLabelTracker<Label>();
             var label = new Label();
@@ -62,7 +62,7 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
-        public void ほかのコードが入れ替えた文字は、設定が変わっても上書きしない()
+        public void ほかのコードが入れ替えた文字は_設定が変わっても上書きしない()
         {
             var tracker = new RubyLabelTracker<Label>();
             var label = new Label();
@@ -75,7 +75,7 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
-        public void コードが印のついた別の文字を入れたら、それを新しく覚える()
+        public void コードが印のついた別の文字を入れたら_それを新しく覚える()
         {
             var tracker = new RubyLabelTracker<Label>();
             var label = new Label();

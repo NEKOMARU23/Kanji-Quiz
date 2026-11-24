@@ -19,7 +19,7 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
-        public void つないだときに、今の設定を画面の文字に伝える()
+        public void つないだときに_今の設定を画面の文字に伝える()
         {
             var view = new FakeRubyLabelView();
             var settings = new DisplaySettings(new FakeDisplaySettingRepository { UseHiragana = true });
@@ -30,7 +30,7 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
-        public void 設定が変わったら、画面の文字に伝える()
+        public void 設定が変わったら_画面の文字に伝える()
         {
             var view = new FakeRubyLabelView();
             var settings = new DisplaySettings(new FakeDisplaySettingRepository());
