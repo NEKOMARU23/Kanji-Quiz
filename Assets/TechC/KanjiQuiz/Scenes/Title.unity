@@ -5164,6 +5164,7 @@ MonoBehaviour:
   - {fileID: 4900000, guid: 2b524e066e9e61e4c970d3e05bc91253, type: 3}
   - {fileID: 4900000, guid: 67dec492260ea184795781f5afd04f1a, type: 3}
   - {fileID: 4900000, guid: 004f916eae64a9f4fa5f9a935312f265, type: 3}
+  - {fileID: 4900000, guid: 772ab5d79a664ad79fa31a1abebe674e, type: 3}
   kanjiUsageAssets:
   - {fileID: 4900000, guid: e9a490612dd259f46a591a62180a3c5a, type: 3}
   - {fileID: 4900000, guid: f2dcf93c5fad5954492b2449a522e1a9, type: 3}
