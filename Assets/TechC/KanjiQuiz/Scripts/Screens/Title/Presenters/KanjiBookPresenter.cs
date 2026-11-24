@@ -18,7 +18,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         public const int MaxWords = 3;
 
         /// <summary>四字熟語のページのタブの名前</summary>
-        public const string IdiomSectionTitle = "四字熟語";
+        public const string IdiomSectionTitle = "{四字熟語|よじじゅくご}";
 
         private readonly IKanjiBookView view;
         private readonly IAudioPlayer audioPlayer;

@@ -31,7 +31,7 @@ namespace TechC.KanjiQuiz.Tests
 
             Assert.IsFalse(record.HasRecord);
             Assert.IsNull(record.Rank);
-            Assert.AreEqual("全問正解で 初段", record.Goal);
+            Assert.AreEqual("{全問正解|ぜんもんせいかい}で {初段|しょだん}", record.Goal);
             Assert.AreEqual(0, record.WeakQuestions.Count);
         }
 
@@ -41,7 +41,7 @@ namespace TechC.KanjiQuiz.Tests
             var record = new DifficultyRecord(Difficulty.Normal, "常用漢字", 7, 4, null);
 
             Assert.AreEqual("6級", record.Rank);
-            Assert.AreEqual("あと1問で 5級！", record.Goal);
+            Assert.AreEqual("あと1{問|もん}で {5級|ごきゅう}！", record.Goal);
         }
 
         [Test]
@@ -50,7 +50,7 @@ namespace TechC.KanjiQuiz.Tests
             var record = new DifficultyRecord(Difficulty.Easy, "小学漢字", 5, 5, null);
 
             Assert.AreEqual("5級", record.Rank);
-            Assert.AreEqual("全問正解！", record.Goal);
+            Assert.AreEqual("{全問正解|ぜんもんせいかい}！", record.Goal);
         }
 
         [Test]
@@ -84,7 +84,7 @@ namespace TechC.KanjiQuiz.Tests
             Assert.AreEqual(1, summary.Period);
             Assert.AreEqual(3, summary.Records.Count);
             Assert.AreEqual("5級", summary.BestRank);
-            Assert.AreEqual("小学漢字", summary.Records[0].Range);
+            Assert.AreEqual("{小学漢字|しょうがくかんじ}", summary.Records[0].Range);
             Assert.AreEqual(7, summary.Records[1].QuestionCount);
             CollectionAssert.AreEqual(new[] { "施", "援" }, summary.Records[1].WeakQuestions);
             Assert.IsFalse(summary.Records[2].HasRecord);

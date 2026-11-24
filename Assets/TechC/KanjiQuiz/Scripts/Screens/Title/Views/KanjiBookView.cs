@@ -283,10 +283,10 @@ namespace TechC.KanjiQuiz.Screens.Title
             if (detail == null) return;
 
             kanjiText.text = detail.Kanji;
-            readingText.text = string.IsNullOrEmpty(detail.Reading) ? string.Empty : $"読み　{detail.Reading}";
+            readingText.text = string.IsNullOrEmpty(detail.Reading) ? string.Empty : $"{{読|よ}}み　{detail.Reading}";
             meaningText.text = detail.Meaning;
             exampleText.text = Highlight(detail.Example, detail.Kanji);
-            wordsText.text = detail.Words.Count > 0 ? "使用例　" + string.Join("・", detail.Words) : string.Empty;
+            wordsText.text = detail.Words.Count > 0 ? "{使用例|しようれい}　" + string.Join("・", detail.Words) : string.Empty;
             for (int i = 0; i < modeStamps.Length; i++)
             {
                 bool exists = i < detail.ModeNames.Count;
@@ -357,7 +357,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             if (detail == null) return;
 
             idiomWordText.text = detail.Word;
-            idiomReadingText.text = string.IsNullOrEmpty(detail.Reading) ? string.Empty : $"読み　{detail.Reading}";
+            idiomReadingText.text = string.IsNullOrEmpty(detail.Reading) ? string.Empty : $"{{読|よ}}み　{detail.Reading}";
             idiomMeaningText.text = detail.Meaning;
             idiomExampleText.text = Highlight(detail.Example, detail.Word);
         }
