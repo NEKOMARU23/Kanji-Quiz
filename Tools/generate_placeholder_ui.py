@@ -1,5 +1,5 @@
 """
-画像（ハンコの○と×、級のハンコの枠、花丸、プリントの背景、机、プリントの影、黒板のチョークの丸と級の枠、掲示板のコルク、漢字帳のマス）を作る。
+画像（ハンコの○と×、級のハンコの枠、花丸、賞状のような背景（bg_print）、机、プリントの影、黒板のチョークの丸と級の枠、掲示板のコルク、漢字帳のマス）を作る。
 
 製品版でも使う自作の画像（ほかの人の素材を使わず、コードで描く）。Pillow と NumPy を使う。
 出力先: Assets/TechC/KanjiQuiz/Art/UI/
@@ -142,31 +142,28 @@ def hanamaru(size=512):
 
 
 def school_print(width=1600, height=900):
-    """背景（学校で配られるプリント。少しくすんだ再生紙に、繊維の粒と印刷の外枠）"""
-    rng = np.random.default_rng(4)
-    img = np.ones((height, width, 3), dtype=np.float32) * np.array([246, 245, 239], dtype=np.float32)
+    """背景（賞状のような紙。クリーム色の紙に、金の二重枠と、角の赤い丸の飾り）
+    枠は画面の端に寄せてあり、題名・進捗のバー・ボタンの文字と重ならない。関数名と出力ファイル名は、シーンやプレハブの参照を変えないために残している"""
+    rng = np.random.default_rng(36)
+    img = np.ones((height, width, 3), dtype=np.float32) * np.array([252, 248, 236], dtype=np.float32)
     # 紙のむら（ごく弱く）と、細かいざらつき
-    coarse = rng.random((height // 80 + 2, width // 80 + 2)).astype(np.float32)
+    coarse = rng.random((height // 90 + 2, width // 90 + 2)).astype(np.float32)
     coarse = np.asarray(Image.fromarray((coarse * 255).astype(np.uint8)).resize((width, height), Image.BICUBIC)) / 255.0
     img += ((coarse - 0.5) * 3)[..., None]
     img += ((rng.random((height, width)) - 0.5) * 5)[..., None]
 
     page = Image.fromarray(np.clip(img, 0, 255).astype(np.uint8), "RGB")
     draw = ImageDraw.Draw(page)
-    # 再生紙に混じる繊維のかけら（小さな点と短い線）
-    for _ in range(650):
-        x, y = rng.random() * width, rng.random() * height
-        shade = int(185 + rng.random() * 45)
-        if rng.random() < 0.7:
-            r = 0.6 + rng.random() * 0.9
-            draw.ellipse((x - r, y - r, x + r, y + r), fill=(shade, shade - 6, shade - 14))
-        else:
-            angle = rng.random() * math.pi
-            length = 3 + rng.random() * 7
-            draw.line((x, y, x + math.cos(angle) * length, y + math.sin(angle) * length), fill=(shade, shade - 6, shade - 14), width=1)
-    # 印刷の外枠（プリントの周りの線）
-    margin = 18
-    draw.rectangle((margin, margin, width - margin, height - margin), outline=(120, 120, 120), width=2)
+    gold = (200, 160, 84)
+    red = (214, 120, 110)
+    paper_color = (252, 248, 236)
+    # 金の二重枠
+    draw.rectangle((10, 10, width - 10, height - 10), outline=gold, width=4)
+    draw.rectangle((22, 22, width - 22, height - 22), outline=gold, width=1)
+    # 角の飾り（金の輪の中に赤い丸）
+    for cx, cy in ((22, 22), (width - 22, 22), (22, height - 22), (width - 22, height - 22)):
+        draw.ellipse((cx - 14, cy - 14, cx + 14, cy + 14), fill=paper_color, outline=gold, width=3)
+        draw.ellipse((cx - 6, cy - 6, cx + 6, cy + 6), fill=red)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUTPUT_DIR / "bg_print.png"
