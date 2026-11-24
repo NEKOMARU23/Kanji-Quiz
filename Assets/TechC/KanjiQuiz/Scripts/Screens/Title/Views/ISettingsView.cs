@@ -13,6 +13,9 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <summary>効果音の音量のつまみが動いたとき（0〜1）</summary>
         Observable<float> OnSeVolumeChanged { get; }
 
+        /// <summary>BGM の音量のつまみが動いたとき（0〜1）</summary>
+        Observable<float> OnBgmVolumeChanged { get; }
+
         /// <summary>「出題の字のほかは ひらがなで表示」の しない／する が選ばれたとき</summary>
         Observable<bool> OnHiraganaChanged { get; }
 
@@ -30,6 +33,9 @@ namespace TechC.KanjiQuiz.Screens.Title
 
         /// <summary>効果音の音量のつまみを合わせる（入力の通知は出さない）</summary>
         void SetSeVolume(float volume);
+
+        /// <summary>BGM の音量のつまみを合わせる（入力の通知は出さない）</summary>
+        void SetBgmVolume(float volume);
 
         /// <summary>しない／する の丸を合わせる（入力の通知は出さない）</summary>
         void SetHiragana(bool useHiragana);
