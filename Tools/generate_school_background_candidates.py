@@ -5,6 +5,11 @@
   B: 漢字練習帳（薄い緑の方眼と、田の字のあき）
   C: 原稿用紙（オレンジ色のマス目）
   D: テスト用紙（外枠、赤ペンの丸、とじ穴）
+  E: 方眼ノート（薄い水色の5mm方眼）
+  F: 学習プリント（上下の色の帯と、点線の罫）
+  G: 色画用紙（淡い黄色の厚い紙と、折り紙の角）
+  H: 教科書（二重の細枠と、下のページ番号の欄）
+  I: 画板（木の板に金具のクリップで留めた紙）
 
 製品版でも使う自作の画像（コードで描く）。Pillow と NumPy を使う。
 文字は濃いグレー（#2B2B2B）で重なるので、線は薄くして、字が読みにくくならないようにする。
@@ -117,11 +122,95 @@ def test_sheet():
     return page
 
 
+def graph_note():
+    """E: 方眼ノート。薄い水色の細かい方眼。5マスごとに少し濃い線"""
+    rng = np.random.default_rng(15)
+    page = paper(rng, (251, 251, 246))
+    draw = ImageDraw.Draw(page)
+    cell = 25
+    for i, x in enumerate(range(0, WIDTH, cell)):
+        draw.line((x, 0, x, HEIGHT), fill=(198, 220, 234) if i % 5 else (170, 200, 222), width=1 if i % 5 else 2)
+    for i, y in enumerate(range(0, HEIGHT, cell)):
+        draw.line((0, y, WIDTH, y), fill=(198, 220, 234) if i % 5 else (170, 200, 222), width=1 if i % 5 else 2)
+    return page
+
+
+def worksheet():
+    """F: 学習プリント。上下の縁に色の帯、中は点線の薄い罫"""
+    rng = np.random.default_rng(16)
+    page = paper(rng, (252, 251, 247))
+    draw = ImageDraw.Draw(page)
+    colors = [(240, 150, 120), (245, 200, 100), (140, 195, 150), (120, 170, 220)]
+    seg = WIDTH // len(colors)
+    for i, c in enumerate(colors):
+        draw.rectangle((i * seg, 0, (i + 1) * seg, 12), fill=c)
+        draw.rectangle((i * seg, HEIGHT - 12, (i + 1) * seg, HEIGHT), fill=c)
+    for y in range(160, HEIGHT - 40, 64):
+        for x in range(60, WIDTH - 60, 14):
+            draw.line((x, y, x + 6, y), fill=(206, 208, 212), width=1)
+    return page
+
+
+def color_paper():
+    """G: 色画用紙。淡い黄色のざらざらした厚い紙。四隅に折り紙のような三角"""
+    rng = np.random.default_rng(17)
+    page = paper(rng, (252, 241, 205), mottle=5.0, grain=9.0)
+    draw = ImageDraw.Draw(page)
+    size = 90
+    corners = [
+        ((0, 0), (size, 0), (0, size), (240, 160, 140)),
+        ((WIDTH, 0), (WIDTH - size, 0), (WIDTH, size), (140, 195, 215)),
+        ((0, HEIGHT), (size, HEIGHT), (0, HEIGHT - size), (150, 200, 150)),
+        ((WIDTH, HEIGHT), (WIDTH - size, HEIGHT), (WIDTH, HEIGHT - size), (235, 190, 110)),
+    ]
+    for a, b, c, color in corners:
+        draw.polygon((a, b, c), fill=color)
+    return page
+
+
+def textbook():
+    """H: 教科書。二重の細枠と、下中央のページ番号の欄。淡いクリーム色"""
+    rng = np.random.default_rng(18)
+    page = paper(rng, (250, 247, 236))
+    draw = ImageDraw.Draw(page)
+    ink = (176, 168, 150)
+    draw.rectangle((24, 24, WIDTH - 24, HEIGHT - 24), outline=ink, width=3)
+    draw.rectangle((34, 34, WIDTH - 34, HEIGHT - 34), outline=ink, width=1)
+    # 下中央のページ番号の欄（細い線で囲む。文字は入れない）
+    draw.rounded_rectangle((WIDTH // 2 - 40, HEIGHT - 70, WIDTH // 2 + 40, HEIGHT - 40), 6, outline=ink, width=1)
+    return page
+
+
+def clipboard():
+    """I: 画板。細い木の縁に囲まれた紙と、上中央の金具のクリップ"""
+    rng = np.random.default_rng(19)
+    board = paper(rng, (186, 140, 90), mottle=10.0, grain=12.0)
+    draw = ImageDraw.Draw(board)
+    for _ in range(60):
+        y = rng.random() * HEIGHT
+        draw.line((0, y, WIDTH, y + (rng.random() - 0.5) * 10), fill=(165, 120, 74), width=1)
+    inset = 16
+    sheet = paper(rng, (251, 250, 245), mottle=2.0, grain=4.0).crop((0, 0, WIDTH - inset * 2, HEIGHT - inset * 2))
+    board.paste(sheet, (inset, inset))
+    draw = ImageDraw.Draw(board)
+    draw.rectangle((inset, inset, WIDTH - inset, HEIGHT - inset), outline=(140, 100, 60), width=2)
+    # クリップ（上中央）
+    cx = WIDTH // 2
+    draw.rounded_rectangle((cx - 90, 0, cx + 90, 38), 8, fill=(170, 172, 178), outline=(120, 122, 128), width=2)
+    draw.rounded_rectangle((cx - 60, 10, cx + 60, 26), 5, fill=(205, 207, 212))
+    return board
+
+
 CANDIDATES = {
     "bg_candidate_a_note.png": note,
     "bg_candidate_b_practice.png": practice_book,
     "bg_candidate_c_manuscript.png": manuscript,
     "bg_candidate_d_test.png": test_sheet,
+    "bg_candidate_e_graph.png": graph_note,
+    "bg_candidate_f_worksheet.png": worksheet,
+    "bg_candidate_g_colorpaper.png": color_paper,
+    "bg_candidate_h_textbook.png": textbook,
+    "bg_candidate_i_clipboard.png": clipboard,
 }
 
 if __name__ == "__main__":
