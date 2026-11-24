@@ -77,7 +77,7 @@ AI アシスタント向けのプロジェクト説明。作業を始める前�
   - プレイ中は、選択・ページめくりの音と、問題を切り替えるときのスライド（`QuizFrameView` の `transitionTargets`）がある。
   - 振り返りでは、出題する漢字の右にお手本の書き順アニメーション（`StrokeAnimationView`）を出す。
   - 間違えた漢字は `WeakQuestionList`（PlayerPrefs のキー `WeakQuestions_StrokeOrder_<難易度>`）に残し、次のプレイで問題数の半分まで優先して出す。出たときは「苦手」のハンコを出す。Play で確かめたあとは、このキーも `PlayerPrefs.DeleteKey` で消す。
-- 背景は学校のプリントのような画像（各 Canvas の Background）。シーンの切り替えは `SceneTransitionView`（`Prefabs/Common/SceneTransition`、プリントを回収して次を配る）で、`new SceneLoader(SceneTransitionView.Instance)` のように EntryPoint で渡す。
+- 背景は賞状のような紙の画像（クリーム色に金の二重枠。ファイル名 bg_print とプレハブ名 PrintBackground は残している）（各 Canvas の Background）。シーンの切り替えは `SceneTransitionView`（`Prefabs/Common/SceneTransition`、プリントを回収して次を配る）で、`new SceneLoader(SceneTransitionView.Instance)` のように EntryPoint で渡す。
 - **新しいモードのシーンは File > New Scene のテンプレート「漢字クイズのモード」から作る**（`Scenes/Templates/`、手順は `Docs/GameSpec.md` 4.6）。共通の部品は `Prefabs/Common/` のプレハブ（QuizFrame、PauseMenu、PrintBackground、AudioManager、SceneTransition）。
 - モード名・シーン名・難易度ごとの問題数・保存のキーは `Data/Modes/` のモードの定義（`QuizModeDefinition`）に書く。書き順クイズは `Mode_StrokeOrder`、本物の漢字さがしは `Mode_RealKanji`、四字熟語づくりは `Mode_FourCharIdiom`、読み当ては `Mode_ReadingQuiz`、使い分けは `Mode_KanjiUsage`（各 EntryPoint の `mode` に設定）。問題の呼び方（難易度の黒板の「苦手な○○」）は `questionNoun`。
 - 中断メニュー（Esc か右上の [メニュー]、見た目は机の上の連絡帳）で、続ける・最初からやり直す・やめる（時間割へ）・効果音の音量・出題の字のほかは ひらがなで表示。音量は PlayerPrefs の `Volume_Se`。キーボード操作は数字キー・Enter・← →・Esc。メニューを開いている間とシーンの切り替え中は `InputGate` でキー操作を止める。

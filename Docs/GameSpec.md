@@ -502,7 +502,7 @@
 | ReviewPanel/ModelAnimation | StrokeAnimationView | 振り返りのお手本（正しい書き順を筆で書くアニメーション）。横の ModelLabel は「正しい書き順」の見出し |
 | AudioManager | AudioManager / AudioSource ×2 | 効果音を鳴らす（Prefabs/Common/AudioManager プレハブ） |
 | SceneTransition | SceneTransitionView / Canvas（Overlay）/ AudioSource | プリントを回収して次を配るようにシーンを切り替える（Prefabs/Common/SceneTransition プレハブ） |
-| Canvas/Background | Image | 学校のプリントのような背景。Canvas の一番後ろに置く（Prefabs/Common/PrintBackground プレハブ） |
+| Canvas/Background | Image | 賞状のような背景。Canvas の一番後ろに置く（Prefabs/Common/PrintBackground プレハブ） |
 | PauseMenu | PauseMenuView / PauseMenuEntryPoint / Canvas（Camera、sortingOrder 20） | 中断メニュー（Prefabs/Common/PauseMenu プレハブ。連絡帳の見た目で、Panel/Sheet の下に Cover・Paper（Lines）・Content）。右上の [メニュー] ボタンも含む |
 | KanjiText/WeakMark | Image / TextMeshPro | 苦手な漢字のときに出す「苦手」のハンコ。漢字と一緒にスライドするよう KanjiText の子にしている |
 | DebugDifficultySwitcher | DebugDifficultySwitcher / CanvasGroup | テスト用の難易度切り替えボタン。F1 で表示（エディタと開発ビルドのみ） |
@@ -525,7 +525,7 @@
 | SkipArea | Image（透明）/ Button | 画面全体を覆う透明なボタン。演出中だけ有効にし、クリックで演出を飛ばす。Canvas の一番後ろに置く |
 | AudioManager | AudioManager / AudioSource ×2 | 効果音を鳴らす（Prefabs/Common/AudioManager プレハブ）。シーンを切り替えても残る |
 | SceneTransition | SceneTransitionView / Canvas（Overlay）/ AudioSource | プリントを回収して次を配るようにシーンを切り替える。シーンを切り替えても残る |
-| Canvas/Background | Image | 学校のプリントのような背景。SkipArea より後ろに置く（Prefabs/Common/PrintBackground プレハブ） |
+| Canvas/Background | Image | 賞状のような背景。SkipArea より後ろに置く（Prefabs/Common/PrintBackground プレハブ） |
 
 **効果音**
 
@@ -540,7 +540,7 @@
 
 **画像**
 
-- `Art/UI/` の `bg_print`（学校のプリントのような背景）、`bg_desk`（切り替えのときに見える机）、`fx_sheet_shadow`（切り替えで動くプリントの影）、`icon_stamp_correct`（○のハンコ）、`icon_stamp_incorrect`（×のハンコ）、`frame_stamp_rank`（級のハンコの枠）、`icon_hanamaru`（花丸）。
+- `Art/UI/` の `bg_print`（賞状のような背景）、`bg_desk`（切り替えのときに見える机）、`fx_sheet_shadow`（切り替えで動くプリントの影）、`icon_stamp_correct`（○のハンコ）、`icon_stamp_incorrect`（×のハンコ）、`frame_stamp_rank`（級のハンコの枠）、`icon_hanamaru`（花丸）。
 - どの画像も `Tools/generate_placeholder_ui.py` で描いた**自作の画像**（ほかの人の素材を使っていないので、クレジット不要）。製品版でもこれを使う（2026-11-01 に決定）。
 
 **ResultItem プレハブ**（問題1つ分の行）
