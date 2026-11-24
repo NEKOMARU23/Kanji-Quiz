@@ -4,7 +4,7 @@
   A: ノート（横罫と赤い余白線）
   B: 漢字練習帳（薄い緑の方眼と、田の字のあき）
   C: 原稿用紙（オレンジ色のマス目）
-  D: テスト用紙（名前と点数の欄、とじ穴）
+  D: テスト用紙（外枠、赤ペンの丸、とじ穴）
 
 製品版でも使う自作の画像（コードで描く）。Pillow と NumPy を使う。
 文字は濃いグレー（#2B2B2B）で重なるので、線は薄くして、字が読みにくくならないようにする。
@@ -39,17 +39,15 @@ def note():
     page = paper(rng, (251, 250, 244))
     draw = ImageDraw.Draw(page)
     step = 44
-    top = 96
-    for i, y in enumerate(range(top, HEIGHT - 40, step)):
-        draw.line((0, y, WIDTH, y), fill=(176, 206, 226), width=2)
-    # 上のヘッダーの罫（日付・名前の行）
-    draw.line((0, top - step, WIDTH, top - step), fill=(150, 190, 214), width=2)
-    # 余白線（二重）
-    draw.line((150, 0, 150, HEIGHT), fill=(226, 120, 120), width=3)
-    draw.line((158, 0, 158, HEIGHT), fill=(226, 120, 120), width=1)
-    # とじ穴の跡（左端）
+    top = 150  # 上の題名・進捗のバーには罫を引かない（文字と重なるため）
+    for y in range(top, HEIGHT - 40, step):
+        draw.line((0, y, WIDTH, y), fill=(190, 214, 230), width=2)
+    # 余白線（二重）。題名（x=50〜）や左下の説明文より左に寄せる
+    draw.line((34, 0, 34, HEIGHT), fill=(228, 130, 130), width=3)
+    draw.line((41, 0, 41, HEIGHT), fill=(228, 130, 130), width=1)
+    # とじ穴の跡は、余白線のさらに左（画面の端）
     for y in (HEIGHT // 4, HEIGHT // 2, HEIGHT * 3 // 4):
-        draw.ellipse((34, y - 16, 66, y + 16), fill=(208, 204, 196), outline=(190, 186, 178))
+        draw.ellipse((-14, y - 16, 14, y + 16), fill=(208, 204, 196), outline=(190, 186, 178))
     return page
 
 
@@ -101,23 +99,18 @@ def manuscript():
 
 
 def test_sheet():
-    """D: テスト用紙。上に名前と点数の欄、左にとじ穴、薄い罫線"""
+    """D: テスト用紙。外枠、右上の赤ペンの丸、左にとじ穴、薄い罫線"""
     rng = np.random.default_rng(14)
     page = paper(rng, (249, 249, 247), mottle=2.0, grain=4.0)
     draw = ImageDraw.Draw(page)
     ink = (120, 120, 126)
     # 外枠
     draw.rectangle((28, 28, WIDTH - 28, HEIGHT - 28), outline=ink, width=2)
-    # 上の欄：名前と点数
-    draw.line((28, 96, WIDTH - 28, 96), fill=ink, width=2)
-    draw.line((WIDTH - 320, 28, WIDTH - 320, 96), fill=ink, width=2)
-    draw.line((WIDTH - 640, 28, WIDTH - 640, 96), fill=ink, width=2)
-    draw.line((260, 28, 260, 96), fill=ink, width=2)
-    # 点数の欄の丸（採点用）
-    draw.ellipse((WIDTH - 250, 36, WIDTH - 210, 88), outline=(232, 160, 160), width=2)
-    # 薄い補助罫（解答欄のイメージ）
+    # 角の採点の丸（赤ペン）。題名やボタンと重ならない右上の隅に置く
+    draw.ellipse((WIDTH - 96, 44, WIDTH - 52, 92), outline=(236, 170, 170), width=2)
+    # 薄い補助罫（解答欄のイメージ）。上のバーの下から
     for y in range(150, HEIGHT - 50, 70):
-        draw.line((60, y, WIDTH - 60, y), fill=(226, 228, 232), width=1)
+        draw.line((60, y, WIDTH - 60, y), fill=(230, 232, 236), width=1)
     # とじ穴
     for y in (HEIGHT // 3, HEIGHT * 2 // 3):
         draw.ellipse((6, y - 12, 30, y + 12), fill=(200, 200, 198), outline=(180, 180, 178))
