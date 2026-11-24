@@ -165,6 +165,7 @@ classDiagram
 | `ChoiceMark` | 振り返りのときに選択肢につける印（正解・選んだ不正解） | View |
 | `SingletonMonoBehaviour<T>` | シーンに1つだけ置く MonoBehaviour の基礎クラス。2つ目は消す。シーンをまたいで残すかを Inspector で選べる | 共通 |
 | `AudioManager` / `IAudioPlayer` / `SeType` | 効果音を鳴らす（`SingletonMonoBehaviour` を継承）。Presenter は `IAudioPlayer` 経由で使い、AudioManager がなければ `NullAudioPlayer` を渡す | 共通 |
+| `IBgmPlayer` / `BgmType` / `NullBgmPlayer` | BGM を鳴らす。効果音の `IAudioPlayer` とは分けた（BGM を使わない Presenter は知らなくてよい）。`AudioManager` が両方を実装する。`PlayBgm` は、すでに流れている曲なら何もしない（メニューの曲が画面をまたいで途切れない）。切り替え・停止はフェードアウトしてから行い、鳴らすのは EntryPoint だけ。音量は `IVolumeRepository`（`Volume_Bgm`）に保存する | 共通 |
 | `KanjiRank` | 正解率と難易度から級（10級〜初段）を決める。級の高さ（難易度をまたいで比べる）と、次の級まであと何問かも求める | Model |
 | `IBestRecordRepository` / `PlayerPrefsBestRecordRepository` / `BestRecordUpdate` | 自己ベストの保存先と、1回のプレイで更新したかどうか。`QuizResult.UpdateBestRecord` が1回だけ調べて保存する | Model |
 | `WeakQuestionList` / `IWeakQuestionRepository` / `PlayerPrefsWeakQuestionRepository` | 苦手な問題（間違えた問題）のリストと保存先。`OrderCandidates` で苦手な問題を先頭に並べる。問題は文字列で表すので、ほかのモードでも使える | Model |

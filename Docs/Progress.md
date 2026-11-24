@@ -2,7 +2,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 最終更新 | 2026-11-14（使い分けの実装） |
+| 最終更新 | 2026-11-24（BGM の仕組みのコード） |
 | 完成目標 | 2027年1月 |
 | 現在のフェーズ | フェーズ1（ゲームモード5種） |
 | 関連 | [GameSpec.md](GameSpec.md) / [Architecture.md](Architecture.md) / [ScreenDesign.md](ScreenDesign.md) |
@@ -72,6 +72,8 @@
 - [x] 問題の振り返り（全モード共通の `ChoiceQuizReviewPresenter`）
 - [x] 結果画面の演出（1問ずつ ○・×、正解数のルーレット、クリックで飛ばす）
 - [x] 効果音の仕組み（`AudioManager`、シングルトンの基礎クラス `SingletonMonoBehaviour`）
+- [x] BGM の仕組みのコード（`IBgmPlayer`・`BgmType`、`AudioManager` に追加、EntryPoint から `Menu`／`Quiz` を鳴らす。2026-11-24。GameSpec.md の「BGM」）
+- [ ] BGM の組み込み（Unity で `AudioManager` プレハブに `bgmSource` と `bgmEntries` を設定、音源を決めて置く、中断メニューに BGM のつまみ）
 - [x] プレイ中の手応え（選択・ページめくりの音、問題を切り替えるときのスライド）
 - [x] 結果の級（10級〜初段）と自己ベスト（PlayerPrefs）
 - [x] 結果画面の ○・× をハンコにし、全問正解なら花丸を書く
@@ -271,6 +273,7 @@
 1. **使い分けの人の確認**（4.7）：実装は 2026-11-14 に終わった（`Scripts/Modes/KanjiUsage/`、`KanjiUsage.unity`）。残りは、（a）文と意味（`Tools/kanji_usage_source.tsv`。確認用の一覧は claude.ai のアーティファクト「使い分けの問題データ（確認用）」）を人が確かめる。直したら `python -I Tools/generate_kanji_usage.py` で作り直す、（b）（ビルド版の確認は 2026-11-15 に済んだ）、（c）漢字帳の画面に使い分けのタブを足すか決める（今は正解した言葉を `KanjiBook_KanjiUsage` に集めるだけ）。
 2. **読み当ての人の確認**（ユーザーがあとで行う。確認用の一覧は claude.ai のアーティファクト「読み当ての判断ファイル（確認用）」）：判断ファイル `Tools/reading_quiz_review.tsv`（外す語・外す読み・難易度の移動）を見て、Claude の判断を直す。特に（a）常識に残した専門語の線引き、（b）困難で外した不適切な語の線引き、（c）複数回答の読みが正しいか（「下手」のように意味で読みが変わるもの）。直したら `python -I Tools/generate_reading_quiz.py <JMdict_e.gz> Assets/TechC/KanjiQuiz/Data/KanjiSets Assets/TechC/KanjiQuiz/Data/ReadingQuiz` でデータを作り直す。
 3. 四字熟語のデータを目で確かめる（AI で作った意味・例文・まぎらわしい字。claude.ai のアーティファクト「四字熟語データの確認」）。「夫唱婦随」「良妻賢母」など今の時代に合わない考え方の熟語を残すかも決める
+3b. **BGM の組み込み**（6章。コードは 2026-11-24 に入れた）：（a）音源を決める（ジャンルは軽めのアコースティック系ローファイ。メニュー用とクイズ用の2曲。ループできる曲。利用条件を確かめ、Git に入れる必要があるかも決める）、（b）Unity で `AudioManager` プレハブに AudioSource（`bgmSource`）と `bgmEntries` を設定、（c）中断メニューに BGM のつまみを足す（`IPauseMenuView`・`PauseMenuView`・`PauseMenuPresenter`・`PauseMenuEntryPoint`・プレハブ、`FakePauseMenuView`）、（d）Play で確かめる（画面を移っても `Menu` が途切れないか、結果でフェードアウトするか、つまみがすぐ効くか）
 4. タイトルとモード選択の演出の速さの調整（秒数は TitleView・ModeSelectView・ChalkTextWriter の Inspector にある）
 5. 設定・漢字帳・クレジットの見た目と演出の調整（ユーザーに見てもらって決める）
 6. これから足す効果音と画像も、Claude が `Tools/generate_placeholder_se.py`・`generate_placeholder_ui.py` に関数を足して作る（ユーザーの希望、2026-11-01）。音はユーザーに聞いてもらって調整する
