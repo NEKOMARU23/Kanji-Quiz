@@ -245,7 +245,15 @@ namespace TechC.KanjiQuiz.Screens.Title
 
         public void SetSectionSummary(string title, int collectedCount, int totalCount)
         {
-            sectionSummaryText.text = $"{title}　{collectedCount} / {totalCount}";
+            sectionSummaryText.text = $"{title}　{collectedCount} / {totalCount}　コンプ率 {FormatRate(collectedCount, totalCount)}";
+        }
+
+        /// <summary>コンプ率。小数第1位までで切り捨てる（コンプリートするまで100%と出さない）</summary>
+        public static string FormatRate(int collectedCount, int totalCount)
+        {
+            if (totalCount <= 0) return "0%";
+            int tenths = (int)((long)collectedCount * 1000 / totalCount);
+            return tenths % 10 == 0 ? $"{tenths / 10}%" : $"{tenths / 10}.{tenths % 10}%";
         }
 
         public void SetPage(IReadOnlyList<string> cellTexts, int pageIndex, int pageCount)
