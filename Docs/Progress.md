@@ -264,6 +264,7 @@
 | [#29](https://github.com/NEKOMARU23/Knaji-Quiz/pull/29) | 使い分けモードを追加（Model・Presenter・View・シーン・モードの定義・時間割、テスト）、時間割の行の高さを 88 に | 2026-11-14 |
 | [#30](https://github.com/NEKOMARU23/Knaji-Quiz/pull/30) | 使い分けのビルド版（Windows）での確認結果を進行状況に反映 | 2026-11-16 |
 | [#31](https://github.com/NEKOMARU23/Knaji-Quiz/pull/31) | タイトルの副題に、読み当てと使い分けを足す | 2026-11-16 |
+| [#32](https://github.com/NEKOMARU23/Knaji-Quiz/pull/32) | 画面の文字を漢字にそろえて読みの印（{漢字|よみ}）をつけ、「ひらがなで表示」の設定で画面全体をひらがなにできるようにする（RubyLabelView、UiTextReadingTests） | 2026-11-24 |
 
 ---
 
