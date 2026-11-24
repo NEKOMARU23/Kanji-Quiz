@@ -38,6 +38,8 @@ namespace TechC.KanjiQuiz.Screens.Title
         private void Start()
         {
             IAudioPlayer audioPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullAudioPlayer.Instance;
+            IBgmPlayer bgmPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullBgmPlayer.Instance;
+            bgmPlayer.PlayBgm(BgmType.Menu);
             ISceneTransition transition = SceneTransitionView.HasInstance ? SceneTransitionView.Instance : null;
 
             // 前のプレイの難易度が残らないように消しておく（モード選択で選び直す）
