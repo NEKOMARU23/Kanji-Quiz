@@ -74,6 +74,7 @@
 - [x] 効果音の仕組み（`AudioManager`、シングルトンの基礎クラス `SingletonMonoBehaviour`）
 - [x] BGM の仕組みのコード（`IBgmPlayer`・`BgmType`、`AudioManager` に追加、EntryPoint から `Menu`／`Quiz` を鳴らす。2026-11-24。GameSpec.md の「BGM」）
 - [x] BGM のデモ曲の組み込み（自作のデモ曲2つ `Art/Audio/BGM/`、`AudioManager` プレハブに `bgmSource` と `bgmEntries` を設定。Play で、タイトル＝メニューの曲、モード＝クイズの曲、結果＝停止、タイトルに戻る＝メニューの曲を確認した。2026-11-24）
+- [x] タイトルの設定の BGM のつまみ（`SettingsView` の `bgmVolumeSlider`。Title シーンの黒板に効果音の下の行として足し、下の行を下げた。Play で見た目と、つまみを動かすとすぐ音量が変わり `Volume_Bgm` に保存されることを確かめた。2026-11-24）
 - [x] 中断メニューの BGM のつまみ（プレハブに `BgmVolumeLabel`・`BgmVolumeSlider` を足して `bgmVolumeSlider` に設定。Play で、つまみを動かすと BGM の音量がすぐ変わり `Volume_Bgm` に保存されることと、見た目を確かめた。2026-11-24）
 - [ ] BGM の本番の音源（音源を決めて差し替える）
 - [x] プレイ中の手応え（選択・ページめくりの音、問題を切り替えるときのスライド）

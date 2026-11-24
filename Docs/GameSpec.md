@@ -597,7 +597,7 @@
 - 右上の [メニュー] ボタンか Esc で開き、もう一度 Esc か [続ける] で閉じる。
 - [最初からやり直す] で、今のシーンを読み込み直す（難易度はそのまま）。
 - 効果音の音量をつまみで変えられる。すぐに反映し、PlayerPrefs（`Volume_Se`）に保存する。AudioManager が起動したときに読み込む。
-- BGM の音量も、効果音の下の同じ作りのつまみで変えられる（`Volume_Bgm`、初期値 0.5）。すぐに反映し、PlayerPrefs に保存する。つまみは `PauseMenuView` の `bgmVolumeSlider`（プレハブの `BgmVolumeLabel`・`BgmVolumeSlider`）。ひらがなの切り替えは、その分だけ下げた。- 「出題の字のほかは ひらがなで表示」を切り替えられる。PlayerPrefs（`Option_Hiragana`）に保存し、最初は OFF。本物の漢字さがしの振り返りの意味と例文に効き、切り替えるとすぐ表示が変わる（`DisplaySettings`）。
+- BGM の音量も、効果音の下の同じ作りのつまみで変えられる（`Volume_Bgm`、初期値 0.5）。すぐに反映し、PlayerPrefs に保存する。タイトルの設定（ScreenDesign.md 3.7）にも同じつまみがある。つまみは `PauseMenuView` の `bgmVolumeSlider`（プレハブの `BgmVolumeLabel`・`BgmVolumeSlider`）。ひらがなの切り替えは、その分だけ下げた。- 「出題の字のほかは ひらがなで表示」を切り替えられる。PlayerPrefs（`Option_Hiragana`）に保存し、最初は OFF。本物の漢字さがしの振り返りの意味と例文に効き、切り替えるとすぐ表示が変わる（`DisplaySettings`）。
 - 開いている間は、後ろの画面のキー操作を止める（`InputGate`）。シーンの切り替えの途中は開かない。
 - 書き順の線（LineRenderer）より手前に出すため、専用の Canvas（Screen Space - Camera、sortingOrder 20）に置く。カメラは `CanvasCameraBinder` が起動時に設定するので、プレハブを置くだけで使える。
 - [やめる（時間割へ）] で、Title シーンを開いてモード選択（時間割）に戻る（`TitleLaunchOptions.OpenModeSelect`）。
