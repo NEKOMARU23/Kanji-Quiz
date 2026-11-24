@@ -21,8 +21,25 @@ namespace TechC.KanjiQuiz.Tests
             Assert.AreEqual(2, entries.Count, "同じ語は最初の1つにまとめる");
             Assert.AreEqual("今日", entries[0].Word);
             Assert.AreEqual("きょう、こんにち", entries[0].Reading);
-            Assert.AreEqual(string.Empty, entries[0].Meaning, "意味のデータはない");
+            Assert.AreEqual(string.Empty, entries[0].Meaning, "意味のデータを渡さなければ空");
             Assert.AreEqual(string.Empty, entries[0].Example);
+        }
+
+        [Test]
+        public void 読み当ての意味と例文のデータがあれば語ごとにつけ_ない語は空にする()
+        {
+            var entries = IdiomBookEntry.FromReadingQuizJson(
+                "{\"entries\":[{\"word\":\"明日\",\"meaning\":\"{今日|きょう}の次の日。\",\"example\":\"明日は{晴|は}れる。\"}," +
+                "{\"word\":\"明日\",\"meaning\":\"2つ目は使わない\",\"example\":\"x\"}]}",
+                "{\"questions\":[" +
+                "{\"word\":\"今日\",\"readings\":[\"きょう\"],\"wrong\":[],\"common\":true}," +
+                "{\"word\":\"明日\",\"readings\":[\"あした\"],\"wrong\":[],\"common\":true}]}");
+
+            Assert.AreEqual(2, entries.Count, "意味のデータだけの語は並べない");
+            Assert.AreEqual(string.Empty, entries[0].Meaning, "データにない語は空");
+            Assert.AreEqual(string.Empty, entries[0].Example);
+            Assert.AreEqual("{今日|きょう}の次の日。", entries[1].Meaning, "意味のデータが先に渡されても、語につく。同じ語は最初の1つ");
+            Assert.AreEqual("明日は{晴|は}れる。", entries[1].Example);
         }
 
         [Test]

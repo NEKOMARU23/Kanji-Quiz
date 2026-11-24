@@ -53,23 +53,44 @@ namespace TechC.KanjiQuiz.Screens.Title
 
         /// <summary>
         /// 読み当ての問題データ（Data/ReadingQuiz の JSON）から、語を並べた順に読む。同じ語は最初の1つにまとめる
-        /// 読みは、正しい読みをすべて「、」でつなぐ。意味と例文のデータはないので空
+        /// 読みは、正しい読みをすべて「、」でつなぐ
+        /// 渡した JSON のうち、意味と例文のデータ（entries。ReadingQuizMeanings.json）があれば、語ごとに意味と例文をつける
+        /// （どの順で渡してもよい。意味と例文のない語は、空のまま）
         /// </summary>
         public static List<IdiomBookEntry> FromReadingQuizJson(params string[] jsons)
         {
-            var result = new List<IdiomBookEntry>();
+            var words = new List<ReadingQuizEntry>();
+            var meanings = new Dictionary<string, ReadingQuizMeaning>();
             var seen = new HashSet<string>();
             foreach (var json in jsons ?? Array.Empty<string>())
             {
                 if (string.IsNullOrEmpty(json)) continue;
                 var data = JsonUtility.FromJson<ReadingQuizData>(json);
-                if (data?.questions == null) continue;
-                foreach (var q in data.questions)
+                if (data == null) continue;
+                if (data.questions != null)
                 {
-                    if (q == null || string.IsNullOrEmpty(q.word) || !seen.Add(q.word)) continue;
-                    string reading = q.readings == null ? string.Empty : string.Join("、", q.readings);
-                    result.Add(new IdiomBookEntry(q.word, reading, string.Empty, string.Empty));
+                    foreach (var q in data.questions)
+                    {
+                        if (q == null || string.IsNullOrEmpty(q.word) || !seen.Add(q.word)) continue;
+                        words.Add(q);
+                    }
                 }
+                if (data.entries != null)
+                {
+                    foreach (var m in data.entries)
+                    {
+                        if (m == null || string.IsNullOrEmpty(m.word) || meanings.ContainsKey(m.word)) continue;
+                        meanings.Add(m.word, m);
+                    }
+                }
+            }
+
+            var result = new List<IdiomBookEntry>(words.Count);
+            foreach (var q in words)
+            {
+                string reading = q.readings == null ? string.Empty : string.Join("、", q.readings);
+                meanings.TryGetValue(q.word, out var m);
+                result.Add(new IdiomBookEntry(q.word, reading, m?.meaning, m?.example));
             }
             return result;
         }
@@ -102,6 +123,15 @@ namespace TechC.KanjiQuiz.Screens.Title
         private sealed class ReadingQuizData
         {
             public ReadingQuizEntry[] questions;
+            public ReadingQuizMeaning[] entries;
+        }
+
+        [Serializable]
+        private sealed class ReadingQuizMeaning
+        {
+            public string word;
+            public string meaning;
+            public string example;
         }
 
         [Serializable]

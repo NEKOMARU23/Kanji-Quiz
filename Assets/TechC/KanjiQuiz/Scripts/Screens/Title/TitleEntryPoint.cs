@@ -32,7 +32,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         [SerializeField] private TextAsset[] wordAssets;
         [Tooltip("四字熟語のタブに並べる熟語（Data/FourCharIdiom の Easy・Normal・Hard。この順に並べる）")]
         [SerializeField] private TextAsset[] idiomAssets;
-        [Tooltip("読み当てのタブの読み（Data/ReadingQuiz の Easy・Normal・Hard。集めた語の読みを引くのに使う）")]
+        [Tooltip("読み当てのタブの読み（Data/ReadingQuiz の Easy・Normal・Hard と ReadingQuizMeanings。集めた語の読み・意味・例文を引くのに使う）")]
         [SerializeField] private TextAsset[] readingQuizAssets;
         [Tooltip("使い分けのタブに並べる言葉（Data/KanjiUsage の Easy・Normal・Hard。この順に並べる）")]
         [SerializeField] private TextAsset[] kanjiUsageAssets;
