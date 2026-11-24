@@ -9,6 +9,7 @@ namespace TechC.KanjiQuiz.Tests
         private FakeSceneLoader sceneLoader;
         private FakeAudioPlayer audioPlayer;
         private FakeVolumeRepository volumeRepository;
+        private FakeBgmPlayer bgmPlayer;
         private PauseMenuPresenter presenter;
 
         [SetUp]
@@ -17,8 +18,10 @@ namespace TechC.KanjiQuiz.Tests
             view = new FakePauseMenuView();
             sceneLoader = new FakeSceneLoader();
             audioPlayer = new FakeAudioPlayer();
-            volumeRepository = new FakeVolumeRepository { SeVolume = 0.4f };
-            presenter = new PauseMenuPresenter(view, sceneLoader, audioPlayer, volumeRepository, "StrokeOrder");
+            bgmPlayer = new FakeBgmPlayer();
+            volumeRepository = new FakeVolumeRepository { SeVolume = 0.4f, BgmVolume = 0.3f };
+            presenter = new PauseMenuPresenter(
+                view, sceneLoader, audioPlayer, volumeRepository, "StrokeOrder", bgmPlayer: bgmPlayer);
             presenter.Initialize();
         }
 
@@ -105,6 +108,46 @@ namespace TechC.KanjiQuiz.Tests
 
             Assert.AreEqual(0.25f, audioPlayer.SeVolume);
             Assert.AreEqual(0.25f, volumeRepository.SeVolume);
+        }
+
+        [Test]
+        public void 保存したBGMの音量をつまみに反映する()
+        {
+            Assert.AreEqual(0.3f, view.BgmSliderVolume);
+        }
+
+        [Test]
+        public void BGMの音量を変えるとBGMに反映して保存し効果音の音量は変えない()
+        {
+            view.MoveBgmVolume(0.7f);
+
+            Assert.AreEqual(0.7f, bgmPlayer.BgmVolume);
+            Assert.AreEqual(0.7f, volumeRepository.BgmVolume);
+            Assert.AreEqual(0.4f, volumeRepository.SeVolume);
+            Assert.AreEqual(1f, audioPlayer.SeVolume);
+        }
+
+        [Test]
+        public void BGMの音量は0から1の範囲に収める()
+        {
+            view.MoveBgmVolume(1.5f);
+
+            Assert.AreEqual(1f, bgmPlayer.BgmVolume);
+            Assert.AreEqual(1f, volumeRepository.BgmVolume);
+        }
+
+        [Test]
+        public void BGMを渡さなくてもBGMの音量の保存はできる()
+        {
+            var plainView = new FakePauseMenuView();
+            using (var plainPresenter = new PauseMenuPresenter(
+                plainView, sceneLoader, audioPlayer, volumeRepository, "StrokeOrder"))
+            {
+                plainPresenter.Initialize();
+                plainView.MoveBgmVolume(0.2f);
+            }
+
+            Assert.AreEqual(0.2f, volumeRepository.BgmVolume);
         }
 
         [Test]

@@ -17,6 +17,7 @@ namespace TechC.KanjiQuiz.Common
         private void Start()
         {
             IAudioPlayer audioPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullAudioPlayer.Instance;
+            IBgmPlayer bgmPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullBgmPlayer.Instance;
             ISceneTransition transition = SceneTransitionView.HasInstance ? SceneTransitionView.Instance : null;
 
             presenter = new PauseMenuPresenter(
@@ -26,7 +27,8 @@ namespace TechC.KanjiQuiz.Common
                 new PlayerPrefsVolumeRepository(),
                 gameObject.scene.name,
                 SceneNames.Title,
-                DisplaySettings.Shared);
+                DisplaySettings.Shared,
+                bgmPlayer);
             presenter.Initialize();
         }
 

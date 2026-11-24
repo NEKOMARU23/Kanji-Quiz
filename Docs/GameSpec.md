@@ -595,7 +595,8 @@
 - 見た目は机の上に開いた連絡帳（ScreenDesign.md 3.7 の S2）。左に「プレイを」（続ける・最初からやり直す・やめる）、右に「せってい」（効果音の音量・ひらがなで表示）。紙には罫線と赤い余白線、右下に先生の「確認」のハンコ。
 - 右上の [メニュー] ボタンか Esc で開き、もう一度 Esc か [続ける] で閉じる。
 - [最初からやり直す] で、今のシーンを読み込み直す（難易度はそのまま）。
-- 効果音の音量をつまみで変えられる。すぐに反映し、PlayerPrefs（`Volume_Se`）に保存する。AudioManager が起動したときに読み込む。- 「出題の字のほかは ひらがなで表示」を切り替えられる。PlayerPrefs（`Option_Hiragana`）に保存し、最初は OFF。本物の漢字さがしの振り返りの意味と例文に効き、切り替えるとすぐ表示が変わる（`DisplaySettings`）。
+- 効果音の音量をつまみで変えられる。すぐに反映し、PlayerPrefs（`Volume_Se`）に保存する。AudioManager が起動したときに読み込む。
+- BGM の音量も、同じ作りのつまみで変えられる（`Volume_Bgm`）。コードは入れた。プレハブにつまみ（`PauseMenuView` の `bgmVolumeSlider`）を足すまでは、つまみなしで動く。- 「出題の字のほかは ひらがなで表示」を切り替えられる。PlayerPrefs（`Option_Hiragana`）に保存し、最初は OFF。本物の漢字さがしの振り返りの意味と例文に効き、切り替えるとすぐ表示が変わる（`DisplaySettings`）。
 - 開いている間は、後ろの画面のキー操作を止める（`InputGate`）。シーンの切り替えの途中は開かない。
 - 書き順の線（LineRenderer）より手前に出すため、専用の Canvas（Screen Space - Camera、sortingOrder 20）に置く。カメラは `CanvasCameraBinder` が起動時に設定するので、プレハブを置くだけで使える。
 - [やめる（時間割へ）] で、Title シーンを開いてモード選択（時間割）に戻る（`TitleLaunchOptions.OpenModeSelect`）。
