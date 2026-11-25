@@ -37,8 +37,8 @@ namespace TechC.KanjiQuiz.Screens.Title
         [SerializeField] private Button eraseButton;
         [Tooltip("何を消すかの説明。消したあとは、消したことを出す")]
         [SerializeField] private TMP_Text eraseDescriptionText;
-        [SerializeField] private string eraseDescription = "自己ベスト・苦手な漢字・漢字帳を消します";
-        [SerializeField] private string erasedMessage = "記録を消しました";
+        [SerializeField] private string eraseDescription = "{自己|じこ}ベスト・{苦手|にがて}な{漢字|かんじ}・{漢字帳|かんじちょう}を{消|け}します";
+        [SerializeField] private string erasedMessage = "{記録|きろく}を{消|け}しました";
         [SerializeField] private Color erasedColor = new Color(0.957f, 0.827f, 0.369f, 1f);
         [Tooltip("消すかどうかの確認")]
         [SerializeField] private GameObject eraseConfirm;

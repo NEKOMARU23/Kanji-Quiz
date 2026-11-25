@@ -134,7 +134,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             if (index < 0 || index >= records.Count) return;
 
             difficultyIndex = index;
-            view.SelectDifficulty(index, $"{records[index].Difficulty.ToDisplayName()}ではじめる");
+            view.SelectDifficulty(index, $"{records[index].Difficulty.ToMarkedName()}で{{始|はじ}}める");
             if (playSound) audioPlayer.PlaySe(SeType.Select);
         }
 

@@ -67,13 +67,13 @@ namespace TechC.KanjiQuiz.Screens.Title
 
         private string CreateGoal()
         {
-            if (!HasRecord) return $"全問正解で {KanjiRank.TopRank(Difficulty)}";
+            if (!HasRecord) return $"{{全問正解|ぜんもんせいかい}}で {KanjiRank.ToMarked(KanjiRank.TopRank(Difficulty))}";
 
             if (KanjiRank.TryGetNextRank(BestCorrectCount, QuestionCount, Difficulty, out int more, out string next))
             {
-                return $"あと{more}問で {next}！";
+                return $"あと{more}{{問|もん}}で {KanjiRank.ToMarked(next)}！";
             }
-            return "全問正解！";
+            return "{全問正解|ぜんもんせいかい}！";
         }
     }
 }

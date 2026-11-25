@@ -17,5 +17,19 @@ namespace TechC.KanjiQuiz.Common
                 default: return "簡単";
             }
         }
+
+        /// <summary>
+        /// 画面に表示する難易度の名前に、読みの印（{漢字|よみ}）をつけたもの
+        /// ひらがなで表示する設定のとき、画面の文字が自動でひらがなになる（RubyLabelView）
+        /// </summary>
+        public static string ToMarkedName(this Difficulty difficulty)
+        {
+            switch (difficulty)
+            {
+                case Difficulty.Normal: return "{常識|じょうしき}";
+                case Difficulty.Hard: return "{困難|こんなん}";
+                default: return "{簡単|かんたん}";
+            }
+        }
     }
 }

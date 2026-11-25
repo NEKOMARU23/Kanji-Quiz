@@ -52,15 +52,15 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <summary>列の内容を書く</summary>
         /// <param name="isFirst">一番左の列かどうか（左の線を隠す）</param>
         /// <param name="questionNoun">問題の呼び方（「苦手な○○」に使う。例：漢字、熟語）</param>
-        public void Set(DifficultyRecord record, bool isFirst, string questionNoun = "漢字")
+        public void Set(DifficultyRecord record, bool isFirst, string questionNoun = "{漢字|かんじ}")
         {
             leftLine.SetActive(!isFirst);
-            nameText.text = record.Difficulty.ToDisplayName();
-            rangeText.text = $"{record.Range}から {record.QuestionCount}問";
+            nameText.text = record.Difficulty.ToMarkedName();
+            rangeText.text = $"{record.Range}から {record.QuestionCount}{{問|もん}}";
 
             rankStamp.SetActive(record.HasRecord);
             noRecordText.SetActive(!record.HasRecord);
-            if (record.HasRecord) rankText.text = record.Rank;
+            if (record.HasRecord) rankText.text = KanjiRank.ToMarked(record.Rank);
 
             bestText.text = record.HasRecord
                 ? $"ベスト <size=150%>{record.BestCorrectCount} / {record.QuestionCount}</size>"
@@ -68,7 +68,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             goalText.text = record.Goal;
 
             bool hasWeak = record.WeakQuestions.Count > 0;
-            weakLabelText.text = hasWeak ? $"苦手な{questionNoun}（次に出ます）" : $"苦手な{questionNoun}";
+            weakLabelText.text = hasWeak ? $"{{苦手|にがて}}な{questionNoun}（{{次|つぎ}}に{{出|で}}ます）" : $"{{苦手|にがて}}な{questionNoun}";
             weakLabelText.color = hasWeak ? weakColor : mutedColor;
             weakText.text = hasWeak ? JoinWeak(record) : "なし";
             weakText.color = hasWeak ? weakColor : mutedColor;

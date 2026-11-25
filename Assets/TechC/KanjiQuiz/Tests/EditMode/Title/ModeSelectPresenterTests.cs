@@ -154,7 +154,7 @@ namespace TechC.KanjiQuiz.Tests
             Assert.IsTrue(view.IsBoardShown);
             Assert.AreEqual("StrokeOrder", view.BoardMode.Definition.ModeId);
             Assert.AreEqual(1, view.SelectedDifficulty);
-            Assert.AreEqual("常識ではじめる", view.StartLabel);
+            Assert.AreEqual("{常識|じょうしき}で{始|はじ}める", view.StartLabel);
         }
 
         [Test]
@@ -183,7 +183,7 @@ namespace TechC.KanjiQuiz.Tests
             view.DifficultyMoved.OnNext(1);
             view.DifficultyMoved.OnNext(1);
             Assert.AreEqual(2, view.SelectedDifficulty);
-            Assert.AreEqual("困難ではじめる", view.StartLabel);
+            Assert.AreEqual("{困難|こんなん}で{始|はじ}める", view.StartLabel);
 
             view.StartClicked.OnNext(Unit.Default);
             view.StartClicked.OnNext(Unit.Default);

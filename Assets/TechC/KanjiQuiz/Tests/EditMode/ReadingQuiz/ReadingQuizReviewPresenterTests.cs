@@ -65,7 +65,7 @@ namespace TechC.KanjiQuiz.Tests
         [Test]
         public void 案内には正しい読みを出す()
         {
-            Assert.AreEqual("正しい読み：あした", view.Hint);
+            Assert.AreEqual("{正|ただ}しい{読|よ}み：あした", view.Hint);
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace TechC.KanjiQuiz.Tests
             Assert.IsTrue(view.Correct[0]);
             Assert.IsTrue(view.Correct[2]);
             Assert.IsFalse(view.Correct[1]);
-            Assert.AreEqual("正しい読み：きょう、こんにち", view.Hint);
+            Assert.AreEqual("{正|ただ}しい{読|よ}み：きょう、こんにち", view.Hint);
         }
 
         [Test]

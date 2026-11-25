@@ -34,7 +34,7 @@ namespace TechC.KanjiQuiz.Tests
             Assert.AreEqual("この問題の＿を書く。", view.SentenceText);
             Assert.AreEqual("解答", view.BlankText, "空いたところには正解の言葉を入れる");
             Assert.IsTrue(view.IsAnswer);
-            Assert.AreEqual("正解：解答", view.Hint);
+            Assert.AreEqual("{正解|せいかい}：解答", view.Hint);
             Assert.AreEqual("質問に答えること。", view.Meanings[0]);
             Assert.AreEqual("問題をといて答えること。", view.Meanings[1]);
             Assert.AreEqual("こおったものをとかすこと。", view.Meanings[2]);

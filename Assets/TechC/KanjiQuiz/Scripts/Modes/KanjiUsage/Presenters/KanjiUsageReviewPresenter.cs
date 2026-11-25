@@ -57,7 +57,7 @@ namespace TechC.KanjiQuiz.Modes.KanjiUsage
             bool useHiragana = displaySettings != null && displaySettings.UseHiragana.CurrentValue;
 
             view.SetWeakMarkVisible(false);
-            view.SetHint($"正解：{question.Answer}");
+            view.SetHint($"{{正解|せいかい}}：{question.Answer}");
             view.ShowSentence(RubyText.Render(question.Sentence, useHiragana), question.Answer, true);
             for (int i = 0; i < question.ChoiceCount; i++)
             {

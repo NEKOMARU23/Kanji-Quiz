@@ -59,10 +59,10 @@ def main():
     svgs = set(os.listdir(svg_dir))
 
     sets = {
-        "Elementary": {"title": "小学漢字", "kanji": []},
-        "JoyoCommon": {"title": "常用漢字（よく使う）", "kanji": []},
-        "JoyoRare": {"title": "常用漢字（あまり使わない）", "kanji": []},
-        "Hyogai": {"title": "常用漢字以外", "kanji": []},
+        "Elementary": {"title": "{小学漢字|しょうがくかんじ}", "kanji": []},
+        "JoyoCommon": {"title": "{常用漢字|じょうようかんじ}（よく{使|つか}う）", "kanji": []},
+        "JoyoRare": {"title": "{常用漢字|じょうようかんじ}（あまり{使|つか}わない）", "kanji": []},
+        "Hyogai": {"title": "{常用漢字|じょうようかんじ}{以外|いがい}", "kanji": []},
     }
     version = ""
     joyo = []
