@@ -10,6 +10,7 @@ namespace TechC.KanjiQuiz.Common
     {
         private readonly List<string> modeIds = new List<string>();
         private readonly Dictionary<string, HashSet<string>> collected = new Dictionary<string, HashSet<string>>();
+        private readonly Dictionary<string, List<string>> collectedInOrder = new Dictionary<string, List<string>>();
 
         /// <summary>
         /// 保存先から、指定したモードの漢字帳を読む
@@ -25,7 +26,16 @@ namespace TechC.KanjiQuiz.Common
             {
                 if (string.IsNullOrEmpty(modeId) || book.collected.ContainsKey(modeId)) continue;
                 book.modeIds.Add(modeId);
-                book.collected[modeId] = new HashSet<string>(repository.Load(modeId));
+
+                // 集めた順を覚えておく（読み当ての一覧は、集めた語だけを集めた順に並べるため）
+                var set = new HashSet<string>();
+                var list = new List<string>();
+                foreach (var word in repository.Load(modeId))
+                {
+                    if (set.Add(word)) list.Add(word);
+                }
+                book.collected[modeId] = set;
+                book.collectedInOrder[modeId] = list;
             }
             return book;
         }
@@ -63,6 +73,23 @@ namespace TechC.KanjiQuiz.Common
                 if (set.Contains(kanji)) return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// そのモードで集めたかどうか
+        /// 熟語のように、モードをまたいで同じ文字列が出てくるもの（一心同体は四字熟語づくりにも読み当てにもある）は、
+        /// IsCollected では別のモードで集めたものも「集めた」になるので、こちらで調べる
+        /// </summary>
+        public bool IsCollectedIn(string modeId, string word)
+        {
+            return modeId != null && collected.TryGetValue(modeId, out var set) && set.Contains(word);
+        }
+
+        /// <summary>そのモードで集めたもの（集めた順）。Load で読んでいないモードは空</summary>
+        public IReadOnlyList<string> CollectedIn(string modeId)
+        {
+            if (modeId != null && collectedInOrder.TryGetValue(modeId, out var list)) return list;
+            return Array.Empty<string>();
         }
 
         /// <summary>その漢字を集めたモード（Load で渡した順）</summary>

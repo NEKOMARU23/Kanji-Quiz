@@ -193,7 +193,7 @@ namespace TechC.KanjiQuiz.Tests
             Assert.AreEqual(1, closedCount);
         }
 
-        /// <summary>四字熟語のページつきの漢字帳（熟語は3つ、1ページ2つ。一石二鳥と温故知新を集めている）</summary>
+        /// <summary>四字熟語のタブつきの漢字帳（熟語は3つ、1ページ2つ。一石二鳥と温故知新を集めている）</summary>
         private KanjiBookPresenter CreateIdiomPresenter()
         {
             repository.Save("FourCharIdiom", new[] { "一石二鳥", "温故知新" });
@@ -205,7 +205,8 @@ namespace TechC.KanjiQuiz.Tests
             var idiomPresenter = new KanjiBookPresenter(
                 view, new FakeAudioPlayer(), new[] { new KanjiSet("A", "小学漢字", new[] { "一", "二" }) }, new[] { strokeOrder },
                 () => KanjiBook.Load(repository, new[] { "StrokeOrder", "FourCharIdiom" }),
-                LoadInfo, new FakeKanjiStrokeSource(new Dictionary<string, int>()), displaySettings, idioms);
+                LoadInfo, new FakeKanjiStrokeSource(new Dictionary<string, int>()), displaySettings,
+                new[] { new WordBookSection(KanjiBookPresenter.IdiomSectionTitle, "FourCharIdiom", idioms, true) });
             idiomPresenter.Initialize();
             return idiomPresenter;
         }
@@ -237,7 +238,7 @@ namespace TechC.KanjiQuiz.Tests
                 Assert.AreEqual(3, view.TotalCount);
                 CollectionAssert.AreEqual(new[] { "一石二鳥", "" }, view.Idioms);
                 Assert.AreEqual(2, view.PageCount);
-                Assert.AreEqual("一石二鳥", idiomPresenter.SelectedIdiom);
+                Assert.AreEqual("一石二鳥", idiomPresenter.SelectedWord);
                 Assert.AreEqual(0, view.SelectedIdiom);
                 Assert.AreEqual("いっせきにちょう", view.IdiomDetail.Reading);
                 Assert.AreEqual("ふたつの得", view.IdiomDetail.Meaning);
@@ -255,12 +256,12 @@ namespace TechC.KanjiQuiz.Tests
                 view.TabClicked.OnNext(1);
 
                 view.IdiomClicked.OnNext(1);
-                Assert.AreEqual("一石二鳥", idiomPresenter.SelectedIdiom);
+                Assert.AreEqual("一石二鳥", idiomPresenter.SelectedWord);
 
                 view.PageMoved.OnNext(1);
                 CollectionAssert.AreEqual(new[] { "温故知新", null }, view.Idioms);
                 view.IdiomClicked.OnNext(0);
-                Assert.AreEqual("温故知新", idiomPresenter.SelectedIdiom);
+                Assert.AreEqual("温故知新", idiomPresenter.SelectedWord);
                 Assert.AreEqual("昔に学ぶ", view.IdiomDetail.Meaning);
             }
         }
@@ -292,7 +293,7 @@ namespace TechC.KanjiQuiz.Tests
                 view.TabClicked.OnNext(0);
 
                 Assert.IsFalse(view.IsIdiomMode);
-                Assert.IsNull(idiomPresenter.SelectedIdiom);
+                Assert.IsNull(idiomPresenter.SelectedWord);
                 Assert.AreEqual("二", idiomPresenter.SelectedKanji);
             }
         }

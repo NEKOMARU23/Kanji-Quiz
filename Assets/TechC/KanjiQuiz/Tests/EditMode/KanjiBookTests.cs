@@ -55,6 +55,35 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
+        public void そのモードで集めたかどうかを調べる()
+        {
+            var repository = new FakeKanjiBookRepository();
+            KanjiBook.Collect(repository, "ReadingQuiz", Result(("一心同体", AnswerState.Correct)));
+            KanjiBook.Collect(repository, "FourCharIdiom", Result(("一石二鳥", AnswerState.Correct)));
+            var book = KanjiBook.Load(repository, new[] { "FourCharIdiom", "ReadingQuiz" });
+
+            // 同じ文字列が両方のモードにあっても、集めたモードだけで判定できる
+            Assert.IsTrue(book.IsCollected("一心同体"), "どれかのモードで集めていれば IsCollected は true");
+            Assert.IsTrue(book.IsCollectedIn("ReadingQuiz", "一心同体"));
+            Assert.IsFalse(book.IsCollectedIn("FourCharIdiom", "一心同体"));
+            Assert.IsFalse(book.IsCollectedIn("KanjiUsage", "一心同体"), "読んでいないモードは false");
+            Assert.IsFalse(book.IsCollectedIn(null, "一心同体"));
+        }
+
+        [Test]
+        public void そのモードで集めたものを集めた順に返す()
+        {
+            var repository = new FakeKanjiBookRepository();
+            repository.Save("ReadingQuiz", new[] { "今日", "明日", "今日", "昨日" });
+
+            var book = KanjiBook.Load(repository, new[] { "ReadingQuiz" });
+
+            CollectionAssert.AreEqual(new[] { "今日", "明日", "昨日" }, book.CollectedIn("ReadingQuiz"), "保存した順で、重なりは1つにまとめる");
+            CollectionAssert.IsEmpty(book.CollectedIn("StrokeOrder"));
+            CollectionAssert.IsEmpty(book.CollectedIn(null));
+        }
+
+        [Test]
         public void 読みの辞書は問題データの読みを引きないときは空文字を返す()
         {
             var dictionary = KanjiReadingDictionary.FromJson(
