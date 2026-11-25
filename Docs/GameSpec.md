@@ -244,7 +244,7 @@
 *振り返り*
 
 - 正解の言葉と文に加えて、候補それぞれの短い意味を並べ、違いが分かるようにする（例：回答＝問いや求めに答えること／解答＝問題を解いて答えること）。
-- 漢字帳には、正解した言葉を言葉のまま集める（読み当てと同じ）。苦手な問題・自己ベストもほかのモードと同じ。
+- 漢字帳には、正解した言葉を言葉のまま集める（読み当てと同じ）。苦手な問題・自己ベストもほかのモードと同じ。漢字帳の6つ目のタブ「使い分け」に、全部の言葉を並べ（まだの言葉は「？？」）、選んだ言葉の読み・意味・例文（空いたところに正解を入れた文）を出す（2026-11-15。`Docs/ScreenDesign.md` 3.8）。
 
 *画面と操作（実装）*
 
@@ -285,7 +285,7 @@
 - 難易度は**知られている度合い**で分ける（字の難しさではない）。簡単＝子どもでも知っている（一石二鳥、十人十色）、常識＝大人ならたいてい知っている（臨機応変、試行錯誤）、困難＝あまり見かけない（合従連衡、呉越同舟）。熟語に使う字は常用漢字だけ（人名用漢字は使わない）。
 - 問題数（5・7・7問）、級、自己ベスト、苦手な熟語の復習は、ほかのモードと同じ。保存のキーは `BestRecord_FourCharIdiom_<難易度>`・`WeakQuestions_FourCharIdiom_<難易度>`。
 - 振り返りでは、正解の熟語と自分が入れた字、読み、意味、例文を出す。
-- 漢字帳には、正解した四字熟語を**熟語のまま**登録し、意味を出す（2026-11-03 に決定・実装。例：虎視眈々を正解したら、虎視眈々が載る）。漢字帳の4つ目のタブ「四字熟語」に、問題データの全 240 語を簡単→常識→困難の順に並べ、正解した熟語だけを書きこむ（まだの熟語は「？？？？」）。キーは `KanjiBook_FourCharIdiom`。
+- 漢字帳には、正解した四字熟語を**熟語のまま**登録し、意味を出す（2026-11-03 に決定・実装。例：虎視眈々を正解したら、虎視眈々が載る）。漢字帳の4つ目のタブ「四字熟語」（読み当て・使い分けは、そのあとの5・6つ目のタブ）に、問題データの全 240 語を簡単→常識→困難の順に並べ、正解した熟語だけを書きこむ（まだの熟語は「？？？？」）。キーは `KanjiBook_FourCharIdiom`。
   - 漢字帳の保存の形式を、集めたものを1つずつ改行で区切る形に変えた（それまでは字をつなげただけだったので、熟語が1字ずつに分かれてしまうため）。前の形式で保存した記録も読める（`PlayerPrefsKanjiBookRepository`）。
 - 難易度の黒板では、出題範囲を「だれでも知っている熟語から 5問」のように出し、苦手な問題の見出しを「苦手な熟語」にする（モードの定義の `questionNoun`）。
 - キー操作：候補は 1〜9・0・-・^（1〜12 番目）、Backspace（Delete）で最後に入れた字を戻す。Enter で次へ、← で前へ（ほかのモードと同じ）。
@@ -477,7 +477,7 @@
 | Board/Inner/EraseLayer | （子に Eraser） | 黒板消しで消した跡（黒板の色の帯）を置く場所と、黒板消し |
 | Board/Inner/SmallContent | ChalkTextWriter | 時間割の横の黒板の字をチョークで1字ずつ書く。チョークの先は Board/Inner/ChalkTip |
 | CreditText | TextMeshPro | KanjiVG のクレジット（タイトルのときだけ） |
-| KanjiBookRoot | CanvasGroup / Image（机） | 漢字帳。Notebook の下に Tabs（出題範囲のタブ3つと四字熟語のタブ Tab_3）、LeftPage（SummaryText、Cells（GridLayoutGroup。CellTemplate を起動時に 10×8 個に増やす）、Idioms（四字熟語のページの一覧。IdiomTemplate を起動時に 2×8 個に増やす）、SelectionFrame、ページ送り）、RightPage（EmptyMessage と Detail。Detail は KanjiMasu、StrokeMasu（書き順のお手本の ChalkStrokeGraphic）、読み・意味・例文・使用例、ModeStamps。四字熟語のページでは IdiomEmptyMessage と IdiomDetail（熟語・読み・意味・例文）） |
+| KanjiBookRoot | CanvasGroup / Image（机） | 漢字帳。Notebook の下に Tabs（出題範囲のタブ3つ Tab_0〜2 と、語のタブ3つ Tab_3〜5。四字熟語・読み当て・使い分け）、LeftPage（SummaryText、Cells（GridLayoutGroup。CellTemplate を起動時に 10×8 個に増やす）、Idioms（四字熟語のページの一覧。IdiomTemplate を起動時に 2×8 個に増やす）、SelectionFrame、ページ送り）、RightPage（EmptyMessage と Detail。Detail は KanjiMasu、StrokeMasu（書き順のお手本の ChalkStrokeGraphic）、読み・意味・例文・使用例、ModeStamps。四字熟語のページでは IdiomEmptyMessage と IdiomDetail（熟語・読み・意味・例文）） |
 | CreditsRoot | CanvasGroup / Image | クレジット（掲示板「ありがとう」）。Canvas のいちばん手前に置き、開いている間はタイトルを覆って押せなくする。Board/Cork に見出し（Heading）、おたより7枚（Notes。右上の小さい紙が On-Jin）、[← タイトルへ]（BackButton） |
 | ModeSelectRoot/TimetablePaper | Image / VerticalLayoutGroup（RowContainer） | 時間割表。行は TimetableRow プレハブ、4時間目のあとに LunchBreak プレハブ |
 | ModeSelectRoot/Board | Image（Inner、Tray） | 黒板。SmallBoardArea と LargeBoardArea の間で大きさを変える。中身は SmallContent（時間割の横）と LargeContent（画面いっぱい、列は DifficultyColumn プレハブ） |
@@ -807,6 +807,7 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 - [x] タイトルのクレジット（掲示板「ありがとう」）
 - [x] タイトルの設定（黒板に板書。効果音の音量、ひらがなで表示、記録を消す）
 - [x] タイトルの漢字帳（正解した字を集めるマス目の漢字練習帳）
+- [x] 漢字帳の語のタブ（四字熟語・読み当て・使い分け。2026-11-15。読み当ては集めた語だけを並べる）
 - [x] 難易度ごとの出題範囲とランダムな出題
 - [x] 結果画面からの問題の振り返り
 - [x] 結果発表の演出、級、自己ベスト、全問正解の花丸

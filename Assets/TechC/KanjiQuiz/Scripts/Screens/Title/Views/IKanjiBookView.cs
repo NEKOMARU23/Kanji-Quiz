@@ -30,7 +30,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <summary>出題範囲のタブを並べ、選んでいるタブを目立たせる</summary>
         void SetTabs(IReadOnlyList<string> titles, int selectedIndex);
 
-        /// <summary>今の出題範囲の名前と、集めた数／全部の数を出す</summary>
+        /// <summary>今の出題範囲の名前と、集めた数／全部の数と、コンプ率を出す</summary>
         void SetSectionSummary(string title, int collectedCount, int totalCount);
 
         /// <summary>
@@ -48,25 +48,27 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <summary>右のページのお手本に、書き順を1画ずつ書く（KanjiVG の d 属性、書き順の順）。空なら何も書かない</summary>
         void PlayStrokes(IReadOnlyList<string> strokePaths);
 
-        /// <summary>四字熟語のページの熟語が押されたとき（ページの中の番号）</summary>
+        // 以下の「熟語」は、語のタブ（四字熟語づくり・読み当て・使い分け）の語のこと
+
+        /// <summary>語のタブの語が押されたとき（ページの中の番号）</summary>
         Observable<int> OnIdiomClicked { get; }
 
-        /// <summary>四字熟語のページの、1ページの熟語の数</summary>
+        /// <summary>語のタブの、1ページの語の数</summary>
         int IdiomsPerPage { get; }
 
-        /// <summary>四字熟語のページ（true）と、漢字のマス目のページ（false）を切り替える</summary>
+        /// <summary>語のタブのページ（true）と、漢字のマス目のページ（false）を切り替える</summary>
         void SetIdiomMode(bool idiomMode);
 
         /// <summary>
-        /// 四字熟語のページの熟語を出す
+        /// 語のタブの語を出す
         /// </summary>
-        /// <param name="idioms">行ごとの熟語。集めた熟語はその熟語、まだの熟語は空文字、範囲の外は null（行を出さない）</param>
+        /// <param name="idioms">行ごとの語。集めた語はその語、まだの語は空文字、範囲の外は null（行を出さない）</param>
         void SetIdiomPage(IReadOnlyList<string> idioms, int pageIndex, int pageCount);
 
-        /// <summary>選んでいる熟語の行を囲む。-1 なら囲まない</summary>
+        /// <summary>選んでいる語の行を囲む。-1 なら囲まない</summary>
         void SetSelectedIdiom(int index);
 
-        /// <summary>右のページに熟語の内容を出す。null なら案内の文を出す</summary>
+        /// <summary>右のページに語の内容を出す。null なら案内の文を出す</summary>
         void ShowIdiomDetail(IdiomBookDetail detail);
     }
 }

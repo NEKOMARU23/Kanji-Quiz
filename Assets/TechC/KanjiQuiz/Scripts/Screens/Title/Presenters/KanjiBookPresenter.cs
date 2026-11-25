@@ -10,15 +10,23 @@ namespace TechC.KanjiQuiz.Screens.Title
     /// <summary>
     /// 漢字帳の Presenter
     /// 出題範囲（タブ）ごとに、集めた字をマス目に書き、選んだ字の読み・意味・例文・使用例・正解したモード・書き順を出す
-    /// 四字熟語のデータを渡すと、最後のタブに四字熟語のページを足す（正解した熟語を一覧に書き、選んだ熟語の読み・意味・例文を出す）
+    /// 語のタブ（<see cref="WordBookSection"/>。四字熟語づくり・読み当て・使い分け）を渡すと、漢字のタブのあとに足す
+    /// 語のタブでは、正解した語を一覧に書き、選んだ語の読み・意味・例文を出す
+    /// 一覧に全部の語を並べて、まだの語を「？？」にするタブと、集めた語だけを並べるタブがある
     /// </summary>
     public sealed class KanjiBookPresenter : ITitleSubScreen
     {
         /// <summary>右のページに出す使用例の熟語の数</summary>
         public const int MaxWords = 3;
 
-        /// <summary>四字熟語のページのタブの名前</summary>
+        /// <summary>四字熟語のタブの名前（読みの印つき）</summary>
         public const string IdiomSectionTitle = "{四字熟語|よじじゅくご}";
+
+        /// <summary>読み当てのタブの名前</summary>
+        public const string ReadingSectionTitle = "{読み当|よみあ}て";
+
+        /// <summary>使い分けのタブの名前</summary>
+        public const string UsageSectionTitle = "{使|つか}い{分|わ}け";
 
         private readonly IKanjiBookView view;
         private readonly IAudioPlayer audioPlayer;
@@ -28,7 +36,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         private readonly Lazy<KanjiInfo> info;
         private readonly IKanjiStrokeSource strokeSource;
         private readonly DisplaySettings displaySettings;
-        private readonly IReadOnlyList<IdiomBookEntry> idioms;
+        private readonly IReadOnlyList<WordBookSection> wordSections;
         private readonly Subject<Unit> closed = new Subject<Unit>();
         private readonly CompositeDisposable disposables = new CompositeDisposable();
         private CancellationTokenSource strokeCts;
@@ -37,7 +45,8 @@ namespace TechC.KanjiQuiz.Screens.Title
         private int sectionIndex;
         private int pageIndex;
         private string selectedKanji;
-        private IdiomBookEntry selectedIdiom;
+        private IdiomBookEntry selectedWord;
+        private List<IdiomBookEntry> shownWords = new List<IdiomBookEntry>();
 
         public Observable<Unit> OnClosed => closed;
 
@@ -50,11 +59,11 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <summary>選んでいる字。選んでいなければ null</summary>
         public string SelectedKanji => selectedKanji;
 
-        /// <summary>四字熟語のページで選んでいる熟語。選んでいなければ null</summary>
-        public string SelectedIdiom => selectedIdiom?.Word;
+        /// <summary>語のタブで選んでいる語。選んでいなければ null</summary>
+        public string SelectedWord => selectedWord?.Word;
 
-        /// <summary>今のタブが四字熟語のページかどうか</summary>
-        public bool IsIdiomSection => HasIdioms && sectionIndex == sections.Count;
+        /// <summary>今のタブが語のタブ（四字熟語・読み当て・使い分け）かどうか</summary>
+        public bool IsWordSection => sectionIndex >= sections.Count && sectionIndex < TabCount;
 
         /// <param name="sections">タブに並べる出題範囲（漢字セット）</param>
         /// <param name="modes">正解したモードの名前を出すためのモードの一覧（この順に出す）</param>
@@ -62,11 +71,11 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <param name="loadInfo">字の情報を読む（最初に字を選んだときに1回だけ呼ぶ）</param>
         /// <param name="strokeSource">書き順のデータの読み込み口</param>
         /// <param name="displaySettings">表示の設定（ひらがなで表示）</param>
-        /// <param name="idioms">四字熟語のページに並べる熟語（この順に出す）。null か空なら四字熟語のページを出さない</param>
+        /// <param name="wordSections">漢字のタブのあとに並べる語のタブ（この順に出す）。null か空なら語のタブを出さない</param>
         public KanjiBookPresenter(
             IKanjiBookView view, IAudioPlayer audioPlayer, IReadOnlyList<KanjiSet> sections,
             IReadOnlyList<QuizModeDefinition> modes, Func<KanjiBook> loadBook, Func<KanjiInfo> loadInfo,
-            IKanjiStrokeSource strokeSource, DisplaySettings displaySettings, IReadOnlyList<IdiomBookEntry> idioms = null)
+            IKanjiStrokeSource strokeSource, DisplaySettings displaySettings, IReadOnlyList<WordBookSection> wordSections = null)
         {
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.audioPlayer = audioPlayer ?? throw new ArgumentNullException(nameof(audioPlayer));
@@ -77,12 +86,12 @@ namespace TechC.KanjiQuiz.Screens.Title
             info = new Lazy<KanjiInfo>(loadInfo);
             this.strokeSource = strokeSource ?? throw new ArgumentNullException(nameof(strokeSource));
             this.displaySettings = displaySettings ?? throw new ArgumentNullException(nameof(displaySettings));
-            this.idioms = idioms ?? Array.Empty<IdiomBookEntry>();
+            this.wordSections = wordSections ?? Array.Empty<WordBookSection>();
         }
 
-        private bool HasIdioms => idioms.Count > 0;
+        private int TabCount => sections.Count + wordSections.Count;
 
-        private int TabCount => sections.Count + (HasIdioms ? 1 : 0);
+        private WordBookSection CurrentWordSection => wordSections[sectionIndex - sections.Count];
 
         public void Initialize()
         {
@@ -91,7 +100,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             view.OnTabClicked.Subscribe(this, static (i, self) => self.SelectSection(i, playSound: true)).AddTo(disposables);
             view.OnPageMoved.Subscribe(this, static (d, self) => self.MovePage(d)).AddTo(disposables);
             view.OnCellClicked.Subscribe(this, static (i, self) => self.SelectCell(i)).AddTo(disposables);
-            view.OnIdiomClicked.Subscribe(this, static (i, self) => self.SelectIdiomRow(i)).AddTo(disposables);
+            view.OnIdiomClicked.Subscribe(this, static (i, self) => self.SelectWordRow(i)).AddTo(disposables);
             // ひらがなの設定が変わったら、意味と例文を出し直す
             displaySettings.UseHiragana
                 .Skip(1)
@@ -126,17 +135,17 @@ namespace TechC.KanjiQuiz.Screens.Title
             pageIndex = 0;
             var titles = new List<string>();
             foreach (var section in sections) titles.Add(section.Title);
-            if (HasIdioms) titles.Add(IdiomSectionTitle);
+            foreach (var wordSection in wordSections) titles.Add(wordSection.Title);
             view.SetTabs(titles, index);
 
-            if (IsIdiomSection)
+            if (IsWordSection)
             {
-                OpenIdiomSection(playSound);
+                OpenWordSection(playSound);
                 return;
             }
 
             view.SetIdiomMode(false);
-            selectedIdiom = null;
+            selectedWord = null;
             var kanji = sections[index].Kanji;
             view.SetSectionSummary(sections[index].Title, book.CountCollected(kanji), kanji.Count);
             if (playSound) audioPlayer.PlaySe(SeType.PageTurn);
@@ -154,13 +163,13 @@ namespace TechC.KanjiQuiz.Screens.Title
 
             pageIndex = next;
             audioPlayer.PlaySe(SeType.PageTurn);
-            if (IsIdiomSection) ShowIdiomPage();
+            if (IsWordSection) ShowWordPage();
             else ShowPage();
         }
 
         private void SelectCell(int cellIndex)
         {
-            if (!isOpen || IsIdiomSection || sections.Count == 0 || cellIndex < 0 || cellIndex >= CellsPerPage) return;
+            if (!isOpen || IsWordSection || sections.Count == 0 || cellIndex < 0 || cellIndex >= CellsPerPage) return;
 
             var kanji = sections[sectionIndex].Kanji;
             int index = pageIndex * CellsPerPage + cellIndex;
@@ -176,7 +185,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         {
             get
             {
-                if (IsIdiomSection) return Math.Max(1, (idioms.Count + IdiomsPerPage - 1) / IdiomsPerPage);
+                if (IsWordSection) return Math.Max(1, (shownWords.Count + IdiomsPerPage - 1) / IdiomsPerPage);
                 int count = sections.Count > 0 ? sections[sectionIndex].Kanji.Count : 0;
                 return Math.Max(1, (count + CellsPerPage - 1) / CellsPerPage);
             }
@@ -184,79 +193,129 @@ namespace TechC.KanjiQuiz.Screens.Title
 
         private int IdiomsPerPage => Math.Max(1, view.IdiomsPerPage);
 
-        /// <summary>四字熟語のページを開き、最初のページで最初に集めた熟語を選ぶ</summary>
-        private void OpenIdiomSection(bool playSound)
+        /// <summary>語のタブを開き、最初のページで最初に集めた語を選ぶ</summary>
+        private void OpenWordSection(bool playSound)
         {
+            var section = CurrentWordSection;
             view.SetIdiomMode(true);
             selectedKanji = null;
             CancelStrokes();
             view.PlayStrokes(Array.Empty<string>());
-            int collected = 0;
-            foreach (var idiom in idioms)
+
+            // 開くたびに、集めた語から一覧を作り直す（漢字帳は開くたびに読み直すため）
+            shownWords = BuildShownWords(section);
+            if (section.ShowUncollected)
             {
-                if (book.IsCollected(idiom.Word)) collected++;
+                int collected = 0;
+                foreach (var word in shownWords)
+                {
+                    if (book.IsCollectedIn(section.ModeId, word.Word)) collected++;
+                }
+                view.SetSectionSummary(section.Title, collected, shownWords.Count);
             }
-            view.SetSectionSummary(IdiomSectionTitle, collected, idioms.Count);
+            else
+            {
+                // 集めた語だけを並べるタブも、コンプ率は問題データの語の数が分母
+                // （データから外れた語は、並べるが数には入れない。100%を超えないように）
+                var allWords = new HashSet<string>();
+                foreach (var entry in section.Entries) allWords.Add(entry.Word);
+                int collected = 0;
+                foreach (var word in shownWords)
+                {
+                    if (allWords.Contains(word.Word)) collected++;
+                }
+                view.SetSectionSummary(section.Title, collected, allWords.Count);
+            }
             if (playSound) audioPlayer.PlaySe(SeType.PageTurn);
 
-            ShowIdiomPage();
+            ShowWordPage();
             IdiomBookEntry first = null;
-            int end = Math.Min(idioms.Count, IdiomsPerPage);
+            int end = Math.Min(shownWords.Count, IdiomsPerPage);
             for (int i = 0; i < end && first == null; i++)
             {
-                if (book.IsCollected(idioms[i].Word)) first = idioms[i];
+                if (IsCollectedWord(shownWords[i])) first = shownWords[i];
             }
-            SelectIdiom(first);
+            SelectWord(first);
         }
 
-        private void ShowIdiomPage()
+        /// <summary>
+        /// 語のタブに並べる語を作る
+        /// 全部並べるタブはデータの語すべて。集めた語だけのタブは、保存してある集めた語を集めた順に並べる
+        /// （データから外れた語も、読みなしで残す。データを作り直しても、集めた記録が見えなくならないように）
+        /// </summary>
+        private List<IdiomBookEntry> BuildShownWords(WordBookSection section)
+        {
+            if (section.ShowUncollected) return new List<IdiomBookEntry>(section.Entries);
+
+            var lookup = new Dictionary<string, IdiomBookEntry>();
+            foreach (var entry in section.Entries)
+            {
+                if (!lookup.ContainsKey(entry.Word)) lookup.Add(entry.Word, entry);
+            }
+
+            var words = new List<IdiomBookEntry>();
+            foreach (var word in book.CollectedIn(section.ModeId))
+            {
+                words.Add(lookup.TryGetValue(word, out var found) ? found : new IdiomBookEntry(word, string.Empty, string.Empty, string.Empty));
+            }
+            return words;
+        }
+
+        /// <summary>今のタブで、その語を集めているか（集めた語だけのタブでは、並んでいる語はすべて集めた語）</summary>
+        private bool IsCollectedWord(IdiomBookEntry word)
+        {
+            var section = CurrentWordSection;
+            return !section.ShowUncollected || book.IsCollectedIn(section.ModeId, word.Word);
+        }
+
+        private void ShowWordPage()
         {
             var rows = new string[IdiomsPerPage];
             for (int i = 0; i < rows.Length; i++)
             {
                 int index = pageIndex * IdiomsPerPage + i;
-                if (index >= idioms.Count) rows[i] = null;
-                else rows[i] = book.IsCollected(idioms[index].Word) ? idioms[index].Word : string.Empty;
+                if (index >= shownWords.Count) rows[i] = null;
+                else rows[i] = IsCollectedWord(shownWords[index]) ? shownWords[index].Word : string.Empty;
             }
             view.SetIdiomPage(rows, pageIndex, PageCount);
-            view.SetSelectedIdiom(IdiomRowOf(selectedIdiom));
+            view.SetSelectedIdiom(WordRowOf(selectedWord));
         }
 
-        private void SelectIdiomRow(int row)
+        private void SelectWordRow(int row)
         {
-            if (!isOpen || !IsIdiomSection || row < 0 || row >= IdiomsPerPage) return;
+            if (!isOpen || !IsWordSection || row < 0 || row >= IdiomsPerPage) return;
 
             int index = pageIndex * IdiomsPerPage + row;
-            if (index >= idioms.Count || !book.IsCollected(idioms[index].Word)) return;
+            if (index >= shownWords.Count || !IsCollectedWord(shownWords[index])) return;
 
             audioPlayer.PlaySe(SeType.Select);
-            SelectIdiom(idioms[index]);
+            SelectWord(shownWords[index]);
         }
 
-        /// <summary>熟語を選んで、右のページに読み・意味・例文を出す。null なら案内の文を出す</summary>
-        private void SelectIdiom(IdiomBookEntry idiom)
+        /// <summary>語を選んで、右のページに読み・意味・例文を出す。null なら案内の文を出す</summary>
+        private void SelectWord(IdiomBookEntry word)
         {
-            selectedIdiom = idiom;
-            view.SetSelectedIdiom(IdiomRowOf(idiom));
-            view.ShowIdiomDetail(idiom == null ? null : CreateIdiomDetail(idiom));
+            selectedWord = word;
+            view.SetSelectedIdiom(WordRowOf(word));
+            view.ShowIdiomDetail(word == null ? null : CreateWordDetail(word));
         }
 
-        private IdiomBookDetail CreateIdiomDetail(IdiomBookEntry idiom)
+        private IdiomBookDetail CreateWordDetail(IdiomBookEntry word)
         {
             bool useHiragana = displaySettings.UseHiragana.CurrentValue;
             return new IdiomBookDetail(
-                idiom.Word, idiom.Reading, RubyText.Render(idiom.Meaning, useHiragana), RubyText.Render(idiom.Example, useHiragana));
+                word.Word, word.Reading, RubyText.Render(word.Meaning, useHiragana), RubyText.Render(word.Example, useHiragana));
         }
 
-        /// <summary>今のページでの熟語の行の番号。ページにないなら -1</summary>
-        private int IdiomRowOf(IdiomBookEntry idiom)
+        /// <summary>今のページでの語の行の番号。ページにないなら -1</summary>
+        private int WordRowOf(IdiomBookEntry word)
         {
-            if (idiom == null) return -1;
+            if (word == null) return -1;
             int start = pageIndex * IdiomsPerPage;
-            int end = Math.Min(idioms.Count, start + IdiomsPerPage);
+            int end = Math.Min(shownWords.Count, start + IdiomsPerPage);
             for (int i = start; i < end; i++)
             {
-                if (idioms[i] == idiom) return i - start;
+                if (shownWords[i] == word) return i - start;
             }
             return -1;
         }
@@ -265,9 +324,9 @@ namespace TechC.KanjiQuiz.Screens.Title
         private void RefreshDetail()
         {
             if (!isOpen) return;
-            if (IsIdiomSection)
+            if (IsWordSection)
             {
-                if (selectedIdiom != null) view.ShowIdiomDetail(CreateIdiomDetail(selectedIdiom));
+                if (selectedWord != null) view.ShowIdiomDetail(CreateWordDetail(selectedWord));
             }
             else if (selectedKanji != null)
             {
