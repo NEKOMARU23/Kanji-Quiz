@@ -52,6 +52,17 @@ namespace TechC.KanjiQuiz.Screens.Title
             SetSelected(false);
         }
 
+        /// <summary>モードのない時限を「自習」とだけ書く。選べない</summary>
+        public void SetStudyHall(int period)
+        {
+            periodText.text = $"{period}時間目";
+            nameText.text = "自習";
+            nameText.color = unavailableColor;
+            button.interactable = false;
+            rankStamp.SetActive(false);
+            SetSelected(false);
+        }
+
         /// <summary>選んでいる行かどうかを切り替える</summary>
         public void SetSelected(bool selected)
         {

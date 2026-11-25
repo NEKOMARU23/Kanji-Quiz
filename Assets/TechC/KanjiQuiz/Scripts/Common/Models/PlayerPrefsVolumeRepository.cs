@@ -8,6 +8,10 @@ namespace TechC.KanjiQuiz.Common
     public sealed class PlayerPrefsVolumeRepository : IVolumeRepository
     {
         private const string SeVolumeKey = "Volume_Se";
+        private const string BgmVolumeKey = "Volume_Bgm";
+
+        // 効果音（初期値 1）より低くして、BGM が問題文や効果音をじゃましないようにする
+        private const float DefaultBgmVolume = 0.5f;
 
         public float LoadSeVolume()
         {
@@ -17,6 +21,17 @@ namespace TechC.KanjiQuiz.Common
         public void SaveSeVolume(float volume)
         {
             PlayerPrefs.SetFloat(SeVolumeKey, Mathf.Clamp01(volume));
+            PlayerPrefs.Save();
+        }
+
+        public float LoadBgmVolume()
+        {
+            return Mathf.Clamp01(PlayerPrefs.GetFloat(BgmVolumeKey, DefaultBgmVolume));
+        }
+
+        public void SaveBgmVolume(float volume)
+        {
+            PlayerPrefs.SetFloat(BgmVolumeKey, Mathf.Clamp01(volume));
             PlayerPrefs.Save();
         }
     }

@@ -7,12 +7,13 @@ namespace TechC.KanjiQuiz.Screens.Title
 {
     /// <summary>
     /// タイトルから開く設定画面の Presenter
-    /// 効果音の音量、ひらがなで表示の切り替え、記録を消す（確認してから）を受け付ける
+    /// 効果音と BGM の音量、ひらがなで表示の切り替え、記録を消す（確認してから）を受け付ける
     /// </summary>
     public sealed class SettingsPresenter : ITitleSubScreen
     {
         private readonly ISettingsView view;
         private readonly IAudioPlayer audioPlayer;
+        private readonly IBgmPlayer bgmPlayer;
         private readonly IVolumeRepository volumeRepository;
         private readonly DisplaySettings displaySettings;
         private readonly QuizRecordEraser recordEraser;
@@ -29,15 +30,17 @@ namespace TechC.KanjiQuiz.Screens.Title
 
         /// <param name="audioPlayer">効果音を鳴らす。鳴らさないなら NullAudioPlayer</param>
         /// <param name="displaySettings">表示の設定（ふつうは DisplaySettings.Shared）</param>
+        /// <param name="bgmPlayer">BGM を鳴らすもの。null なら何も鳴らさない（つまみの値は保存する）</param>
         public SettingsPresenter(
             ISettingsView view, IAudioPlayer audioPlayer, IVolumeRepository volumeRepository,
-            DisplaySettings displaySettings, QuizRecordEraser recordEraser)
+            DisplaySettings displaySettings, QuizRecordEraser recordEraser, IBgmPlayer bgmPlayer = null)
         {
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.audioPlayer = audioPlayer ?? throw new ArgumentNullException(nameof(audioPlayer));
             this.volumeRepository = volumeRepository ?? throw new ArgumentNullException(nameof(volumeRepository));
             this.displaySettings = displaySettings ?? throw new ArgumentNullException(nameof(displaySettings));
             this.recordEraser = recordEraser ?? throw new ArgumentNullException(nameof(recordEraser));
+            this.bgmPlayer = bgmPlayer ?? NullBgmPlayer.Instance;
         }
 
         public void Initialize()
@@ -45,6 +48,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             view.SetVisible(false);
             view.OnBackClicked.Subscribe(this, static (_, self) => self.Back()).AddTo(disposables);
             view.OnSeVolumeChanged.Subscribe(this, static (v, self) => self.ChangeSeVolume(v)).AddTo(disposables);
+            view.OnBgmVolumeChanged.Subscribe(this, static (v, self) => self.ChangeBgmVolume(v)).AddTo(disposables);
             view.OnHiraganaChanged.Subscribe(this, static (v, self) => self.ChangeHiragana(v)).AddTo(disposables);
             view.OnEraseClicked.Subscribe(this, static (_, self) => self.AskErase()).AddTo(disposables);
             view.OnEraseConfirmed.Subscribe(this, static (_, self) => self.Erase()).AddTo(disposables);
@@ -56,6 +60,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             isOpen = true;
             isConfirming = false;
             view.SetSeVolume(volumeRepository.LoadSeVolume());
+            view.SetBgmVolume(volumeRepository.LoadBgmVolume());
             view.SetHiragana(displaySettings.UseHiragana.CurrentValue);
             view.SetEraseConfirmVisible(false);
             view.SetErasedMessageVisible(false);
@@ -84,6 +89,14 @@ namespace TechC.KanjiQuiz.Screens.Title
             volume = Mathf.Clamp01(volume);
             audioPlayer.SetSeVolume(volume);
             volumeRepository.SaveSeVolume(volume);
+        }
+
+        private void ChangeBgmVolume(float volume)
+        {
+            if (!isOpen) return;
+            volume = Mathf.Clamp01(volume);
+            bgmPlayer.SetBgmVolume(volume);
+            volumeRepository.SaveBgmVolume(volume);
         }
 
         private void ChangeHiragana(bool useHiragana)

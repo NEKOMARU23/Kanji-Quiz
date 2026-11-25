@@ -12,5 +12,11 @@ namespace TechC.KanjiQuiz.Tests
         public float LoadSeVolume() => SeVolume;
 
         public void SaveSeVolume(float volume) => SeVolume = volume;
+
+        public float BgmVolume { get; set; } = 0.5f;
+
+        public float LoadBgmVolume() => BgmVolume;
+
+        public void SaveBgmVolume(float volume) => BgmVolume = volume;
     }
 }

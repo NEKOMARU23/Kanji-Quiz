@@ -12,6 +12,7 @@ namespace TechC.KanjiQuiz.Tests
         private FakeSettingsView view;
         private FakeAudioPlayer audioPlayer;
         private FakeVolumeRepository volumeRepository;
+        private FakeBgmPlayer bgmPlayer;
         private FakeDisplaySettingRepository displayRepository;
         private DisplaySettings displaySettings;
         private FakeBestRecordRepository bestRecords;
@@ -24,13 +25,14 @@ namespace TechC.KanjiQuiz.Tests
             mode = QuizModeDefinition.Create("StrokeOrder", "書き順クイズ", "StrokeOrder");
             view = new FakeSettingsView();
             audioPlayer = new FakeAudioPlayer();
-            volumeRepository = new FakeVolumeRepository { SeVolume = 0.4f };
+            bgmPlayer = new FakeBgmPlayer();
+            volumeRepository = new FakeVolumeRepository { SeVolume = 0.4f, BgmVolume = 0.3f };
             displayRepository = new FakeDisplaySettingRepository { UseHiragana = true };
             displaySettings = new DisplaySettings(displayRepository);
             bestRecords = new FakeBestRecordRepository();
             weakQuestions = new FakeWeakQuestionRepository();
             var eraser = new QuizRecordEraser(new[] { mode }, bestRecords, weakQuestions);
-            presenter = new SettingsPresenter(view, audioPlayer, volumeRepository, displaySettings, eraser);
+            presenter = new SettingsPresenter(view, audioPlayer, volumeRepository, displaySettings, eraser, bgmPlayer);
             presenter.Initialize();
         }
 
@@ -50,6 +52,7 @@ namespace TechC.KanjiQuiz.Tests
 
             Assert.IsTrue(view.IsVisible);
             Assert.AreEqual(0.4f, view.SeVolume, 1e-5f);
+            Assert.AreEqual(0.3f, view.BgmVolume, 1e-5f);
             Assert.IsTrue(view.UseHiragana);
             Assert.IsFalse(view.IsEraseConfirmVisible);
         }
@@ -63,6 +66,38 @@ namespace TechC.KanjiQuiz.Tests
 
             Assert.AreEqual(0.7f, audioPlayer.SeVolume, 1e-5f);
             Assert.AreEqual(0.7f, volumeRepository.SeVolume, 1e-5f);
+        }
+
+        [Test]
+        public void BGMの音量を変えるとBGMに反映して保存し効果音の音量は変えない()
+        {
+            presenter.Open();
+
+            view.BgmVolumeChanged.OnNext(0.7f);
+
+            Assert.AreEqual(0.7f, bgmPlayer.BgmVolume, 1e-5f);
+            Assert.AreEqual(0.7f, volumeRepository.BgmVolume, 1e-5f);
+            Assert.AreEqual(0.4f, volumeRepository.SeVolume, 1e-5f);
+        }
+
+        [Test]
+        public void BGMの音量は0から1の範囲に収める()
+        {
+            presenter.Open();
+
+            view.BgmVolumeChanged.OnNext(1.5f);
+
+            Assert.AreEqual(1f, bgmPlayer.BgmVolume, 1e-5f);
+            Assert.AreEqual(1f, volumeRepository.BgmVolume, 1e-5f);
+        }
+
+        [Test]
+        public void 開いていないときのBGMの音量の通知は無視する()
+        {
+            view.BgmVolumeChanged.OnNext(0.9f);
+
+            Assert.AreEqual(0.3f, volumeRepository.BgmVolume, 1e-5f);
+            Assert.AreEqual(1f, bgmPlayer.BgmVolume, 1e-5f);
         }
 
         [Test]

@@ -31,6 +31,8 @@ namespace TechC.KanjiQuiz.Screens.Title
         [Tooltip("昼休みの行。lunchBreakAfter 時間目のあとに入れる")]
         [SerializeField] private GameObject lunchBreakPrefab;
         [Min(1)] [SerializeField] private int lunchBreakAfter = 4;
+        [Tooltip("時間割の時限の数。モードより多い分は「自習」と書くだけの行にする（選べない）")]
+        [Min(1)] [SerializeField] private int totalPeriods = 6;
 
         [Header("--- 黒板 ---")]
         [Tooltip("黒板（枠を含む）。タイトルの場所・時間割の横・画面いっぱいの間で動かす。モード選択画面を隠しても見えるように root の外に置く")]
@@ -199,11 +201,19 @@ namespace TechC.KanjiQuiz.Screens.Title
             foreach (Transform child in rowContainer) Destroy(child.gameObject);
             rows.Clear();
 
-            for (int i = 0; i < modes.Count; i++)
+            int periodCount = Mathf.Max(modes.Count, totalPeriods);
+            for (int i = 0; i < periodCount; i++)
             {
                 if (i == lunchBreakAfter && lunchBreakPrefab != null) Instantiate(lunchBreakPrefab, rowContainer);
 
                 var row = Instantiate(rowPrefab, rowContainer);
+                if (i >= modes.Count)
+                {
+                    // モードのない時限は「自習」と書くだけ。選べない
+                    row.SetStudyHall(i + 1);
+                    continue;
+                }
+
                 row.Set(modes[i]);
                 int index = i;
                 row.OnClicked.Subscribe(this, (_, self) => self.modeClicked.OnNext(index)).AddTo(row);

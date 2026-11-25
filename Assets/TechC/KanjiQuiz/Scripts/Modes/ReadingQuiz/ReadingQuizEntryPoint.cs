@@ -61,6 +61,8 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
         private void Initialize()
         {
             audioPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullAudioPlayer.Instance;
+            IBgmPlayer bgmPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullBgmPlayer.Instance;
+            bgmPlayer.PlayBgm(BgmType.Quiz);
             sceneLoader = new SceneLoader(SceneTransitionView.HasInstance ? SceneTransitionView.Instance : null);
             reviewView.SetVisible(false);
 

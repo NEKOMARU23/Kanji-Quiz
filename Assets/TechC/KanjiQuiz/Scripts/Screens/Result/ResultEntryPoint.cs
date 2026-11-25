@@ -15,6 +15,9 @@ namespace TechC.KanjiQuiz.Screens.Result
         private void Start()
         {
             IAudioPlayer audioPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullAudioPlayer.Instance;
+            // 結果の発表は効果音で見せるので、クイズの BGM はフェードアウトして止める
+            IBgmPlayer bgmPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullBgmPlayer.Instance;
+            bgmPlayer.StopBgm();
 
             // 振り返りから戻ってきたときは演出をせずにすぐ表示する
             bool playReveal = QuizResultStore.IsRevealPending;
