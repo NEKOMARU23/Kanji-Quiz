@@ -683,7 +683,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "BGM\u306E\u97F3\u91CF"
+  m_text: "BGM\u306E{\u97F3\u91CF|\u304A\u3093\u308A\u3087\u3046}"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c33382b104c0cea41bac0ec83a682435, type: 2}
   m_sharedMaterial: {fileID: 6767300646830406675, guid: c33382b104c0cea41bac0ec83a682435, type: 2}
