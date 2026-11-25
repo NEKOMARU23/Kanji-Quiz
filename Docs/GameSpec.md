@@ -485,7 +485,7 @@
 | AudioManager / SceneTransition / EventSystem | | 結果画面と同じ（Result.unity から作った） |
 
 - プレハブは `Prefabs/Screens/Title/` の TimetableRow・LunchBreak・DifficultyColumn。
-- 時間割に並べるモードは `QuizModeCatalog` の順（書き順・本物・四字熟語・読み当て・使い分け・画像・文章・人名）。まだ作っていないモードの定義（文章クイズ・画像で名前当て・人名漢字のモード）は `isAvailable` を外してあり、「自習（○○ 準備中）」と出す。
+- 時間割に並べるモードは `QuizModeCatalog` の順（書き順・本物・四字熟語・読み当て・使い分け）で、6時間目まで。モードのない6時間目は「自習」とだけ書く（選べない。開発予定のモード名は出さない）。まだ作っていないモードの定義（文章クイズ・画像で名前当て・人名漢字のモード）は残してあるが、カタログから外してある（2026-11-25）。
 - 黒板のチョークの丸と級の枠、掲示板のコルク、漢字帳のマスと選んだマスの枠は `Tools/generate_placeholder_ui.py` で作った画像（`fx_chalk_circle`、`frame_chalk_stamp`、`bg_cork`、`frame_masu`、`frame_select`）。
 - クレジットのおたよりの文はシーンに直接書いている。使うデータやフォントが増えたら、CreditsRoot/Board/Cork/Notes に紙を足す。
 基準解像度は 1920×1080（Canvas Scaler：Scale With Screen Size、Match 0.5）。文字はすべて Klee One（4.2）で表示する。
