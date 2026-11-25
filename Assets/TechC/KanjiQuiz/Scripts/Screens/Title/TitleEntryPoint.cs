@@ -38,6 +38,8 @@ namespace TechC.KanjiQuiz.Screens.Title
         private void Start()
         {
             IAudioPlayer audioPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullAudioPlayer.Instance;
+            IBgmPlayer bgmPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullBgmPlayer.Instance;
+            bgmPlayer.PlayBgm(BgmType.Menu);
             ISceneTransition transition = SceneTransitionView.HasInstance ? SceneTransitionView.Instance : null;
 
             // 前のプレイの難易度が残らないように消しておく（モード選択で選び直す）
@@ -52,7 +54,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             var strokeSource = new StreamingAssetsKanjiStrokeSource();
             var settings = new SettingsPresenter(
                 settingsView, audioPlayer, new PlayerPrefsVolumeRepository(), DisplaySettings.Shared,
-                new QuizRecordEraser(modeCatalog.Modes, bestRecords, weakQuestions, kanjiBookRepository));
+                new QuizRecordEraser(modeCatalog.Modes, bestRecords, weakQuestions, kanjiBookRepository), bgmPlayer);
             // 記録を消したら、時間割と黒板の記録を読み直す
             settings.OnRecordsErased
                 .Subscribe(_ => modeSelect.ReloadModes(ModeSummary.Load(modeCatalog.Modes, bestRecords, weakQuestions)))

@@ -10,6 +10,7 @@ namespace TechC.KanjiQuiz.Tests
     {
         public readonly Subject<Unit> BackClicked = new Subject<Unit>();
         public readonly Subject<float> SeVolumeChanged = new Subject<float>();
+        public readonly Subject<float> BgmVolumeChanged = new Subject<float>();
         public readonly Subject<bool> HiraganaChanged = new Subject<bool>();
         public readonly Subject<Unit> EraseClicked = new Subject<Unit>();
         public readonly Subject<Unit> EraseConfirmed = new Subject<Unit>();
@@ -17,6 +18,7 @@ namespace TechC.KanjiQuiz.Tests
 
         public Observable<Unit> OnBackClicked => BackClicked;
         public Observable<float> OnSeVolumeChanged => SeVolumeChanged;
+        public Observable<float> OnBgmVolumeChanged => BgmVolumeChanged;
         public Observable<bool> OnHiraganaChanged => HiraganaChanged;
         public Observable<Unit> OnEraseClicked => EraseClicked;
         public Observable<Unit> OnEraseConfirmed => EraseConfirmed;
@@ -24,12 +26,14 @@ namespace TechC.KanjiQuiz.Tests
 
         public bool IsVisible { get; private set; }
         public float SeVolume { get; private set; }
+        public float BgmVolume { get; private set; }
         public bool UseHiragana { get; private set; }
         public bool IsEraseConfirmVisible { get; private set; }
         public bool IsErasedMessageVisible { get; private set; }
 
         public void SetVisible(bool visible) => IsVisible = visible;
         public void SetSeVolume(float volume) => SeVolume = volume;
+        public void SetBgmVolume(float volume) => BgmVolume = volume;
         public void SetHiragana(bool useHiragana) => UseHiragana = useHiragana;
         public void SetEraseConfirmVisible(bool visible) => IsEraseConfirmVisible = visible;
         public void SetErasedMessageVisible(bool visible) => IsErasedMessageVisible = visible;

@@ -9,7 +9,7 @@ namespace TechC.KanjiQuiz.Screens.Title
 {
     /// <summary>
     /// タイトルから開く設定画面の表示
-    /// タイトルの黒板に、効果音の音量（チョークのつまみ）、ひらがなで表示（しない／する を丸で囲む）、記録を消す を板書する
+    /// タイトルの黒板に、効果音と BGM の音量（チョークのつまみ）、ひらがなで表示（しない／する を丸で囲む）、記録を消す を板書する
     /// [← タイトルへ] か Esc で閉じる（確認を出しているときは、Esc で確認だけを閉じる）
     /// </summary>
     public class SettingsView : MonoBehaviour, ISettingsView
@@ -20,6 +20,10 @@ namespace TechC.KanjiQuiz.Screens.Title
 
         [Header("--- 効果音の音量 ---")]
         [SerializeField] private Slider seVolumeSlider;
+
+        [Header("--- BGM の音量 ---")]
+        [Tooltip("シーンにまだなければ空でよい（つまみを使わないだけで動く）")]
+        [SerializeField] private Slider bgmVolumeSlider;
 
         [Header("--- ひらがなで表示 ---")]
         [SerializeField] private Button hiraganaOffButton;
@@ -48,6 +52,9 @@ namespace TechC.KanjiQuiz.Screens.Title
         public Observable<Unit> OnBackClicked => backButton.OnClickAsObservable().Merge(escapePressed);
         // OnValueChangedAsObservable は購読したときに今の値も流すので、変わったときだけ流す onValueChanged を使う
         public Observable<float> OnSeVolumeChanged => seVolumeSlider.onValueChanged.AsObservable(destroyCancellationToken);
+        public Observable<float> OnBgmVolumeChanged => bgmVolumeSlider != null
+            ? bgmVolumeSlider.onValueChanged.AsObservable(destroyCancellationToken)
+            : Observable.Empty<float>();
         public Observable<bool> OnHiraganaChanged => hiraganaChanged;
         public Observable<Unit> OnEraseClicked => eraseButton.OnClickAsObservable();
         public Observable<Unit> OnEraseConfirmed => eraseConfirmButton.OnClickAsObservable();
@@ -73,6 +80,11 @@ namespace TechC.KanjiQuiz.Screens.Title
         public void SetVisible(bool visible) => root.SetActive(visible);
 
         public void SetSeVolume(float volume) => seVolumeSlider.SetValueWithoutNotify(volume);
+
+        public void SetBgmVolume(float volume)
+        {
+            if (bgmVolumeSlider != null) bgmVolumeSlider.SetValueWithoutNotify(volume);
+        }
 
         public void SetHiragana(bool useHiragana)
         {

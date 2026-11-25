@@ -6,13 +6,14 @@ namespace TechC.KanjiQuiz.Common
 {
     /// <summary>
     /// 中断メニューの Presenter
-    /// [メニュー] ボタンか Esc で開き、続ける・最初からやり直す・やめる（モード選択へ）・効果音の音量・ひらがなで表示の切り替えを受け付ける
+    /// [メニュー] ボタンか Esc で開き、続ける・最初からやり直す・やめる（モード選択へ）・効果音と BGM の音量・ひらがなで表示の切り替えを受け付ける
     /// </summary>
     public sealed class PauseMenuPresenter : IDisposable
     {
         private readonly IPauseMenuView view;
         private readonly ISceneLoader sceneLoader;
         private readonly IAudioPlayer audioPlayer;
+        private readonly IBgmPlayer bgmPlayer;
         private readonly IVolumeRepository volumeRepository;
         private readonly string restartSceneName;
         private readonly string quitSceneName;
@@ -25,6 +26,7 @@ namespace TechC.KanjiQuiz.Common
         /// <param name="restartSceneName">[最初からやり直す] で読み込むシーンの名前</param>
         /// <param name="quitSceneName">[やめる] で読み込むシーンの名前（モード選択のあるシーン）</param>
         /// <param name="displaySettings">表示の設定（ひらがなで表示）。null なら切り替えを使わない</param>
+        /// <param name="bgmPlayer">BGM を鳴らすもの。null なら何も鳴らさない（つまみの値は保存する）</param>
         public PauseMenuPresenter(
             IPauseMenuView view,
             ISceneLoader sceneLoader,
@@ -32,7 +34,8 @@ namespace TechC.KanjiQuiz.Common
             IVolumeRepository volumeRepository,
             string restartSceneName,
             string quitSceneName = SceneNames.Title,
-            DisplaySettings displaySettings = null)
+            DisplaySettings displaySettings = null,
+            IBgmPlayer bgmPlayer = null)
         {
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.sceneLoader = sceneLoader ?? throw new ArgumentNullException(nameof(sceneLoader));
@@ -41,6 +44,7 @@ namespace TechC.KanjiQuiz.Common
             this.restartSceneName = restartSceneName ?? throw new ArgumentNullException(nameof(restartSceneName));
             this.quitSceneName = quitSceneName ?? throw new ArgumentNullException(nameof(quitSceneName));
             this.displaySettings = displaySettings;
+            this.bgmPlayer = bgmPlayer ?? NullBgmPlayer.Instance;
         }
 
         /// <summary>
@@ -49,6 +53,7 @@ namespace TechC.KanjiQuiz.Common
         public void Initialize()
         {
             view.SetSeVolume(volumeRepository.LoadSeVolume());
+            view.SetBgmVolume(volumeRepository.LoadBgmVolume());
             if (displaySettings != null)
             {
                 view.SetHiragana(displaySettings.UseHiragana.CurrentValue);
@@ -74,6 +79,9 @@ namespace TechC.KanjiQuiz.Common
                 .AddTo(disposables);
             view.OnSeVolumeChanged
                 .Subscribe(this, static (volume, self) => self.ChangeSeVolume(volume))
+                .AddTo(disposables);
+            view.OnBgmVolumeChanged
+                .Subscribe(this, static (volume, self) => self.ChangeBgmVolume(volume))
                 .AddTo(disposables);
         }
 
@@ -115,6 +123,13 @@ namespace TechC.KanjiQuiz.Common
             volume = Mathf.Clamp01(volume);
             audioPlayer.SetSeVolume(volume);
             volumeRepository.SaveSeVolume(volume);
+        }
+
+        private void ChangeBgmVolume(float volume)
+        {
+            volume = Mathf.Clamp01(volume);
+            bgmPlayer.SetBgmVolume(volume);
+            volumeRepository.SaveBgmVolume(volume);
         }
 
         public void Dispose()
