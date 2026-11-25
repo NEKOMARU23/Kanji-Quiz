@@ -62,6 +62,8 @@ namespace TechC.KanjiQuiz.Modes.FourCharIdiom
         {
             reviewView.SetVisible(false);
             audioPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullAudioPlayer.Instance;
+            IBgmPlayer bgmPlayer = AudioManager.HasInstance ? AudioManager.Instance : NullBgmPlayer.Instance;
+            bgmPlayer.PlayBgm(BgmType.Quiz);
             sceneLoader = new SceneLoader(SceneTransitionView.HasInstance ? SceneTransitionView.Instance : null);
 
             // 結果画面から振り返りを頼まれていれば、出題せずに振り返りを開く

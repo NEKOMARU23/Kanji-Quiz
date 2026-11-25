@@ -3,7 +3,7 @@ using R3;
 namespace TechC.KanjiQuiz.Common
 {
     /// <summary>
-    /// 中断メニュー（続ける、最初からやり直す、やめる、効果音の音量、ひらがなで表示）
+    /// 中断メニュー（続ける、最初からやり直す、やめる、効果音と BGM の音量、ひらがなで表示）
     /// </summary>
     public interface IPauseMenuView
     {
@@ -25,6 +25,9 @@ namespace TechC.KanjiQuiz.Common
         /// <summary>効果音の音量のつまみが動かされたとき。値は 0〜1</summary>
         Observable<float> OnSeVolumeChanged { get; }
 
+        /// <summary>BGM の音量のつまみが動かされたとき。値は 0〜1</summary>
+        Observable<float> OnBgmVolumeChanged { get; }
+
         /// <summary>「出題の字のほかは ひらがなで表示」が切り替えられたとき</summary>
         Observable<bool> OnHiraganaChanged { get; }
 
@@ -36,6 +39,9 @@ namespace TechC.KanjiQuiz.Common
 
         /// <summary>効果音の音量のつまみの位置を設定する。通知はしない</summary>
         void SetSeVolume(float volume);
+
+        /// <summary>BGM の音量のつまみの位置を設定する。通知はしない</summary>
+        void SetBgmVolume(float volume);
 
         /// <summary>「ひらがなで表示」の切り替えの状態を設定する。通知はしない</summary>
         void SetHiragana(bool useHiragana);

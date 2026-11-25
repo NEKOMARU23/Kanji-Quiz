@@ -20,6 +20,8 @@ namespace TechC.KanjiQuiz.Common
         [Tooltip("[やめる]（モード選択へ戻る）")]
         [SerializeField] private Button quitButton;
         [SerializeField] private Slider seVolumeSlider;
+        [Tooltip("BGM の音量。プレハブにまだなければ空でよい（つまみを使わないだけで動く）")]
+        [SerializeField] private Slider bgmVolumeSlider;
         [Tooltip("「出題の字のほかは ひらがなで表示」の切り替え")]
         [SerializeField] private Toggle hiraganaToggle;
 
@@ -33,6 +35,9 @@ namespace TechC.KanjiQuiz.Common
         public Observable<Unit> OnQuitClicked => quitButton.OnClickAsObservable();
         // OnValueChangedAsObservable は購読したときに今の値も流すので、変わったときだけ流す onValueChanged を使う
         public Observable<float> OnSeVolumeChanged => seVolumeSlider.onValueChanged.AsObservable(destroyCancellationToken);
+        public Observable<float> OnBgmVolumeChanged => bgmVolumeSlider != null
+            ? bgmVolumeSlider.onValueChanged.AsObservable(destroyCancellationToken)
+            : Observable.Empty<float>();
         public Observable<bool> OnHiraganaChanged => hiraganaToggle.onValueChanged.AsObservable(destroyCancellationToken);
 
         private void Awake()
@@ -73,6 +78,11 @@ namespace TechC.KanjiQuiz.Common
         public void SetSeVolume(float volume)
         {
             seVolumeSlider.SetValueWithoutNotify(volume);
+        }
+
+        public void SetBgmVolume(float volume)
+        {
+            if (bgmVolumeSlider != null) bgmVolumeSlider.SetValueWithoutNotify(volume);
         }
 
         public void SetHiragana(bool useHiragana)
