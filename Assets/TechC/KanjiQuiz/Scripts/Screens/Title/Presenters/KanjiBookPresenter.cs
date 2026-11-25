@@ -19,14 +19,14 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <summary>右のページに出す使用例の熟語の数</summary>
         public const int MaxWords = 3;
 
-        /// <summary>四字熟語のタブの名前</summary>
-        public const string IdiomSectionTitle = "四字熟語";
+        /// <summary>四字熟語のタブの名前（読みの印つき）</summary>
+        public const string IdiomSectionTitle = "{四字熟語|よじじゅくご}";
 
         /// <summary>読み当てのタブの名前</summary>
-        public const string ReadingSectionTitle = "読み当て";
+        public const string ReadingSectionTitle = "{読み当|よみあ}て";
 
         /// <summary>使い分けのタブの名前</summary>
-        public const string UsageSectionTitle = "使い分け";
+        public const string UsageSectionTitle = "{使|つか}い{分|わ}け";
 
         private readonly IKanjiBookView view;
         private readonly IAudioPlayer audioPlayer;

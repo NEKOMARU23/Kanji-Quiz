@@ -635,7 +635,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u7A7A\u3044\u305F\u30DE\u30B9\u306B\u5B57\u3092\u5165\u308C\u3066\u3001\u56DB\u5B57\u719F\u8A9E\u3092\u3064\u304F\u308D\u3046"
+  m_text: "{\u7A7A|\u3042}\u3044\u305F\u30DE\u30B9\u306B{\u5B57|\u3058}\u3092{\u5165|\u3044}\u308C\u3066\u3001{\u56DB\u5B57\u719F\u8A9E|\u3088\u3058\u3058\u3085\u304F\u3054}\u3092\u3064\u304F\u308D\u3046"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c33382b104c0cea41bac0ec83a682435, type: 2}
   m_sharedMaterial: {fileID: 6767300646830406675, guid: c33382b104c0cea41bac0ec83a682435, type: 2}
@@ -772,7 +772,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u632F\u308A\u8FD4\u308A\uFF1A\u6B63\u89E3"
+  m_text: "{\u632F|\u3075}\u308A{\u8FD4|\u304B\u3048}\u308A\uFF1A{\u6B63\u89E3|\u305B\u3044\u304B\u3044}"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c33382b104c0cea41bac0ec83a682435, type: 2}
   m_sharedMaterial: {fileID: 6767300646830406675, guid: c33382b104c0cea41bac0ec83a682435, type: 2}
@@ -1462,7 +1462,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u82E6\u624B"
+  m_text: "{\u82E6\u624B|\u306B\u304C\u3066}"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c33382b104c0cea41bac0ec83a682435, type: 2}
   m_sharedMaterial: {fileID: 6767300646830406675, guid: c33382b104c0cea41bac0ec83a682435, type: 2}
@@ -3327,7 +3327,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u7D50\u679C\u306B\u623B\u308B"
+  m_text: "{\u7D50\u679C|\u3051\u3063\u304B}\u306B{\u623B|\u3082\u3069}\u308B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c33382b104c0cea41bac0ec83a682435, type: 2}
   m_sharedMaterial: {fileID: 6767300646830406675, guid: c33382b104c0cea41bac0ec83a682435, type: 2}
@@ -3927,7 +3927,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1464554049014183381, guid: 951490260faf51f418d97e619c599d54, type: 3}
       propertyPath: m_text
-      value: "\u6570\u5B57\u30AD\u30FC\uFF1A\u5B57\u3092\u5165\u308C\u308B\u3000Back\uFF1A\u623B\u3059\nEnter\uFF1A\u6B21\u3078\u3000\u2190\uFF1A\u524D\u3078\u3000Esc\uFF1A\u30E1\u30CB\u30E5\u30FC"
+      value: "{\u6570\u5B57|\u3059\u3046\u3058}\u30AD\u30FC\uFF1A{\u5B57|\u3058}\u3092{\u5165|\u3044}\u308C\u308B\u3000Back\uFF1A{\u623B|\u3082\u3069}\u3059\nEnter\uFF1A{\u6B21|\u3064\u304E}\u3078\u3000\u2190\uFF1A{\u524D|\u307E\u3048}\u3078\u3000Esc\uFF1A\u30E1\u30CB\u30E5\u30FC"
       objectReference: {fileID: 0}
     - target: {fileID: 1630461768350283359, guid: 951490260faf51f418d97e619c599d54, type: 3}
       propertyPath: m_Pivot.x

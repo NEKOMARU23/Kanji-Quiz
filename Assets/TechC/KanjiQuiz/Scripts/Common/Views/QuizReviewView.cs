@@ -31,15 +31,15 @@ namespace TechC.KanjiQuiz.Common
             switch (state)
             {
                 case AnswerState.Correct:
-                    answerStateText.text = "振り返り：正解";
+                    answerStateText.text = "{振|ふ}り{返|かえ}り：{正解|せいかい}";
                     answerStateText.color = correctColor;
                     break;
                 case AnswerState.Incorrect:
-                    answerStateText.text = "振り返り：不正解";
+                    answerStateText.text = "{振|ふ}り{返|かえ}り：{不正解|ふせいかい}";
                     answerStateText.color = incorrectColor;
                     break;
                 default:
-                    answerStateText.text = "振り返り：未回答";
+                    answerStateText.text = "{振|ふ}り{返|かえ}り：{未回答|みかいとう}";
                     answerStateText.color = incorrectColor;
                     break;
             }

@@ -14,6 +14,12 @@ namespace TechC.KanjiQuiz.Common
             "10級", "9級", "8級", "7級", "6級", "5級", "4級", "3級", "2級", "1級", "初段",
         };
 
+        /// <summary>級の読み。Names と同じ順</summary>
+        private static readonly string[] Readings =
+        {
+            "じゅっきゅう", "きゅうきゅう", "はっきゅう", "ななきゅう", "ろっきゅう", "ごきゅう", "よんきゅう", "さんきゅう", "にきゅう", "いっきゅう", "しょだん",
+        };
+
         /// <summary>全問正解のときに出る級の位置（Names の番号）</summary>
         private static int TopLevel(Difficulty difficulty)
         {
@@ -52,6 +58,16 @@ namespace TechC.KanjiQuiz.Common
         {
             if (level < 0 || level >= Names.Length) throw new ArgumentOutOfRangeException(nameof(level));
             return Names[level];
+        }
+
+        /// <summary>
+        /// 級の名前に、読みの印（{漢字|よみ}）をつけたもの（例：{5級|ごきゅう}）
+        /// 画面に出すときに使う。級の名前でなければ、そのまま返す
+        /// </summary>
+        public static string ToMarked(string rank)
+        {
+            int level = Array.IndexOf(Names, rank);
+            return level < 0 ? rank : "{" + rank + "|" + Readings[level] + "}";
         }
 
         /// <summary>難易度ごとの最高の級（全問正解のときの級）</summary>

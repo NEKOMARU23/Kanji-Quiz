@@ -110,7 +110,7 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
                 view.SetOptionSelected(i, ReadingQuizAnswer.IsSelected(selectedMask, i));
                 view.SetOptionCorrect(i, ReadingQuizAnswer.IsSelected(question.CorrectMask, i));
             }
-            view.SetHint("正しい読み：" + string.Join("、", question.CorrectReadings));
+            view.SetHint("{正|ただ}しい{読|よ}み：" + string.Join("、", question.CorrectReadings));
         }
     }
 }

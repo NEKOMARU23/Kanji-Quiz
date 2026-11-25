@@ -14,7 +14,7 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
     public sealed class RealKanjiQuestionFactory
     {
         /// <summary>振り返りで本物の選択肢に出す説明</summary>
-        public const string RealDescription = "本物";
+        public const string RealDescription = "{本物|ほんもの}";
 
         private readonly IKanjiSvgSource svgSource;
         private readonly KanjiWordDictionary wordDictionary;
@@ -140,11 +140,11 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
         {
             switch (radicalPosition)
             {
-                case "left": return "右側";
-                case "right": return "左側";
-                case "top": return "下";
-                case "bottom": return "上";
-                default: return "内側";
+                case "left": return "{右側|みぎがわ}";
+                case "right": return "{左側|ひだりがわ}";
+                case "top": return "{下|した}";
+                case "bottom": return "{上|うえ}";
+                default: return "{内側|うちがわ}";
             }
         }
     }
