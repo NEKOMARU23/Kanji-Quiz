@@ -138,6 +138,7 @@ classDiagram
 | `KanjiWordDictionary` / `KanjiWord` | 漢字ごとの使用例（熟語）の辞書。`Data/KanjiWords` の JSON をまとめて読む | Model |
 | `KanjiMeaningDictionary` / `KanjiMeaning` | 漢字ごとの意味と例文の辞書。`Data/KanjiMeanings` の JSON をまとめて読む | Model |
 | `RubyText` | 読みをつけた文（`{漢字|よみ}`）を、漢字のまま、またはひらがなにして出す。データを確かめるために、読みのない漢字も探せる | Model |
+| `RubyLabelTracker` | 画面の文字ごとに、読みの印がついた元の文字と書き直した文字を覚え、漢字／ひらがなを合わせる。ほかのコードが入れ替えた文字は上書きしない。Unity に依存しないのでテストできる | Model |
 | `DisplaySettings` / `IDisplaySettingRepository` / `PlayerPrefsDisplaySettingRepository` | 表示の設定（出題の字のほかをひらがなにするか）。R3 の `ReadOnlyReactiveProperty` で変化を知らせる。中断メニューと振り返りが同じものを使うので、EntryPoint は `DisplaySettings.Shared` を渡す | Model |
 | `IKanjiStrokeSource` / `IKanjiSvgSource` / `StreamingAssetsKanjiStrokeSource` | KanjiVG の SVG の読み込み口。画のパスデータだけか、部品のグループつき（`KanjiSvgStroke`）かの2通り。書き順クイズと本物の漢字さがしで使う | Model |
 | `KanjiSvgParser` / `KanjiSvgStroke` / `StrokePathParser` / `StrokeData` | SVG から画のパスデータと、その画が入っている部品のグループ（g 要素の id）を取り出し、座標の列に変換する | Model |

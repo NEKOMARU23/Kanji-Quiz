@@ -15,7 +15,7 @@ namespace TechC.KanjiQuiz.Tests
         {
             var mode = QuizModeDefinition.Create("StrokeOrder", "書き順クイズ", "StrokeOrder");
 
-            Assert.AreEqual("書き順クイズ（常識）", mode.Title(Difficulty.Normal));
+            Assert.AreEqual("書き順クイズ（{常識|じょうしき}）", mode.Title(Difficulty.Normal));
             Assert.AreEqual("StrokeOrder_Hard", mode.RecordKey(Difficulty.Hard));
             Object.DestroyImmediate(mode);
         }

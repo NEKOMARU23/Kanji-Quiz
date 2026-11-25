@@ -45,6 +45,22 @@ namespace TechC.KanjiQuiz.Common
             return builder.ToString();
         }
 
+        /// <summary>読みの印（{漢字|よみ}）が1つでもついているかどうか</summary>
+        public static bool HasMark(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return false;
+
+            int open = text.IndexOf(Open);
+            while (open >= 0)
+            {
+                int separator = text.IndexOf(Separator, open + 1);
+                int close = text.IndexOf(Close, open + 1);
+                if (separator > open && close > separator) return true;
+                open = text.IndexOf(Open, open + 1);
+            }
+            return false;
+        }
+
         /// <summary>
         /// 読みをつけていない漢字を探す（データを確かめるのに使う）
         /// </summary>

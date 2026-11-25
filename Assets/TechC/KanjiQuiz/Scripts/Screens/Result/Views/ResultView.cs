@@ -184,7 +184,7 @@ namespace TechC.KanjiQuiz.Screens.Result
 
         public void ShowRank(string rank)
         {
-            rankText.text = rank;
+            rankText.text = KanjiRank.ToMarked(rank);
             rankStamp.localScale = Vector3.one;
             rankStamp.gameObject.SetActive(true);
         }
@@ -212,7 +212,7 @@ namespace TechC.KanjiQuiz.Screens.Result
 
         public void ShowBestRecord(int bestCorrectCount, int total, bool isNewBest, bool animate)
         {
-            bestRecordText.text = $"自己ベスト　{bestCorrectCount} / {total} 問";
+            bestRecordText.text = $"{{自己|じこ}}ベスト　{bestCorrectCount} / {total} {{問|もん}}";
             bestRecordText.gameObject.SetActive(true);
             newRecordBadge.gameObject.SetActive(isNewBest);
             newRecordBadge.localScale = Vector3.one;
@@ -245,7 +245,7 @@ namespace TechC.KanjiQuiz.Screens.Result
         public void ShowNoResult()
         {
             modeNameText.text = string.Empty;
-            scoreText.text = "結果がありません";
+            scoreText.text = "{結果|けっか}がありません";
             retryButton.interactable = false;
             reviewButton.interactable = false;
             skipButton.gameObject.SetActive(false);
@@ -275,7 +275,7 @@ namespace TechC.KanjiQuiz.Screens.Result
 
         private static string FormatScore(int correctCount, int total)
         {
-            return $"{correctCount} / {total} 問 正解";
+            return $"{correctCount} / {total} {{問|もん}} {{正解|せいかい}}";
         }
 
         /// <summary>

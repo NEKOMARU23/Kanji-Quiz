@@ -41,7 +41,7 @@ namespace TechC.KanjiQuiz.Tests
         {
             Assert.AreEqual("明日", view.Word);
             Assert.AreEqual(3, view.Options.Count);
-            Assert.AreEqual("正しい読みを1つ選んでください", view.Hint);
+            Assert.AreEqual("{正|ただ}しい{読|よ}みを1つ{選|えら}んでください", view.Hint);
             Assert.IsTrue(view.OptionsInteractable);
         }
 
@@ -76,7 +76,7 @@ namespace TechC.KanjiQuiz.Tests
         public void 複数の問題では押すと選ぶか外すかが切り替わる()
         {
             GoToSecondQuestion();
-            Assert.AreEqual("正しい読みを、すべて選んでください", view.Hint);
+            Assert.AreEqual("{正|ただ}しい{読|よ}みを、すべて{選|えら}んでください", view.Hint);
 
             view.Click(0);
             view.Click(2);

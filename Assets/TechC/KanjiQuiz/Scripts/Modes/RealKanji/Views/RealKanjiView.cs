@@ -47,22 +47,22 @@ namespace TechC.KanjiQuiz.Modes.RealKanji
 
             // 1行目：読みと使用例、2行目：意味、3行目：例文（選択肢の上に収まるように3行にする）
             var text = new StringBuilder();
-            text.Append($"本物は「{kanji}」（{reading}）");
+            text.Append($"{{本物|ほんもの}}は「{kanji}」（{reading}）");
             if (words.Count > 0)
             {
-                text.Append("　使用例：");
+                text.Append("　{使用例|しようれい}：");
                 for (int i = 0; i < words.Count; i++)
                 {
                     if (i > 0) text.Append("、");
                     text.Append(words[i]);
                 }
             }
-            if (!string.IsNullOrEmpty(meaning)) text.Append("\n意味：").Append(meaning);
+            if (!string.IsNullOrEmpty(meaning)) text.Append("\n{意味|いみ}：").Append(meaning);
             if (!string.IsNullOrEmpty(example))
             {
                 // 例文の中の本物の漢字を強調する
                 string color = ColorUtility.ToHtmlStringRGB(highlightColor);
-                text.Append("\n例文：").Append(example.Replace(kanji, $"<color=#{color}>{kanji}</color>"));
+                text.Append("\n{例文|れいぶん}：").Append(example.Replace(kanji, $"<color=#{color}>{kanji}</color>"));
             }
             answerInfoText.text = text.ToString();
         }

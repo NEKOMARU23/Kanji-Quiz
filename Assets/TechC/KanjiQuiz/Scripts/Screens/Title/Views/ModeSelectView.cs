@@ -69,7 +69,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         [Tooltip("時間割の横の黒板の字（時限・名前・説明・級）をチョークで書く")]
         [SerializeField] private ChalkTextWriter chalkWriter;
         [Tooltip("準備中のモードを選んだときに説明の代わりに出す文")]
-        [TextArea] [SerializeField] private string unavailableMessage = "この授業は準備中です。\nできあがるまで、もう少し待ってください。";
+        [TextArea] [SerializeField] private string unavailableMessage = "この{授業|じゅぎょう}は{準備中|じゅんびちゅう}です。\nできあがるまで、もう{少|すこ}し{待|ま}ってください。";
         [SerializeField] private Color rankColor = new Color(0.95f, 0.66f, 0.63f, 1f);
 
         [Header("--- 黒板（画面いっぱい） ---")]
@@ -215,7 +215,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         {
             for (int i = 0; i < rows.Count; i++) rows[i].SetSelected(i == index);
 
-            periodText.text = $"{mode.Period}時間目";
+            periodText.text = $"{mode.Period}{{時間目|じかんめ}}";
             nameText.text = mode.Definition.DisplayName;
             descriptionText.text = mode.IsAvailable ? mode.Definition.Description : unavailableMessage;
             ranksText.text = mode.IsAvailable ? FormatRanks(mode) : string.Empty;
@@ -231,7 +231,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         {
             CompleteWriting();
             isBoardOpen = true;
-            boardPeriodText.text = $"{mode.Period}時間目";
+            boardPeriodText.text = $"{mode.Period}{{時間目|じかんめ}}";
             boardNameText.text = mode.Definition.DisplayName;
             boardDescriptionText.text = mode.Definition.Description;
             SetColumns(mode.Records, mode.Definition.QuestionNoun);
@@ -459,8 +459,8 @@ namespace TechC.KanjiQuiz.Screens.Title
             foreach (var record in mode.Records)
             {
                 if (builder.Length > 0) builder.Append("　");
-                builder.Append(record.Difficulty.ToDisplayName()).Append(' ');
-                builder.Append(record.HasRecord ? $"<color=#{color}>{record.Rank}</color>" : "―");
+                builder.Append(record.Difficulty.ToMarkedName()).Append(' ');
+                builder.Append(record.HasRecord ? $"<color=#{color}>{KanjiRank.ToMarked(record.Rank)}</color>" : "―");
             }
             return builder.ToString();
         }

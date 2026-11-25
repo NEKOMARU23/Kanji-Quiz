@@ -87,7 +87,7 @@ namespace TechC.KanjiQuiz.Common
         {
             if (progressText != null)
             {
-                progressText.text = $"{current} / {total} 問";
+                progressText.text = $"{current} / {total} {{問|もん}}";
             }
 
             if (progressFill != null)

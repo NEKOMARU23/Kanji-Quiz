@@ -96,6 +96,8 @@ namespace TechC.KanjiQuiz.Common
         private async UniTask WriteLineAsync(Line line, CancellationToken ct)
         {
             var text = line.text;
+            // 読みの印（{漢字|よみ}）がついたままの文字を、字の数に数えないようにする
+            RubyLabelView.Flush(text);
             // 字を隠した状態だと、どの字も「見えない字」と扱われるので、全部見せた状態で空白かどうかを調べておく
             text.maxVisibleCharacters = int.MaxValue;
             text.ForceMeshUpdate();

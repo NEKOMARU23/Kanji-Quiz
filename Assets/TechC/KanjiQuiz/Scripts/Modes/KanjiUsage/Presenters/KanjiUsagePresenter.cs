@@ -47,7 +47,7 @@ namespace TechC.KanjiQuiz.Modes.KanjiUsage
         protected override UniTask ShowChoicesAsync(KanjiUsageQuestion question, CancellationToken ct)
         {
             view.SetWeakMarkVisible(weakList != null && weakList.Contains(question.Answer));
-            view.SetHint("文に合う言葉を1つ選んでください");
+            view.SetHint("{文|ぶん}に{合|あ}う{言葉|ことば}を1つ{選|えら}んでください");
             ShowSentence(question);
             for (int i = 0; i < question.ChoiceCount; i++)
             {
