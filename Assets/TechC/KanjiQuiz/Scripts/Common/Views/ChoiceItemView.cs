@@ -111,11 +111,11 @@ namespace TechC.KanjiQuiz.Common
                 switch (mark)
                 {
                     case ChoiceMark.Correct:
-                        markText.text = "正解";
+                        markText.text = "{正解|せいかい}";
                         markText.color = correctTextColor;
                         break;
                     case ChoiceMark.SelectedWrong:
-                        markText.text = "あなたの回答";
+                        markText.text = "あなたの{回答|かいとう}";
                         markText.color = wrongTextColor;
                         break;
                     default:

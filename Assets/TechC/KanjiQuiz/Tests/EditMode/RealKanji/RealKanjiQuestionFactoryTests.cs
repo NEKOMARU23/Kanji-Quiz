@@ -69,7 +69,7 @@ namespace TechC.KanjiQuiz.Tests
 
             var fakes = question.Choices.Where((_, i) => i != question.CorrectIndex).ToList();
             CollectionAssert.AreEquivalent(new[] { "ジ", "セイ", "コ" }, fakes.Select(c => c.Reading));
-            CollectionAssert.AreEquivalent(new[] { "氵＋寺", "氵＋青（清の右側）", "氵＋古" }, fakes.Select(c => c.Description));
+            CollectionAssert.AreEquivalent(new[] { "氵＋寺", "氵＋青（清の{右側|みぎがわ}）", "氵＋古" }, fakes.Select(c => c.Description));
             Assert.AreEqual("海外", question.Words.Single().Word);
         }
 
@@ -131,9 +131,9 @@ namespace TechC.KanjiQuiz.Tests
             CollectionAssert.AreEqual(new[] { "海", "池" }, factory.Candidates);
         }
 
-        [TestCase("left", "右側")]
-        [TestCase("top", "下")]
-        [TestCase("kamae", "内側")]
+        [TestCase("left", "{右側|みぎがわ}")]
+        [TestCase("top", "{下|した}")]
+        [TestCase("kamae", "{内側|うちがわ}")]
         public void 偽物の説明に借りた部品の場所を書く(string position, string expected)
         {
             var entry = Entry("海", "カイ");

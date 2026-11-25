@@ -126,7 +126,7 @@ namespace TechC.KanjiQuiz.Modes.FourCharIdiom
 
         public void SetMeaning(string meaning)
         {
-            if (meaningText != null) meaningText.text = string.IsNullOrEmpty(meaning) ? string.Empty : $"意味：{meaning}";
+            if (meaningText != null) meaningText.text = string.IsNullOrEmpty(meaning) ? string.Empty : $"{{意味|いみ}}：{meaning}";
         }
 
         public void SetCells(IReadOnlyList<FourCharIdiomCell> cells)
@@ -190,12 +190,12 @@ namespace TechC.KanjiQuiz.Modes.FourCharIdiom
             }
 
             var text = new StringBuilder();
-            text.Append($"正解は「{word}」（{reading}）");
+            text.Append($"{{正解|せいかい}}は「{word}」（{reading}）");
             if (!string.IsNullOrEmpty(example))
             {
                 // 例文の中の熟語を強調する
                 string color = ColorUtility.ToHtmlStringRGB(highlightColor);
-                text.Append("\n例文：").Append(example.Replace(word, $"<color=#{color}>{word}</color>"));
+                text.Append("\n{例文|れいぶん}：").Append(example.Replace(word, $"<color=#{color}>{word}</color>"));
             }
             answerInfoText.text = text.ToString();
         }

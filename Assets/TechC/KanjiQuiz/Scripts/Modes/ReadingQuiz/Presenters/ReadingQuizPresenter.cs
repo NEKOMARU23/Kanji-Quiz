@@ -42,7 +42,7 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
             view.SetWord(question.Word);
             view.SetOptions(question.Choices);
             view.SetOptionsInteractable(true);
-            view.SetHint(question.IsMultiple ? "正しい読みを、すべて選んでください" : "正しい読みを1つ選んでください");
+            view.SetHint(question.IsMultiple ? "{正|ただ}しい{読|よ}みを、すべて{選|えら}んでください" : "{正|ただ}しい{読|よ}みを1つ{選|えら}んでください");
             RefreshOptions(question);
             return UniTask.CompletedTask;
         }

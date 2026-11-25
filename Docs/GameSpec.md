@@ -587,7 +587,11 @@
 - [最初からやり直す] で、今のシーンを読み込み直す（難易度はそのまま）。
 - 効果音の音量をつまみで変えられる。すぐに反映し、PlayerPrefs（`Volume_Se`）に保存する。AudioManager が起動したときに読み込む。
 - 「出題の字のほかは ひらがなで表示」を切り替えられる。PlayerPrefs（`Option_Hiragana`）に保存し、最初は OFF。本物の漢字さがしの振り返りの意味と例文に効き、切り替えるとすぐ表示が変わる（`DisplaySettings`）。
-- 開いている間は、後ろの画面のキー操作を止める（`InputGate`）。シーンの切り替えの途中は開かない。
+- 同じスイッチで、画面の文字（ボタン・見出し・モード名・難易度・級・案内など）もひらがなになる（まだ漢字を習っていない子でも読める）。
+  - 画面の文字は、常用漢字で書ける言葉は漢字にそろえる（はじめる→始める、つぎ→次へ、よみ→読み）。「まだ」「なし」「する」「ありがとう」のように普通は仮名で書く言葉は仮名のまま。
+  - すべての漢字に `{漢字|よみ}` の印をつける（読みはひらがなだけ。長い読みには空白を入れてよい）。印はシーン・プレハブの文字にも、コードが入れる文字にもつける。コードの文字は、元の名前を残して `ToMarkedName`・`KanjiRank.ToMarked` のように印つきにして画面へ出す。
+  - 印を漢字／ひらがなに直すのは `RubyLabelView`（毎フレームの最後、描く前に出ている TMP の文字を見て書き直す）。ほかのコードが入れ替えた文字は上書きしない（`RubyLabelTracker`）。出題の字は印をつけず、いつも漢字のまま。
+  - 印のない漢字がないことは `UiTextReadingTests` が確かめる。新しい画面の文字を足したら、印をつける。- 開いている間は、後ろの画面のキー操作を止める（`InputGate`）。シーンの切り替えの途中は開かない。
 - 書き順の線（LineRenderer）より手前に出すため、専用の Canvas（Screen Space - Camera、sortingOrder 20）に置く。カメラは `CanvasCameraBinder` が起動時に設定するので、プレハブを置くだけで使える。
 - [やめる（時間割へ）] で、Title シーンを開いてモード選択（時間割）に戻る（`TitleLaunchOptions.OpenModeSelect`）。
 
@@ -726,6 +730,9 @@ MVP 構成。全体の設計は [Architecture.md](Architecture.md) を参照。
 | KanjiWordDictionary / KanjiWord | Model | 漢字ごとの使用例（熟語）の辞書（Data/KanjiWords） |
 | KanjiMeaningDictionary / KanjiMeaning | Model | 漢字ごとの意味と例文の辞書（Data/KanjiMeanings） |
 | RubyText | Model | 読みをつけた文（{漢字|よみ}）を、漢字のまま、またはひらがなにして出す。読みのない漢字も探せる |
+| RubyLabelTracker | Model | 画面の文字（ラベル）ごとに、印のついた元の文字と書き直した文字を覚え、漢字／ひらがなを合わせる（Unity に依存しない） |
+| RubyLabelView / IRubyLabelView / RubyLabelBootstrap | View | 出ている TMP の文字の印を毎フレームの最後に書き直す。起動時に `RubyLabelBootstrap` が1つ作る（シーンには置かない）。`ChalkTextWriter` は書き始める前に `Flush` する |
+| RubyLabelPresenter | Presenter | `DisplaySettings` の変化を `RubyLabelView` に伝える |
 | DisplaySettings / IDisplaySettingRepository / PlayerPrefsDisplaySettingRepository | Model | 表示の設定（出題の字のほかをひらがなにするか）と保存先。シーンをまたいで DisplaySettings.Shared を使う |
 
 **タイトルとモード選択**（`Scripts/Screens/Title`、名前空間 `TechC.KanjiQuiz.Screens.Title`）

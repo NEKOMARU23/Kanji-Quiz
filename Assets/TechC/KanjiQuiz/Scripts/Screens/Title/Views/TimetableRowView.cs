@@ -1,4 +1,5 @@
 using R3;
+using TechC.KanjiQuiz.Common;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -32,7 +33,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <summary>行の内容を書く</summary>
         public void Set(ModeSummary mode)
         {
-            periodText.text = $"{mode.Period}時間目";
+            periodText.text = $"{mode.Period}{{時間目|じかんめ}}";
             if (mode.IsAvailable)
             {
                 nameText.text = mode.Definition.DisplayName;
@@ -41,13 +42,13 @@ namespace TechC.KanjiQuiz.Screens.Title
             else
             {
                 // まだ作っていないモードは「自習」にする
-                nameText.text = $"自習<size=60%>（{mode.Definition.DisplayName} 準備中）</size>";
+                nameText.text = $"{{自習|じしゅう}}<size=60%>（{mode.Definition.DisplayName} {{準備中|じゅんびちゅう}}）</size>";
                 nameText.color = unavailableColor;
             }
 
             bool hasRank = mode.BestRank != null;
             rankStamp.SetActive(hasRank);
-            if (hasRank) rankText.text = mode.BestRank;
+            if (hasRank) rankText.text = KanjiRank.ToMarked(mode.BestRank);
             SetSelected(false);
         }
 

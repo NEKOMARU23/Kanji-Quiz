@@ -29,11 +29,11 @@ namespace TechC.KanjiQuiz.Common
         [Min(1)] [SerializeField] private int normalQuestionCount = 7;
         [Min(1)] [SerializeField] private int hardQuestionCount = 7;
         [Header("出題範囲の説明（モード選択画面に出す）")]
-        [SerializeField] private string easyRange = "小学漢字";
-        [SerializeField] private string normalRange = "常用漢字（よく使う）";
-        [SerializeField] private string hardRange = "常用漢字（あまり使わない）";
+        [SerializeField] private string easyRange = "{小学漢字|しょうがくかんじ}";
+        [SerializeField] private string normalRange = "{常用漢字|じょうようかんじ}（よく{使|つか}う）";
+        [SerializeField] private string hardRange = "{常用漢字|じょうようかんじ}（あまり{使|つか}わない）";
         [Tooltip("問題の呼び方（難易度の黒板の「苦手な○○」に使う）。四字熟語づくりは「熟語」")]
-        [SerializeField] private string questionNoun = "漢字";
+        [SerializeField] private string questionNoun = "{漢字|かんじ}";
 
         private static readonly Difficulty[] AllDifficulties = { Difficulty.Easy, Difficulty.Normal, Difficulty.Hard };
         private static readonly Difficulty[] EasyOnly = { Difficulty.Easy };
@@ -57,7 +57,7 @@ namespace TechC.KanjiQuiz.Common
         public bool HasDifficulty => hasDifficulty;
 
         /// <summary>問題の呼び方（例：漢字、熟語）。設定がなければ「漢字」</summary>
-        public string QuestionNoun => string.IsNullOrEmpty(questionNoun) ? "漢字" : questionNoun;
+        public string QuestionNoun => string.IsNullOrEmpty(questionNoun) ? "{漢字|かんじ}" : questionNoun;
 
         /// <summary>選べる難易度。難易度がないモードは Easy だけ</summary>
         public IReadOnlyList<Difficulty> Difficulties => hasDifficulty ? AllDifficulties : EasyOnly;
@@ -101,7 +101,7 @@ namespace TechC.KanjiQuiz.Common
         /// <summary>画面と結果に出す名前（例：書き順クイズ（簡単））</summary>
         public string Title(Difficulty difficulty)
         {
-            return hasDifficulty ? $"{displayName}（{difficulty.ToDisplayName()}）" : displayName;
+            return hasDifficulty ? $"{displayName}（{difficulty.ToMarkedName()}）" : displayName;
         }
 
         /// <summary>自己ベストと苦手な問題を保存するときのキー。難易度ごとに分ける（例：StrokeOrder_Easy）</summary>
