@@ -55,8 +55,8 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <summary>モードのない時限を「自習」とだけ書く。選べない</summary>
         public void SetStudyHall(int period)
         {
-            periodText.text = $"{period}時間目";
-            nameText.text = "自習";
+            periodText.text = $"{period}{{時間目|じかんめ}}";
+            nameText.text = "{自習|じしゅう}";
             nameText.color = unavailableColor;
             button.interactable = false;
             rankStamp.SetActive(false);
