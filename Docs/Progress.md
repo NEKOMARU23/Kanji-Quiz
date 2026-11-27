@@ -278,6 +278,7 @@
 | [#32](https://github.com/NEKOMARU23/Knaji-Quiz/pull/32) | 画面の文字を漢字にそろえて読みの印（{漢字|よみ}）をつけ、「ひらがなで表示」の設定で画面全体をひらがなにできるようにする（RubyLabelView、UiTextReadingTests） | 2026-11-24 |
 | [#35](https://github.com/NEKOMARU23/Knaji-Quiz/pull/35) | BGM の仕組み（メニュー・クイズの2曲、フェード）、デモ曲、設定と中断メニューの BGM の音量のつまみ | 2026-11-24 |
 | [#34](https://github.com/NEKOMARU23/Knaji-Quiz/pull/34) | 背景画像を、和紙のような再生紙から賞状のような紙（金の二重枠）に変更 | 2026-11-24 |
+| [#41](https://github.com/NEKOMARU23/Kanji-Quiz/pull/41) | 読み当てを数字キー・テンキーで選べるようにし、全モードのキーヒントとチェックボックスの見た目を使い分けにそろえた | 2026-11-27 |
 
 ---
 
