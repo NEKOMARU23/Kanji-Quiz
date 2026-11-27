@@ -9,7 +9,7 @@ namespace TechC.KanjiQuiz.Screens.Result
     /// <summary>
     /// 結果画面の Presenter
     /// 結果発表の演出（1問ずつ ○× → 点数のルーレット → 点数 → 級のハンコ → 全問正解なら花丸 → 自己ベスト）を進め、
-    /// 終わったらボタン（もう一度・問題を振り返る・モード選択へ・タイトルへ）を出す
+    /// 終わったらボタン（もう一度・問題を振り返る・モード選択へ・難易度選択へ）を出す
     /// </summary>
     public sealed class ResultPresenter : IDisposable
     {
@@ -58,8 +58,10 @@ namespace TechC.KanjiQuiz.Screens.Result
             view.OnModeSelectClicked
                 .Subscribe(this, static (_, self) => self.GoToTitleScene(openModeSelect: true))
                 .AddTo(disposables);
+            // [難易度選択へ]。遊んだモードの黒板を開く。結果がなくてモードが分からないときは、タイトルに戻る
             view.OnTitleClicked
-                .Subscribe(this, static (_, self) => self.GoToTitleScene(openModeSelect: false))
+                .Subscribe(this, static (_, self) => self.GoToTitleScene(
+                    openModeSelect: self.result != null, difficultySceneName: self.result?.RetrySceneName))
                 .AddTo(disposables);
 
             if (result == null)
@@ -203,12 +205,14 @@ namespace TechC.KanjiQuiz.Screens.Result
 
         /// <summary>
         /// Title シーンを開く。openModeSelect なら最初からモード選択（時間割）を出す
+        /// difficultySceneName があれば、そのモードの難易度選択（黒板）まで開く
         /// </summary>
-        private void GoToTitleScene(bool openModeSelect)
+        private void GoToTitleScene(bool openModeSelect, string difficultySceneName = null)
         {
             if (isRevealing) return;
 
             TitleLaunchOptions.OpenModeSelect = openModeSelect;
+            TitleLaunchOptions.OpenDifficultySceneName = difficultySceneName;
             sceneLoader.Load(SceneNames.Title);
         }
 

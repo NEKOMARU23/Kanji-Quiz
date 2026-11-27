@@ -20,7 +20,7 @@ namespace TechC.KanjiQuiz.Screens.Result
         /// <summary>[モード選択へ] が押されたとき</summary>
         Observable<Unit> OnModeSelectClicked { get; }
 
-        /// <summary>[タイトルへ] が押されたとき</summary>
+        /// <summary>[難易度選択へ] が押されたとき</summary>
         Observable<Unit> OnTitleClicked { get; }
 
         /// <summary>問題ごとの結果がクリックされたとき。値は問題の番号（0 始まり）</summary>

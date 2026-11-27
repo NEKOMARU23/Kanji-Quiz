@@ -86,17 +86,51 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
-        public void タイトルへを押すとタイトルから始まるタイトルのシーンを読み込む()
+        public void 難易度選択へを押すと遊んだモードの難易度選択から始まるタイトルのシーンを読み込む()
+        {
+            TitleLaunchOptions.OpenModeSelect = false;
+            TitleLaunchOptions.OpenDifficultySceneName = null;
+            var result = new QuizResult("書き順クイズ", "StrokeOrder", new[] { new QuizResultItem("令", AnswerState.Correct) });
+
+            using (var presenter = CreatePresenter(result))
+            {
+                presenter.Initialize();
+                view.ClickTitle();
+            }
+
+            Assert.IsTrue(TitleLaunchOptions.TakeOpenModeSelect());
+            Assert.AreEqual("StrokeOrder", TitleLaunchOptions.TakeOpenDifficultySceneName());
+            CollectionAssert.AreEqual(new[] { SceneNames.Title }, sceneLoader.LoadedScenes);
+        }
+
+        [Test]
+        public void モード選択へを押すと難易度選択は開かない()
+        {
+            TitleLaunchOptions.OpenDifficultySceneName = "StrokeOrder";
+
+            using (var presenter = CreatePresenter(CreateResult()))
+            {
+                presenter.Initialize();
+                view.ClickModeSelect();
+            }
+
+            Assert.IsNull(TitleLaunchOptions.TakeOpenDifficultySceneName());
+            TitleLaunchOptions.OpenModeSelect = false;
+        }
+
+        [Test]
+        public void 結果がないときの難易度選択へはタイトルから始める()
         {
             TitleLaunchOptions.OpenModeSelect = true;
 
-            using (var presenter = CreatePresenter(CreateResult()))
+            using (var presenter = CreatePresenter(null))
             {
                 presenter.Initialize();
                 view.ClickTitle();
             }
 
             Assert.IsFalse(TitleLaunchOptions.TakeOpenModeSelect());
+            Assert.IsNull(TitleLaunchOptions.TakeOpenDifficultySceneName());
             CollectionAssert.AreEqual(new[] { SceneNames.Title }, sceneLoader.LoadedScenes);
         }
 
