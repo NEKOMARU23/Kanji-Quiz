@@ -17,6 +17,9 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
         [Tooltip("選んでいるときに出す印（チェックなど）")]
         [SerializeField] private GameObject selectedMark;
 
+        [Tooltip("選ぶときに押す数字キーを出すテキスト。不要なら空でよい")]
+        [SerializeField] private TMP_Text keyHintText;
+
         private readonly Subject<int> onClicked = new Subject<int>();
         private static readonly Color NormalColor = new Color(0.15f, 0.15f, 0.15f, 1f);
         private static readonly Color CorrectColor = new Color(0.12f, 0.42f, 0.2f, 1f);
@@ -41,6 +44,7 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
         {
             index = optionIndex;
             if (label != null) label.text = reading;
+            if (keyHintText != null) keyHintText.text = (optionIndex + 1).ToString();
             SetSelected(false);
         }
 

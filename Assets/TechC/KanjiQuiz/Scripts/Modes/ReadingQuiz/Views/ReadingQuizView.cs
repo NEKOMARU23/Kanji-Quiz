@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using R3;
+using TechC.KanjiQuiz.Common;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace TechC.KanjiQuiz.Modes.ReadingQuiz
 {
@@ -26,9 +28,28 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
         /// <inheritdoc/>
         public Observable<int> OnOptionClicked => onOptionClicked;
 
+        private bool isInteractable = true;
+
         private void OnDestroy()
         {
             onOptionClicked.Dispose();
+        }
+
+        private void Update()
+        {
+            if (!isInteractable || InputGate.IsBlocked) return;
+            var keyboard = Keyboard.current;
+            if (keyboard == null) return;
+
+            // 数字キーとテンキーの 1 から順に、1つ目の選択肢から対応させる
+            for (int i = 0; i < options.Count && i < 9; i++)
+            {
+                if (keyboard[Key.Digit1 + i].wasPressedThisFrame || keyboard[Key.Numpad1 + i].wasPressedThisFrame)
+                {
+                    onOptionClicked.OnNext(i);
+                    return;
+                }
+            }
         }
 
         /// <inheritdoc/>
@@ -73,6 +94,7 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
         /// <inheritdoc/>
         public void SetOptionsInteractable(bool interactable)
         {
+            isInteractable = interactable;
             foreach (var option in options) option.SetInteractable(interactable);
         }
 
