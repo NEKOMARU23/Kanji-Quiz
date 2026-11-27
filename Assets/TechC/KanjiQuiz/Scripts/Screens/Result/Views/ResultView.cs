@@ -26,7 +26,7 @@ namespace TechC.KanjiQuiz.Screens.Result
         [SerializeField] private Button reviewButton;
         [Tooltip("[モード選択へ] ボタン")]
         [SerializeField] private Button modeSelectButton;
-        [Tooltip("[タイトルへ] ボタン")]
+        [Tooltip("[難易度選択へ] ボタン")]
         [SerializeField] private Button titleButton;
         [Tooltip("「問題を押すと振り返れます」の案内。不要なら空でよい")]
         [SerializeField] private TMP_Text reviewHintText;

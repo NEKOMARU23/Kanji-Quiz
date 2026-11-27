@@ -87,6 +87,25 @@ namespace TechC.KanjiQuiz.Screens.Title
             if (modes.Count > 0) SelectMode(FirstAvailableIndex(), playSound: false);
         }
 
+        /// <summary>
+        /// 指定したモードの難易度選択（黒板）を開く（結果画面の [難易度選択へ] から来たとき）
+        /// モードが見つからない、または遊べないときは、時間割のままにする
+        /// </summary>
+        /// <param name="sceneName">モードのシーン名（QuizModeDefinition.SceneName）</param>
+        public void OpenDifficulty(string sceneName)
+        {
+            if (!isOpen || isBoardOpen) return;
+
+            for (int i = 0; i < modes.Count; i++)
+            {
+                if (modes[i].Definition.SceneName != sceneName) continue;
+
+                SelectMode(i, playSound: false);
+                OpenBoard();
+                return;
+            }
+        }
+
         private void SelectMode(int index, bool playSound)
         {
             if (!isOpen || isBoardOpen || index < 0 || index >= modes.Count) return;

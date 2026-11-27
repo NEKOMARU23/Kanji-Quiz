@@ -71,7 +71,8 @@ namespace TechC.KanjiQuiz.Screens.Title
                 settings: settings, kanjiBook: kanjiBook, credits: new CreditsPresenter(creditsView, audioPlayer));
             presenter = new TitlePresenter(
                 titleView, modeSelect, subScreens, new ApplicationQuitter(), audioPlayer,
-                strokeSource, logoText, TitleLaunchOptions.TakeOpenModeSelect());
+                strokeSource, logoText, TitleLaunchOptions.TakeOpenModeSelect(),
+                TitleLaunchOptions.TakeOpenDifficultySceneName());
             presenter.Initialize();
         }
 

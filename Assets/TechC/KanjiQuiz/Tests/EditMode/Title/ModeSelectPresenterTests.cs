@@ -103,6 +103,30 @@ namespace TechC.KanjiQuiz.Tests
         }
 
         [Test]
+        public void 指定したモードの難易度選択を開く()
+        {
+            CreatePresenter();
+            presenter.Open();
+
+            presenter.OpenDifficulty("RealKanjiScene");
+
+            Assert.IsTrue(presenter.IsBoardOpen);
+            Assert.AreEqual(2, presenter.SelectedModeIndex);
+        }
+
+        [Test]
+        public void 見つからないモードや遊べないモードの難易度選択は開かない()
+        {
+            CreatePresenter();
+            presenter.Open();
+
+            presenter.OpenDifficulty("NoSuchScene");
+            presenter.OpenDifficulty("IdiomScene");
+
+            Assert.IsFalse(presenter.IsBoardOpen);
+        }
+
+        [Test]
         public void 開くと遊べる一番上のモードを選ぶ()
         {
             CreatePresenter();

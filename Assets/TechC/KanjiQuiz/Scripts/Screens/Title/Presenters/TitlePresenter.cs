@@ -22,6 +22,7 @@ namespace TechC.KanjiQuiz.Screens.Title
         private readonly IKanjiStrokeSource strokeSource;
         private readonly string logoText;
         private readonly bool openModeSelectFirst;
+        private readonly string openDifficultySceneName;
         private readonly CompositeDisposable disposables = new CompositeDisposable();
         private readonly CancellationTokenSource lifetimeCts = new CancellationTokenSource();
         private IReadOnlyList<IReadOnlyList<string>> logoStrokePaths;
@@ -41,9 +42,11 @@ namespace TechC.KanjiQuiz.Screens.Title
         /// <param name="strokeSource">ロゴの書き順データの読み込み口</param>
         /// <param name="logoText">黒板に書くロゴの字（例：漢字クイズ）</param>
         /// <param name="openModeSelectFirst">タイトルを飛ばして、最初からモード選択を出すかどうか</param>
+        /// <param name="openDifficultySceneName">モード選択を出したあと、続けて難易度選択（黒板）を開くモードのシーン名。開かないなら null</param>
         public TitlePresenter(
             ITitleView view, ModeSelectPresenter modeSelect, TitleSubScreens subScreens, IApplicationQuitter quitter,
-            IAudioPlayer audioPlayer, IKanjiStrokeSource strokeSource, string logoText, bool openModeSelectFirst)
+            IAudioPlayer audioPlayer, IKanjiStrokeSource strokeSource, string logoText, bool openModeSelectFirst,
+            string openDifficultySceneName = null)
         {
             this.view = view ?? throw new ArgumentNullException(nameof(view));
             this.modeSelect = modeSelect ?? throw new ArgumentNullException(nameof(modeSelect));
@@ -53,6 +56,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             this.strokeSource = strokeSource ?? throw new ArgumentNullException(nameof(strokeSource));
             this.logoText = logoText ?? string.Empty;
             this.openModeSelectFirst = openModeSelectFirst;
+            this.openDifficultySceneName = openDifficultySceneName;
         }
 
         /// <summary>
@@ -82,6 +86,7 @@ namespace TechC.KanjiQuiz.Screens.Title
             {
                 view.SetVisible(false);
                 modeSelect.Open(fromTitle: false);
+                if (!string.IsNullOrEmpty(openDifficultySceneName)) modeSelect.OpenDifficulty(openDifficultySceneName);
             }
             else
             {
