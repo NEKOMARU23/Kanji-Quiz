@@ -141,17 +141,8 @@ namespace TechC.KanjiQuiz.Modes.StrokeOrder
 
         private void GoToResult()
         {
-            QuizReviewStore.Set(session.Questions, session.Answers);
-            var result = QuizResult.FromSession(
-                Title, mode.SceneName, session, q => q.Kanji, mode.SceneName, difficulty, RecordKey);
-            QuizResultStore.Set(result);
-
-            // 間違えた漢字を苦手に加え、正解した漢字を外す
-            weakList.RecordResult(result);
-            weakRepository.Save(RecordKey, weakList);
-
-            // 正解した漢字を漢字帳に集める
-            KanjiBook.Collect(kanjiBookRepository, mode.ModeId, result);
+            var recorder = new QuizResultRecorder(weakRepository, kanjiBookRepository);
+            recorder.Record(mode, difficulty, session, q => q.Kanji, weakList);
 
             sceneLoader.Load(SceneNames.Result);
         }

@@ -135,17 +135,8 @@ namespace TechC.KanjiQuiz.Modes.FourCharIdiom
 
         private void GoToResult()
         {
-            QuizReviewStore.Set(session.Questions, session.Answers);
-            var result = QuizResult.FromSession(
-                Title, mode.SceneName, session, q => q.Word, mode.SceneName, difficulty, RecordKey);
-            QuizResultStore.Set(result);
-
-            // 間違えた熟語を苦手に加え、正解した熟語を外す
-            weakList.RecordResult(result);
-            weakRepository.Save(RecordKey, weakList);
-
-            // 正解した熟語を、熟語のまま漢字帳に集める（漢字帳の四字熟語のページに出る）
-            KanjiBook.Collect(kanjiBookRepository, mode.ModeId, result);
+            var recorder = new QuizResultRecorder(weakRepository, kanjiBookRepository);
+            recorder.Record(mode, difficulty, session, q => q.Word, weakList);
 
             sceneLoader.Load(SceneNames.Result);
         }
