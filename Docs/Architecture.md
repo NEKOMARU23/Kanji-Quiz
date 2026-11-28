@@ -170,7 +170,8 @@ classDiagram
 | `KanjiRank` | 正解率と難易度から級（10級〜初段）を決める。級の高さ（難易度をまたいで比べる）と、次の級まであと何問かも求める | Model |
 | `IBestRecordRepository` / `PlayerPrefsBestRecordRepository` / `BestRecordUpdate` | 自己ベストの保存先と、1回のプレイで更新したかどうか。`QuizResult.UpdateBestRecord` が1回だけ調べて保存する | Model |
 | `WeakQuestionList` / `IWeakQuestionRepository` / `PlayerPrefsWeakQuestionRepository` | 苦手な問題（間違えた問題）のリストと保存先。`OrderCandidates` で苦手な問題を先頭に並べる。問題は文字列で表すので、ほかのモードでも使える | Model |
-| `KanjiBook` / `IKanjiBookRepository` / `PlayerPrefsKanjiBookRepository` | 漢字帳。モードごとに正解したもの（漢字1字。四字熟語づくりは熟語）を持つ。`KanjiBook.Collect` で結果の正解した Label を足して保存する（各モードの組み立て役が結果画面へ移るときに呼ぶ）。キーは `KanjiBook_<モード>`、値は1つずつ改行で区切った文字列（前の形式の、字をつなげただけの文字列も読める） | Model |
+| `KanjiBook` / `IKanjiBookRepository` / `PlayerPrefsKanjiBookRepository` | 漢字帳。モードごとに正解したもの（漢字1字。四字熟語づくりは熟語）を持つ。`KanjiBook.Collect` で結果の正解した Label を足して保存する（結果画面へ移るときに `QuizResultRecorder` が呼ぶ）。キーは `KanjiBook_<モード>`、値は1つずつ改行で区切った文字列（前の形式の、字をつなげただけの文字列も読める） | Model |
+| `QuizResultRecorder` | プレイが終わって結果画面へ移る前の記録を、全モード共通で行う。振り返りのデータ（`QuizReviewStore`）と結果（`QuizResultStore`）を置き、苦手な問題を保存し、正解したものを漢字帳に足す。各モードの組み立て役が呼ぶ。シーンの読み込みはしない | Model |
 | `KanjiReadingDictionary` | 漢字ごとの読み（本物の漢字さがしの問題データの `reading`） | Model |
 | `QuizRecordEraser` | 保存した記録（自己ベスト・苦手な問題・漢字帳）を、モードの一覧のすべてのモードと難易度について消す（設定の「記録を消す」）。保存先には `Delete` がある | Model |
 | `SceneTransitionView` / `ISceneTransition` | プリントを回収して次を配るようにシーンを切り替える（`SingletonMonoBehaviour` を継承）。`SceneLoader` に渡すと演出つきになる。カメラの映像をテクスチャに描いて使うので、各シーンの Canvas は Screen Space - Camera にする | View |
@@ -347,6 +348,7 @@ private async UniTaskVoid InitializeAsync(CancellationToken ct)
 ```
 
 - View への参照は EntryPoint だけが SerializeField で持つ。
+- `GoToResult` では、`QuizResultRecorder.Record` で記録してから、結果のシーンを読み込む。渡すのは、モードの定義、難易度、進行状況、問題から結果の Label を取り出す関数、出題の準備で読んだ苦手な問題。Label は苦手な問題と漢字帳に保存する値なので、出題の候補と同じ文字列にする。
 - Presenter は `IDisposable` を実装し、R3 の購読と UniTask のキャンセルを `Dispose` でまとめて解除する。EntryPoint の `OnDestroy` で `Dispose` する。
 - VContainer を入れるときは、EntryPoint を `LifetimeScope` に置き換える。Presenter と Model のコードは変えなくてよい。
 
