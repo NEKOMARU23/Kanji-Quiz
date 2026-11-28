@@ -136,18 +136,8 @@ namespace TechC.KanjiQuiz.Modes.ReadingQuiz
 
         private void GoToResult()
         {
-            // 振り返りに使う問題と回答を置き、結果から同じシーンを振り返りとして開けるようにする
-            QuizReviewStore.Set(session.Questions, session.Answers);
-            var result = QuizResult.FromSession(
-                Title, mode.SceneName, session, q => q.Word, mode.SceneName, difficulty, RecordKey);
-            QuizResultStore.Set(result);
-
-            // 間違えた熟語を苦手に加え、正解した熟語を外す
-            weakList.RecordResult(result);
-            weakRepository.Save(RecordKey, weakList);
-
-            // 正解した熟語を漢字帳に集める（四字熟語づくりと同じく、熟語のまま）
-            KanjiBook.Collect(kanjiBookRepository, mode.ModeId, result);
+            var recorder = new QuizResultRecorder(weakRepository, kanjiBookRepository);
+            recorder.Record(mode, difficulty, session, q => q.Word, weakList);
 
             sceneLoader.Load(SceneNames.Result);
         }

@@ -138,18 +138,8 @@ namespace TechC.KanjiQuiz.Modes.KanjiUsage
 
         private void GoToResult()
         {
-            // 振り返りに使う問題と回答を置き、結果から同じシーンを振り返りとして開けるようにする
-            QuizReviewStore.Set(session.Questions, session.Answers);
-            var result = QuizResult.FromSession(
-                Title, mode.SceneName, session, q => q.Answer, mode.SceneName, difficulty, RecordKey);
-            QuizResultStore.Set(result);
-
-            // 間違えた言葉を苦手に加え、正解した言葉を外す
-            weakList.RecordResult(result);
-            weakRepository.Save(RecordKey, weakList);
-
-            // 正解した言葉を漢字帳に集める（読み当てと同じく、言葉のまま）
-            KanjiBook.Collect(kanjiBookRepository, mode.ModeId, result);
+            var recorder = new QuizResultRecorder(weakRepository, kanjiBookRepository);
+            recorder.Record(mode, difficulty, session, q => q.Answer, weakList);
 
             sceneLoader.Load(SceneNames.Result);
         }
